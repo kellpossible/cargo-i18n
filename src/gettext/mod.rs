@@ -19,11 +19,26 @@ pub struct GettextConfig {
     pub output_dir: Box<Path>,
     /// Whether or not to perform string extraction using the `xtr` tool.
     pub xtr: Option<bool>,
+    /// Path to where the pot files will be written to by
+    /// [run_xtr()](run_xtr()), and were they will be read from by
+    /// [run_msginit()](run_msginit()) and
+    /// [run_msgmerge()](run_msgmerge()). 
+    /// 
+    /// By default this is **[output_dir](GettextConfig::output_dir)/pot**.
+    pub pot_dir: Option<Box<Path>>,
     /// Path to where the po files will be stored/edited with the
     /// [run_msgmerge()](run_msgmerge()) and
     /// [run_msginit()](run_msginit()) commands, and where they will
-    /// be read from with the [run_msgfmt()](run_msgfmt()) command.
+    /// be read from with the [run_msgfmt()](run_msgfmt()) command. 
+    /// 
+    /// By default this is **[output_dir](GettextConfig::output_dir)/po**.
     pub po_dir: Option<Box<Path>>,
+    /// Path to where the mo files will be written to by the
+    /// [run_msgfmt()](run_msgfmt()) command.
+    /// 
+    /// By default this is **[output_dir](GettextConfig::output_dir)/mo**.
+    pub mo_dir: Option<Box<Path>>,
+
 }
 
 pub fn run_xtr(crate_name: &str, src_dir: &Path, pot_dir: &Path) -> Result<()> {

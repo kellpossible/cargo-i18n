@@ -24,7 +24,7 @@ output_dir = "i18n"
 # (Optional) Whether or not to perform string extraction using the `xtr` tool.
 xtr = true
 
-# (Optional) Path to where the po files will be stored/edited with the `msgmerge` and `msginit` commands, and where they will be read from with the `msgfmt`. command.
+# (Optional) Path to where the po files will be stored/edited with the `msgmerge` and `msginit` commands, and where they will be read from with the `msgfmt` command. By default this `output_dir/po`.
 po_dir = "i18n/po"
 ```
 
