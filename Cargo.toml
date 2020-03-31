@@ -1,0 +1,21 @@
+[package]
+name = "cargo-i18n"
+version = "0.1.0"
+authors = ["Luke Frisken <l.frisken@gmail.com>"]
+edition = "2018"
+description = "Cargo subcommand to extract and build localization resources"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+# TODO: make gettext an optional dependency
+
+[dependencies]
+subprocess = "0.2"
+toml = "0.5"
+serde = { version = "1.0", features = ["derive"] }
+serde_derive = "1.0"
+anyhow = "1.0"
+thiserror = "1.0"
+tr = { version = "0.1", default-features = false, features = ["gettext"] }
+walkdir = "2"
+structopt = "0.3"
