@@ -4,6 +4,10 @@ version = "0.1.0"
 authors = ["Luke Frisken <l.frisken@gmail.com>"]
 edition = "2018"
 description = "Cargo subcommand to extract and build localization resources"
+keywords = ["cargo", "build", "i18n", "gettext", "locale"]
+license = "MIT"
+categories = ["development-tools::cargo-plugins", "localization", "internationalization", "development-tools::build-utils"]
+readme = "README.md"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

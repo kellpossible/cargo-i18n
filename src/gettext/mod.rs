@@ -14,10 +14,19 @@ use walkdir::WalkDir;
 
 #[derive(Deserialize, Debug)]
 pub struct GettextConfig {
+    /// Path to the output directory, relative to `i18n.toml` of the
+    /// crate being localized.
+    pub output_dir: Box<Path>,
+    /// Whether or not to perform string extraction using the `xtr` tool.
     pub xtr: Option<bool>,
+    /// Path to where the po files will be stored/edited with the
+    /// [run_msgmerge()](run_msgmerge()) and
+    /// [run_msginit()](run_msginit()) commands, and where they will
+    /// be read from with the [run_msgfmt()](run_msgfmt()) command.
+    pub po_dir: Option<Box<Path>>,
 }
 
-pub fn i18n_xtr(crate_name: &str, src_dir: &Path, pot_dir: &Path) -> Result<()> {
+pub fn run_xtr(crate_name: &str, src_dir: &Path, pot_dir: &Path) -> Result<()> {
     let mut rs_files: Vec<Box<Path>> = Vec::new();
 
     for result in WalkDir::new(src_dir) {
@@ -137,7 +146,7 @@ pub fn i18n_xtr(crate_name: &str, src_dir: &Path, pot_dir: &Path) -> Result<()> 
     Ok(())
 }
 
-pub fn i18n_msginit(
+pub fn run_msginit(
     crate_name: &str,
     i18n_config: &I18nConfig,
     pot_dir: &Path,
@@ -187,7 +196,7 @@ pub fn i18n_msginit(
     Ok(())
 }
 
-pub fn i18n_msgmerge(
+pub fn run_msgmerge(
     crate_name: &str,
     i18n_config: &I18nConfig,
     pot_dir: &Path,
@@ -226,7 +235,7 @@ pub fn i18n_msgmerge(
     Ok(())
 }
 
-pub fn i18n_msgfmt(
+pub fn run_msgfmt(
     crate_name: &str,
     i18n_config: &I18nConfig,
     po_dir: &Path,
@@ -287,14 +296,14 @@ pub fn build_i18n(i18n_config: &I18nConfig) -> Result<()> {
         let mo_dir = i18n_dir.join("mo");
 
         if do_xtr {
-            i18n_xtr(subcrate.name.as_str(), src_dir.as_path(), pot_dir.as_path())?;
-            i18n_msginit(
+            run_xtr(subcrate.name.as_str(), src_dir.as_path(), pot_dir.as_path())?;
+            run_msginit(
                 subcrate.name.as_str(),
                 i18n_config,
                 pot_dir.as_path(),
                 po_dir.as_path(),
             )?;
-            i18n_msgmerge(
+            run_msgmerge(
                 subcrate.name.as_str(),
                 i18n_config,
                 pot_dir.as_path(),
@@ -302,7 +311,7 @@ pub fn build_i18n(i18n_config: &I18nConfig) -> Result<()> {
             )?;
         }
 
-        i18n_msgfmt(
+        run_msgfmt(
             subcrate.name.as_str(),
             i18n_config,
             po_dir.as_path(),

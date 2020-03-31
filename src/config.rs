@@ -27,10 +27,7 @@ pub struct I18nConfig {
     /// The locale/language identifier of the language used in the source code.
     pub src_locale: String,
     /// The locales that the software will be translated into.
-    pub locales: Vec<String>,
-    /// Path to the output directory, relative to `i18n.toml` of the
-    /// crate being localized.
-    pub output_dir: Box<Path>,
+    pub target_locales: Vec<String>,
     /// Specify which subcrates to perform localization within. If the
     /// subcrate has its own `i18n.toml` then, it will have its
     /// localization performed independently (rather than being
@@ -38,7 +35,7 @@ pub struct I18nConfig {
     pub subcrates: Option<Vec<Box<Path>>>,
     /// The subcomponent of this config relating to gettext, only
     /// present if the gettext localization system will be used.
-    pub gettext_config: Option<GettextConfig>,
+    pub gettext: Option<GettextConfig>,
 }
 
 impl I18nConfig {
