@@ -12,6 +12,8 @@ use tr::tr;
 pub struct Crate {
     /// The name of the crate
     pub name: String,
+    /// The version of the crate
+    pub version: String,
     /// The path to the crate
     pub path: Box<Path>,
 }
@@ -25,7 +27,7 @@ impl Crate {
         let cargo_toml: toml::Value = toml::from_str(toml_str.as_ref())
             .with_context(|| format!("trouble parsing {0:?}", cargo_path))?;
 
-        let name = cargo_toml
+        let package = cargo_toml
             .as_table()
             .ok_or(anyhow!("expected Cargo.toml to be a table"))?
             .get("package")
@@ -33,14 +35,23 @@ impl Crate {
             .as_table()
             .ok_or(anyhow!(
                 "expected Cargo.toml's package section to be a map containing values"
-            ))?
+            ))?;
+
+        let name = package
             .get("name")
             .ok_or(anyhow!("expected Cargo.toml's package name to exist"))?
             .as_str()
             .ok_or(anyhow!("expected Cargo.toml'spackage name to be a string"))?;
 
+        let version = package
+            .get("version")
+            .ok_or(anyhow!("expected Cargo.toml's package version to exist"))?
+            .as_str()
+            .ok_or(anyhow!("expected Cargo.toml'spackage version to be a string"))?;
+
         Ok(Crate {
             name: String::from(name),
+            version: String::from(version),
             path,
         })
     }

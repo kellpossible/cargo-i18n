@@ -1,5 +1,5 @@
 [package]
-name = "cargo-i18n-lib"
+name = "i18n-build"
 version = "0.1.0"
 authors = ["Luke Frisken <l.frisken@gmail.com>"]
 edition = "2018"
@@ -9,9 +9,9 @@ edition = "2018"
 [dependencies]
 subprocess = "0.2"
 toml = "0.5"
-serde = { version = "1.0", features = ["derive"] }
-serde_derive = "1.0"
-anyhow = "1.0"
-thiserror = "1.0"
+serde = { version = "1", features = ["derive"] }
+serde_derive = "1"
+anyhow = "1"
+thiserror = "1"
 tr = { version = "0.1", default-features = false, features = ["gettext"] }
 walkdir = "2"

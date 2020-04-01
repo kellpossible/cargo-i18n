@@ -40,7 +40,7 @@ pub struct GettextConfig {
     pub mo_dir: Option<Box<Path>>,
 }
 
-pub fn run_xtr(crate_name: &str, src_dir: &Path, pot_dir: &Path) -> Result<()> {
+pub fn run_xtr(config_crate: &Crate, src_dir: &Path, pot_dir: &Path) -> Result<()> {
     let mut rs_files: Vec<Box<Path>> = Vec::new();
 
     for result in WalkDir::new(src_dir) {
@@ -60,7 +60,7 @@ pub fn run_xtr(crate_name: &str, src_dir: &Path, pot_dir: &Path) -> Result<()> {
             Err(err) => {
                 return Err(anyhow!(
                     "error walking directory {}/src: {}",
-                    crate_name,
+                    config_crate.name,
                     err
                 ))
             }
@@ -79,7 +79,7 @@ pub fn run_xtr(crate_name: &str, src_dir: &Path, pot_dir: &Path) -> Result<()> {
             rs_file_path.to_string_lossy()
         ))?;
         let src_dir_relative = parent_dir.strip_prefix(src_dir).map_err(|_| {
-            PathError::not_inside_dir(parent_dir, format!("crate {0}/src", crate_name), src_dir)
+            PathError::not_inside_dir(parent_dir, format!("crate {0}/src", config_crate.name), src_dir)
         })?;
         let file_stem = rs_file_path.file_stem().context(format!(
             "expected rs file path {0} would have a filename",
@@ -104,15 +104,15 @@ pub fn run_xtr(crate_name: &str, src_dir: &Path, pot_dir: &Path) -> Result<()> {
         let mut xtr = Command::new(xtr_command_name);
         xtr.args(&[
             "--package-name",
-            "Coster", //TODO: replace this with the crate name
+            config_crate.name.as_str(),
             "--package-version",
-            "0.1", //TODO: replace this with the crate version
+            config_crate.version.as_str(),
             "--copyright-holder",
             "Luke Frisken",
             "--msgid-bugs-address",
             "l.frisken@gmail.com",
             "--default-domain",
-            crate_name,
+            config_crate.name.as_str(),
             "-o",
             pot_file_path.to_str().ok_or(PathError::not_valid_utf8(
                 pot_file_path.clone(),
@@ -137,7 +137,7 @@ pub fn run_xtr(crate_name: &str, src_dir: &Path, pot_dir: &Path) -> Result<()> {
         msgcat_args.push(Box::from(path.as_os_str()));
     }
 
-    let combined_pot_file_path = pot_dir.join(crate_name).with_extension("pot");
+    let combined_pot_file_path = pot_dir.join(config_crate.name.as_str()).with_extension("pot");
 
     if combined_pot_file_path.exists() {
         remove_file(combined_pot_file_path.clone()).context("unable to delete .pot")?;
@@ -319,7 +319,7 @@ pub fn run(i18n_config: &I18nConfig) -> Result<()> {
         let mo_dir = i18n_dir.join("mo");
 
         if do_xtr {
-            run_xtr(subcrate.name.as_str(), src_dir.as_path(), pot_dir.as_path())?;
+            run_xtr(subcrate, src_dir.as_path(), pot_dir.as_path())?;
             run_msginit(
                 subcrate.name.as_str(),
                 i18n_config,

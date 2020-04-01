@@ -19,4 +19,4 @@ tr = { version = "0.1", default-features = false, features = ["gettext"] }
 walkdir = "2"
 clap = "2.33.0"
 i18n-embed = { path = "./i18n-embed" }
-cargo-i18n-lib = { path = "./cargo-i18n-lib" }
+i18n-build = { path = "./i18n-build" }

@@ -42,3 +42,7 @@ pub fn create_dir_all_if_not_exists(path: &Path) -> Result<()> {
     }
     Ok(())
 }
+
+pub fn domain_from_module(module: &str) -> &str {
+    module.split("::").next().unwrap_or(module)
+}

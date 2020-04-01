@@ -1,6 +1,6 @@
 use anyhow::{Context, Result};
-use cargo_i18n_lib::config::I18nConfig;
-use cargo_i18n_lib::run;
+use i18n_build::config::I18nConfig;
+use i18n_build::run;
 use clap::{crate_authors, crate_version, App, Arg, SubCommand};
 use tr::tr;
 use i18n_embed::i18n_embed;

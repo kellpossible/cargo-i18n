@@ -20,3 +20,4 @@ pub fn run(config: &config::I18nConfig) -> Result<()> {
 
     Ok(())
 }
+

@@ -43,23 +43,9 @@ name = "cargo-i18n"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "cargo-i18n-lib",
  "clap",
+ "i18n-build",
  "i18n-embed",
- "tr",
- "walkdir",
-]
-
-[[package]]
-name = "cargo-i18n-lib"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "serde",
- "serde_derive",
- "subprocess",
- "thiserror",
- "toml",
  "tr",
  "walkdir",
 ]
@@ -160,6 +146,20 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "725cf19794cf90aa94e65050cb4191ff5d8fa87a498383774c47b332e3af952e"
 dependencies = [
  "libc",
+]
+
+[[package]]
+name = "i18n-build"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "serde",
+ "serde_derive",
+ "subprocess",
+ "thiserror",
+ "toml",
+ "tr",
+ "walkdir",
 ]
 
 [[package]]
