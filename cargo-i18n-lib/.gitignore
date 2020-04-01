@@ -1,0 +1,5 @@
+/target
+**/*.rs.bk
+.vscode
+/i18n/mo
+/i18n/pot

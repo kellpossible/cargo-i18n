@@ -299,8 +299,17 @@ pub fn run(i18n_config: &I18nConfig) -> Result<()> {
         None => true,
     };
 
-    let crates = vec![Crate::from(Box::from(Path::new(".")))?];
-
+    let mut crates = vec![Crate::from(Box::from(Path::new(".")))?];
+    
+    match &i18n_config.subcrates {
+        Some(subcrates) => {
+            for subcrate_path_string in subcrates {
+                crates.push(Crate::from(subcrate_path_string.clone())?);
+            }
+        },
+        None => {},
+    }
+    
     for subcrate in &crates {
         let crate_dir = subcrate.path.clone();
         let i18n_dir = crate_dir.join("i18n");
