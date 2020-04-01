@@ -14,12 +14,9 @@ readme = "README.md"
 # TODO: make gettext an optional dependency
 
 [dependencies]
-subprocess = "0.2"
-toml = "0.5"
-serde = { version = "1.0", features = ["derive"] }
-serde_derive = "1.0"
 anyhow = "1.0"
-thiserror = "1.0"
 tr = { version = "0.1", default-features = false, features = ["gettext"] }
 walkdir = "2"
-structopt = "0.3"
+clap = "2.33.0"
+i18n-embed = { path = "./i18n-embed" }
+cargo-i18n-lib = { path = "./cargo-i18n-lib" }

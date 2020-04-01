@@ -20,9 +20,10 @@ impl Crate {
     /// Read crate from `Cargo.toml`
     pub fn from(path: Box<Path>) -> Result<Crate> {
         let cargo_path = path.join("Cargo.toml");
-        let toml_str = read_to_string(cargo_path.clone()).with_context(|| format!("trouble reading {0:?}", cargo_path))?;
-        let cargo_toml: toml::Value =
-            toml::from_str(toml_str.as_ref()).with_context(|| format!("trouble parsing {0:?}", cargo_path))?;
+        let toml_str = read_to_string(cargo_path.clone())
+            .with_context(|| format!("trouble reading {0:?}", cargo_path))?;
+        let cargo_toml: toml::Value = toml::from_str(toml_str.as_ref())
+            .with_context(|| format!("trouble parsing {0:?}", cargo_path))?;
 
         let name = cargo_toml
             .as_table()

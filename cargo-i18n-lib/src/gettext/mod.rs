@@ -104,9 +104,9 @@ pub fn run_xtr(crate_name: &str, src_dir: &Path, pot_dir: &Path) -> Result<()> {
         let mut xtr = Command::new(xtr_command_name);
         xtr.args(&[
             "--package-name",
-            "Coster",
+            "Coster", //TODO: replace this with the crate name
             "--package-version",
-            "0.1", //TODO: replace this with version from TOML
+            "0.1", //TODO: replace this with the crate version
             "--copyright-holder",
             "Luke Frisken",
             "--msgid-bugs-address",
@@ -137,7 +137,7 @@ pub fn run_xtr(crate_name: &str, src_dir: &Path, pot_dir: &Path) -> Result<()> {
         msgcat_args.push(Box::from(path.as_os_str()));
     }
 
-    let combined_pot_file_path = pot_dir.join("gui.pot");
+    let combined_pot_file_path = pot_dir.join(crate_name).with_extension("pot");
 
     if combined_pot_file_path.exists() {
         remove_file(combined_pot_file_path.clone()).context("unable to delete .pot")?;
