@@ -29,6 +29,52 @@ install xtr\".
     )
 }
 
+fn setup_translations() {
+    println!("Available Languages: {:?}", Translations::available_languages());
+
+    console::log_1(&"Setting the translator version 3!".into());
+    let window = web_sys::window().expect("no global `window` exists");
+    let navigator = window.navigator();
+    let languages = navigator.languages();
+
+    let requested_languages = convert_vec_str_to_langids_lossy(languages.iter().map(|js_value| {
+        js_value
+            .as_string()
+            .expect("language value should be a string.")
+    }));
+    
+    let available_languages: Vec<LanguageIdentifier> = convert_vec_str_to_langids_lossy(available_languages());
+    let default_language: LanguageIdentifier = DEFAULT_LANGUAGE_ID.parse().expect("Parsing langid failed.");
+
+    let supported_languages = negotiate_languages(
+        &requested_languages,
+        &available_languages,
+        Some(&default_language),
+        NegotiationStrategy::Filtering,
+    );
+
+    console::log_1(&format!("Requested Languages: {:?}", requested_languages).into());
+    console::log_1(&format!("Available Languages: {:?}", available_languages).into());
+    console::log_1(&format!("Supported Languages: {:?}", supported_languages).into());
+
+    match supported_languages.get(0) {
+        Some(language_id) => {
+            if language_id != &&default_language {
+                let language_id_string = language_id.to_string();
+                let f = Translations::get(format!("{}/gui.mo", language_id_string).as_ref())
+                    .expect("could not read the file");
+                let catalog = Catalog::parse(&*f).expect("could not parse the catalog");
+                set_translator!(catalog);
+            }
+        }
+        None => {
+            // do nothing
+        }
+    }
+
+    console::log_1(&"Completed setting translations!".into());
+}
+
 fn main() -> Result<()> {
     let matches = App::new("cargo-i18n")
         .bin_name("cargo")
@@ -65,6 +111,8 @@ fn main() -> Result<()> {
 
         run(&config)?;
     }
+
+    
 
     Ok(())
 }

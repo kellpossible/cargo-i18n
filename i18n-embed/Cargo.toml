@@ -6,15 +6,12 @@ edition = "2018"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
-[lib]
-proc-macro = true
-
 [dependencies]
-rust-embed = "5"
-quote = "1.0.3"
-proc-macro2 = "1.0"
+i18n-embed-impl = { path = "./i18n-embed-impl" }
+locale_config = { version = "0.3", optional = true }
+web-sys = { version = "0.3", features = ["Window", "Navigator"], optional = true }
 
-[dependencies.syn]
-version = "1.0.17"
-# default-features = false
-# features = ["derive", "parsing", "printing", "extra-traits", "proc-macro"]
+[features]
+default = ["desktop-support"]
+desktop-support = ["locale_config"]
+web-sys-support = ["web-sys"]

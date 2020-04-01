@@ -20,3 +20,5 @@ walkdir = "2"
 clap = "2.33.0"
 i18n-embed = { path = "./i18n-embed" }
 i18n-build = { path = "./i18n-build" }
+rust-embed = "5"
+locale_config = "0.3" # TODO: remove
