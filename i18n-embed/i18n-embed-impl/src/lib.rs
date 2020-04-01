@@ -7,7 +7,6 @@ use proc_macro2::{Ident, Span};
 use quote::quote;
 use syn;
 
-
 #[proc_macro]
 pub fn i18n_embed(input: TokenStream) -> TokenStream {
     // let input_parsed = syn::parse_macro_input!(input as syn::MetaList);
@@ -55,7 +54,7 @@ pub fn i18n_embed(input: TokenStream) -> TokenStream {
                 return languages;
             }
         }
-    
+        
     };
 
     gen.into()

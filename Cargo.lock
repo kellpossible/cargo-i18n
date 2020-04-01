@@ -59,11 +59,14 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "clap",
+ "fluent-langneg",
+ "gettext",
  "i18n-build",
  "i18n-embed",
  "locale_config",
  "rust-embed",
  "tr",
+ "unic-langid",
  "walkdir",
 ]
 
@@ -147,6 +150,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a246d82be1c9d791c5dfde9a2bd045fc3cbba3fa2b11ad558f27d01712f00569"
 
 [[package]]
+name = "fluent-langneg"
+version = "0.12.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "fe5815efd5542e40841cd34ef9003822352b04c67a70c595c6758597c72e1f56"
+dependencies = [
+ "unic-langid",
+]
+
+[[package]]
 name = "gettext"
 version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -183,8 +195,13 @@ dependencies = [
 name = "i18n-embed"
 version = "0.1.0"
 dependencies = [
+ "fluent-langneg",
+ "gettext",
  "i18n-embed-impl",
  "locale_config",
+ "rust-embed",
+ "tr",
+ "unic-langid",
 ]
 
 [[package]]
@@ -432,6 +449,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "tinystr"
+version = "0.3.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4bac79c4b51eda1b090b1edebfb667821bbb51f713855164dc7cec2cb8ac2ba3"
+
+[[package]]
 name = "toml"
 version = "0.5.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -448,6 +471,24 @@ checksum = "7d374e7e01e645085c3940425b9a755a66835089ca4e239e4de2fc74d68300cf"
 dependencies = [
  "gettext",
  "lazy_static",
+]
+
+[[package]]
+name = "unic-langid"
+version = "0.8.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "24d81136159f779c35b10655f45210c71cd5ca5a45aadfe9840a61c7071735ed"
+dependencies = [
+ "unic-langid-impl",
+]
+
+[[package]]
+name = "unic-langid-impl"
+version = "0.8.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c43c61e94492eb67f20facc7b025778a904de83d953d8fcb60dd9adfd6e2d0ea"
+dependencies = [
+ "tinystr",
 ]
 
 [[package]]

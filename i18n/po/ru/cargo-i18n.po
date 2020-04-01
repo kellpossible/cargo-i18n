@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: cargo-i18n 0.1\n"
 "Report-Msgid-Bugs-To: l.frisken@gmail.com\n"
-"POT-Creation-Date: 2020-04-01 13:36+0000\n"
+"POT-Creation-Date: 2020-04-01 17:16+0000\n"
 "PO-Revision-Date: 2020-04-01 15:51+0400\n"
 "Last-Translator: Luke Frisken <l.frisken@gmail.com>\n"
 "Language-Team: Russian <gnu@d07.ru>\n"
@@ -18,11 +18,11 @@ msgstr ""
 "Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
 "%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
 
-#: src/main.rs:11
+#: src/main.rs:27
 msgid "A Cargo subcommand to extract and build localization resources."
 msgstr ""
 
-#: src/main.rs:16
+#: src/main.rs:32
 msgid ""
 "{0}\n"
 "\n"
@@ -36,22 +36,22 @@ msgid ""
 "be installed using \"cargo install xtr\".\n"
 msgstr ""
 
-#: src/main.rs:35
+#: src/main.rs:53
 msgid ""
 "This binary is designed to be executed as a cargo subcommand using \"cargo "
 "i18n\"."
 msgstr ""
 
-#: src/main.rs:45
+#: src/main.rs:63
 msgid ""
 "Path to the crate you want to localize (if not the current directory). The "
 "crate needs to contain \"i18n.toml\" in its root."
 msgstr ""
 
-#: src/main.rs:50
+#: src/main.rs:68
 msgid "The name of the i18n config file for this crate"
 msgstr ""
 
-#: src/main.rs:64
+#: src/main.rs:82
 msgid "cannot load config file \"{0}\""
 msgstr ""
