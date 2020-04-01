@@ -22,23 +22,22 @@ pub struct GettextConfig {
     /// Path to where the pot files will be written to by
     /// [run_xtr()](run_xtr()), and were they will be read from by
     /// [run_msginit()](run_msginit()) and
-    /// [run_msgmerge()](run_msgmerge()). 
-    /// 
+    /// [run_msgmerge()](run_msgmerge()).
+    ///
     /// By default this is **[output_dir](GettextConfig::output_dir)/pot**.
     pub pot_dir: Option<Box<Path>>,
     /// Path to where the po files will be stored/edited with the
     /// [run_msgmerge()](run_msgmerge()) and
     /// [run_msginit()](run_msginit()) commands, and where they will
-    /// be read from with the [run_msgfmt()](run_msgfmt()) command. 
-    /// 
+    /// be read from with the [run_msgfmt()](run_msgfmt()) command.
+    ///
     /// By default this is **[output_dir](GettextConfig::output_dir)/po**.
     pub po_dir: Option<Box<Path>>,
     /// Path to where the mo files will be written to by the
     /// [run_msgfmt()](run_msgfmt()) command.
-    /// 
+    ///
     /// By default this is **[output_dir](GettextConfig::output_dir)/mo**.
     pub mo_dir: Option<Box<Path>>,
-
 }
 
 pub fn run_xtr(crate_name: &str, src_dir: &Path, pot_dir: &Path) -> Result<()> {
@@ -175,7 +174,7 @@ pub fn run_msginit(
 
     let msginit_command_name = "msginit";
 
-    for locale in &i18n_config.locales {
+    for locale in &i18n_config.target_locales {
         let po_locale_dir = po_dir.join(locale.clone());
         let po_path = po_locale_dir.join(crate_name).with_extension("po");
 
@@ -223,7 +222,7 @@ pub fn run_msgmerge(
 
     let msgmerge_command_name = "msgmerge";
 
-    for locale in &i18n_config.locales {
+    for locale in &i18n_config.target_locales {
         let po_file_path = po_dir.join(locale).join(crate_name).with_extension("po");
 
         util::check_path_exists(&po_file_path)?;
@@ -258,7 +257,7 @@ pub fn run_msgfmt(
 ) -> Result<()> {
     let msgfmt_command_name = "msgfmt";
 
-    for locale in &i18n_config.locales {
+    for locale in &i18n_config.target_locales {
         let po_file_path = po_dir
             .join(locale.clone())
             .join(crate_name)
@@ -294,13 +293,13 @@ pub fn run_msgfmt(
     Ok(())
 }
 
-pub fn build_i18n(i18n_config: &I18nConfig) -> Result<()> {
+pub fn run(i18n_config: &I18nConfig) -> Result<()> {
     let do_xtr = match i18n_config.gettext_config()?.xtr {
         Some(xtr_value) => xtr_value,
         None => true,
     };
 
-    let crates = vec![Crate::new("cargo-i18n", Box::from(Path::new(".")))];
+    let crates = vec![Crate::from(Box::from(Path::new(".")))?];
 
     for subcrate in &crates {
         let crate_dir = subcrate.path.clone();

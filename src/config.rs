@@ -8,17 +8,40 @@ use serde_derive::Deserialize;
 use toml;
 use tr::tr;
 
+/// Represents a rust crate
 pub struct Crate {
+    /// The name of the crate
     pub name: String,
+    /// The path to the crate
     pub path: Box<Path>,
 }
 
 impl Crate {
-    pub fn new<S: Into<String>>(name: S, path: Box<Path>) -> Crate {
-        Crate {
-            name: name.into(),
+    /// Read crate from `Cargo.toml`
+    pub fn from(path: Box<Path>) -> Result<Crate> {
+        let cargo_path = path.join("Cargo.toml");
+        let toml_str = read_to_string(cargo_path.clone()).with_context(|| format!("trouble reading {0:?}", cargo_path))?;
+        let cargo_toml: toml::Value =
+            toml::from_str(toml_str.as_ref()).with_context(|| format!("trouble parsing {0:?}", cargo_path))?;
+
+        let name = cargo_toml
+            .as_table()
+            .ok_or(anyhow!("expected Cargo.toml to be a table"))?
+            .get("package")
+            .ok_or(anyhow!("expected Cargo.toml to have a `package` section"))?
+            .as_table()
+            .ok_or(anyhow!(
+                "expected Cargo.toml's package section to be a map containing values"
+            ))?
+            .get("name")
+            .ok_or(anyhow!("expected Cargo.toml's package name to exist"))?
+            .as_str()
+            .ok_or(anyhow!("expected Cargo.toml'spackage name to be a string"))?;
+
+        Ok(Crate {
+            name: String::from(name),
             path,
-        }
+        })
     }
 }
 
@@ -39,7 +62,7 @@ pub struct I18nConfig {
 }
 
 impl I18nConfig {
-    pub fn from_file(toml_path: &Path) -> Result<I18nConfig> {
+    pub fn from_file<P: AsRef<Path>>(toml_path: P) -> Result<I18nConfig> {
         let toml_str = read_to_string(toml_path).context("trouble reading i18n.toml")?;
         let config: I18nConfig =
             toml::from_str(toml_str.as_ref()).context("trouble parsing i18n.toml")?;
@@ -47,7 +70,7 @@ impl I18nConfig {
     }
 
     pub fn gettext_config(&self) -> Result<&GettextConfig> {
-        match &self.gettext_config {
+        match &self.gettext {
             Some(gettext_config) => Ok(gettext_config),
             None => Err(anyhow!(tr!(
                 "there is no gettext config available in this i18n config"
