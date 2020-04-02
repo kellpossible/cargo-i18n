@@ -6,7 +6,7 @@ pub use i18n_embed_impl::*;
 use std::io;
 
 use core::fmt::Display;
-use fluent_langneg::{convert_vec_str_to_langids_lossy, negotiate_languages, NegotiationStrategy};
+use fluent_langneg::{negotiate_languages, NegotiationStrategy};
 use rust_embed::RustEmbed;
 use unic_langid::LanguageIdentifier;
 
@@ -19,21 +19,21 @@ pub trait LanguageRequester {
 }
 
 pub trait LanguageLoader {
+    fn module_path() -> &'static str;
     fn load_language_file<R: io::Read>(&self, reader: R);
 }
 
 pub trait I18nEmbed: RustEmbed {
     fn src_locale() -> LanguageIdentifier;
 
-    fn module_path() -> &'static str;
-
-    fn language_file_name() -> String {
-        format!("{}.{}", domain_from_module(Self::module_path()), "mo")
+    fn language_file_name<L: LanguageLoader>() -> String {
+        format!("{}.{}", domain_from_module(L::module_path()), "mo")
     }
 
-    fn available_languages<L: I18nEmbedLogger>(logger: &L) -> Vec<LanguageIdentifier> {
-        use std::collections::HashSet;
+    fn available_languages<L: LanguageLoader, D: I18nEmbedLogger>(logger: &D) -> Vec<LanguageIdentifier> {
         use std::path::{Component, Path};
+
+        logger.embed_log(format!("Looking For Language File: {:?}", Self::language_file_name::<L>()));
 
         let mut language_strings: Vec<String> = Self::iter()
             .map(|filename_cow| filename_cow.to_string())
@@ -42,8 +42,8 @@ pub trait I18nEmbed: RustEmbed {
 
                 let components: Vec<Component> = path.components().collect();
 
-                let component: Option<String> = match components.get(0) {
-                    Some(component) => match component {
+                let locale: Option<String> = match components.get(0) {
+                    Some(language_component) => match language_component {
                         Component::Normal(s) => {
                             Some(s.to_str().expect("path should be valid utf-8").to_string())
                         }
@@ -52,13 +52,29 @@ pub trait I18nEmbed: RustEmbed {
                     _ => None,
                 };
 
-                component
+                let language_file_name: Option<String> = components.get(1).map(|component| {
+                    match component {
+                        Component::Normal(s) => {
+                            Some(s.to_str().expect("path should be valid utf-8").to_string())
+                        },
+                        _ => None,
+                    }
+                }).flatten();
+
+                logger.embed_log(format!("Language File: {:?}", language_file_name));
+
+                match language_file_name {
+                    Some(language_file_name) => {
+                        if language_file_name == Self::language_file_name::<L>() {
+                            locale
+                        } else {
+                            None
+                        }
+                    },
+                    None => None,
+                }
             })
             .collect();
-
-        let mut uniques = HashSet::new();
-
-        language_strings.retain(|e| uniques.insert(e.clone()));
 
         language_strings.insert(0, Self::src_locale().to_string());
 
@@ -85,12 +101,12 @@ pub trait I18nEmbed: RustEmbed {
     ) {
         logger.embed_log(format!(
             "Available Languages: {:?}",
-            Self::available_languages(logger)
+            Self::available_languages::<L, D>(logger)
         ));
 
         let requested_languages = language_requester.requested_languages();
 
-        let available_languages: Vec<LanguageIdentifier> = Self::available_languages(logger);
+        let available_languages: Vec<LanguageIdentifier> = Self::available_languages::<L, D>(logger);
         let default_language: LanguageIdentifier = Self::src_locale();
 
         let supported_languages = negotiate_languages(
@@ -109,7 +125,7 @@ pub trait I18nEmbed: RustEmbed {
                 if language_id != &&default_language {
                     let language_id_string = language_id.to_string();
                     let f = Self::get(
-                        format!("{}/{}", language_id_string, Self::language_file_name()).as_ref(),
+                        format!("{}/{}", language_id_string, Self::language_file_name::<L>()).as_ref(),
                     )
                     .expect("could not read the file");
                     language_loader.load_language_file(&*f);

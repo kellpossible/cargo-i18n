@@ -1,7 +1,8 @@
-use crate::gettext::GettextConfig;
+use crate::gettext_impl::GettextConfig;
 
 use std::fs::read_to_string;
 use std::path::Path;
+use std::rc::Rc;
 
 use anyhow::{anyhow, Context, Result};
 use serde_derive::Deserialize;
@@ -16,11 +17,14 @@ pub struct Crate {
     pub version: String,
     /// The path to the crate
     pub path: Box<Path>,
+    /// Path to the parent crate which is triggering the localization
+    /// for this crate.
+    pub parent: Option<Rc<Crate>>,
 }
 
 impl Crate {
     /// Read crate from `Cargo.toml`
-    pub fn from(path: Box<Path>) -> Result<Crate> {
+    pub fn from(path: Box<Path>, parent: Option<Rc<Crate>>) -> Result<Crate> {
         let cargo_path = path.join("Cargo.toml");
         let toml_str = read_to_string(cargo_path.clone())
             .with_context(|| format!("trouble reading {0:?}", cargo_path))?;
@@ -53,7 +57,12 @@ impl Crate {
             name: String::from(name),
             version: String::from(version),
             path,
+            parent,
         })
+    }
+
+    pub fn module_name(&self) -> String {
+        self.name.replace("-", "_")
     }
 }
 
@@ -63,10 +72,8 @@ pub struct I18nConfig {
     pub src_locale: String,
     /// The locales that the software will be translated into.
     pub target_locales: Vec<String>,
-    /// Specify which subcrates to perform localization within. If the
-    /// subcrate has its own `i18n.toml` then, it will have its
-    /// localization performed independently (rather than being
-    /// incorporated into the parent project's localization).
+    /// Specify which subcrates to perform localization within. The
+    /// subcrate needs to have its own `i18n.toml`.
     pub subcrates: Option<Vec<Box<Path>>>,
     /// The subcomponent of this config relating to gettext, only
     /// present if the gettext localization system will be used.

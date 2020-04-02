@@ -5,11 +5,9 @@ src_locale = "en-US"
 # (Required) The locales that the software will be translated into.
 target_locales = ["ru"]
 
-# (Optional) Specify which subcrates to perform localization within. If the
-# subcrate has its own `i18n.toml` then, it will have its localization
-# performed independently (rather than being incorporated into the parent
-# project's localization).
-# subcrates = ["cargo-i18n-lib"]
+# (Optional) Specify which subcrates to perform localization within,
+# the subcrate needs to have its own `i18n.toml`.
+subcrates = ["i18n-build"]
 
 # (Optional) Use the gettext localization system.
 [gettext]

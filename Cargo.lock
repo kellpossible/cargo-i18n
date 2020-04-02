@@ -182,6 +182,8 @@ name = "i18n-build"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "gettext",
+ "i18n-embed",
  "serde",
  "serde_derive",
  "subprocess",
@@ -208,7 +210,6 @@ dependencies = [
 name = "i18n-embed-impl"
 version = "0.1.0"
 dependencies = [
- "i18n-build",
  "proc-macro2",
  "quote",
  "serde",

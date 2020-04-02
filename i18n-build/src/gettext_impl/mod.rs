@@ -7,6 +7,7 @@ use std::ffi::OsStr;
 use std::fs::{create_dir_all, remove_file, File};
 use std::path::Path;
 use std::process::Command;
+use std::rc::Rc;
 
 use anyhow::{anyhow, Context, Result};
 use subprocess::Exec;
@@ -137,11 +138,12 @@ pub fn run_xtr(config_crate: &Crate, src_dir: &Path, pot_dir: &Path) -> Result<(
         msgcat_args.push(Box::from(path.as_os_str()));
     }
 
-    let combined_pot_file_path = pot_dir.join(config_crate.name.as_str()).with_extension("pot");
+    let combined_pot_file_path = pot_dir.join(config_crate.module_name()).with_extension("pot");
 
     if combined_pot_file_path.exists() {
         remove_file(combined_pot_file_path.clone()).context("unable to delete .pot")?;
     }
+
 
     let combined_pot_file =
         File::create(combined_pot_file_path).expect("unable to create .pot file");
@@ -161,12 +163,12 @@ pub fn run_xtr(config_crate: &Crate, src_dir: &Path, pot_dir: &Path) -> Result<(
 }
 
 pub fn run_msginit(
-    crate_name: &str,
+    crt: &Crate,
     i18n_config: &I18nConfig,
     pot_dir: &Path,
     po_dir: &Path,
 ) -> Result<()> {
-    let pot_file_path = pot_dir.join(crate_name).with_extension("pot");
+    let pot_file_path = pot_dir.join(crt.module_name()).with_extension("pot");
 
     util::check_path_exists(&pot_file_path)?;
 
@@ -176,7 +178,7 @@ pub fn run_msginit(
 
     for locale in &i18n_config.target_locales {
         let po_locale_dir = po_dir.join(locale.clone());
-        let po_path = po_locale_dir.join(crate_name).with_extension("po");
+        let po_path = po_locale_dir.join(crt.module_name()).with_extension("po");
 
         if !po_path.exists() {
             create_dir_all(po_locale_dir.clone())
@@ -211,19 +213,19 @@ pub fn run_msginit(
 }
 
 pub fn run_msgmerge(
-    crate_name: &str,
+    crt: &Crate,
     i18n_config: &I18nConfig,
     pot_dir: &Path,
     po_dir: &Path,
 ) -> Result<()> {
-    let pot_file_path = pot_dir.join(crate_name).with_extension("pot");
+    let pot_file_path = pot_dir.join(crt.module_name()).with_extension("pot");
 
     util::check_path_exists(&pot_file_path)?;
 
     let msgmerge_command_name = "msgmerge";
 
     for locale in &i18n_config.target_locales {
-        let po_file_path = po_dir.join(locale).join(crate_name).with_extension("po");
+        let po_file_path = po_dir.join(locale).join(crt.module_name()).with_extension("po");
 
         util::check_path_exists(&po_file_path)?;
 
@@ -250,7 +252,7 @@ pub fn run_msgmerge(
 }
 
 pub fn run_msgfmt(
-    crate_name: &str,
+    crt: &Crate,
     i18n_config: &I18nConfig,
     po_dir: &Path,
     mo_dir: &Path,
@@ -260,7 +262,7 @@ pub fn run_msgfmt(
     for locale in &i18n_config.target_locales {
         let po_file_path = po_dir
             .join(locale.clone())
-            .join(crate_name)
+            .join(crt.module_name())
             .with_extension("po");
 
         util::check_path_exists(&po_file_path)?;
@@ -271,7 +273,7 @@ pub fn run_msgfmt(
             create_dir_all(mo_locale_dir.clone()).context("trouble creating mo directory")?;
         }
 
-        let mo_file_path = mo_locale_dir.join(crate_name).with_extension("mo");
+        let mo_file_path = mo_locale_dir.join(crt.module_name()).with_extension("mo");
 
         let mut msgfmt = Command::new(msgfmt_command_name);
         msgfmt.args(&[
@@ -299,12 +301,13 @@ pub fn run(i18n_config: &I18nConfig) -> Result<()> {
         None => true,
     };
 
-    let mut crates = vec![Crate::from(Box::from(Path::new(".")))?];
+    let parent_crate = Rc::from(Crate::from(Box::from(Path::new(".")), None)?);
+    let mut crates = vec![parent_crate.clone()];
     
     match &i18n_config.subcrates {
         Some(subcrates) => {
             for subcrate_path_string in subcrates {
-                crates.push(Crate::from(subcrate_path_string.clone())?);
+                crates.push(Rc::from(Crate::from(subcrate_path_string.clone(), Some(parent_crate.clone()))?));
             }
         },
         None => {},
@@ -321,13 +324,13 @@ pub fn run(i18n_config: &I18nConfig) -> Result<()> {
         if do_xtr {
             run_xtr(subcrate, src_dir.as_path(), pot_dir.as_path())?;
             run_msginit(
-                subcrate.name.as_str(),
+                subcrate,
                 i18n_config,
                 pot_dir.as_path(),
                 po_dir.as_path(),
             )?;
             run_msgmerge(
-                subcrate.name.as_str(),
+                subcrate,
                 i18n_config,
                 pot_dir.as_path(),
                 po_dir.as_path(),
@@ -335,7 +338,7 @@ pub fn run(i18n_config: &I18nConfig) -> Result<()> {
         }
 
         run_msgfmt(
-            subcrate.name.as_str(),
+            subcrate,
             i18n_config,
             po_dir.as_path(),
             mo_dir.as_path(),

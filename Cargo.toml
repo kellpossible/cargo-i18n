@@ -20,7 +20,7 @@ tr = { version = "0.1", default-features = false, features = ["gettext"] }
 walkdir = "2"
 clap = "2.33.0"
 i18n-embed = { path = "./i18n-embed" }
-i18n-build = { path = "./i18n-build" }
+i18n-build = { path = "./i18n-build", features = ["localize"] }
 rust-embed = "5"
 
 locale_config = "0.3" # TODO: remove

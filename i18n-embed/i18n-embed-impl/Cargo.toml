@@ -14,7 +14,6 @@ proc-macro2 = "1.0"
 toml = "0.5"
 serde = { version = "1", features = ["derive"] }
 serde_derive = "1"
-i18n-build = { path = "../../i18n-build" }
 
 [dependencies.syn]
 version = "1.0.17"
