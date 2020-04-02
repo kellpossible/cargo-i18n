@@ -61,9 +61,13 @@ install xtr\".
     )
 }
 
-
-
 fn main() -> Result<()> {
+    let requester = DesktopLanguageRequester::new();
+    let loader = LanguageLoader::new();
+    let logger = Logger::new();
+    Translations::select(&requester, &loader, &logger);
+    println!("Available Languages: {:?}", Translations::available_languages());
+    
     let matches = App::new("cargo-i18n")
         .bin_name("cargo")
         .about(tr!("This binary is designed to be executed as a cargo subcommand using \"cargo i18n\".").as_str())
@@ -99,12 +103,6 @@ fn main() -> Result<()> {
 
         run(&config)?;
     }
-
-    let requester = DesktopLanguageRequester::new();
-    let loader = LanguageLoader::new();
-    let logger = Logger::new();
-    I18nEmbed::select::<DesktopLanguageRequester, LanguageLoader, Logger>(&requester, &loader, &logger);
-    println!("Available Languages: {:?}", Translations::available_languages());
 
     Ok(())
 }

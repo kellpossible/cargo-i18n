@@ -64,10 +64,11 @@ pub trait I18nEmbed: RustEmbed {
         return languages;
     }
 
-    fn select<R, L, D>(language_requester: &R, language_loader: &L, logger: &D) 
-    where R: LanguageRequester,
-        L: LanguageLoader,
-        D: I18nEmbedLogger
+    fn test<R: LanguageRequester>(language_requester: &R) {
+        println!("{:?}", language_requester.requested_languages());
+    }
+
+    fn select<R: LanguageRequester, L: LanguageLoader, D: I18nEmbedLogger>(language_requester: &R, language_loader: &L, logger: &D) 
     {
         logger.debug_log(format!("Available Languages: {:?}", Self::available_languages()));
 
