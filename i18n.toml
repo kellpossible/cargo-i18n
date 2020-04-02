@@ -1,4 +1,4 @@
-# (Required) The locale/language identifier of the language used in the source
+# (Required) The locale identifier of the language used in the source
 # code.
 src_locale = "en-US"
 

@@ -1,14 +1,13 @@
 use anyhow::{Context, Result};
+use clap::{crate_authors, crate_version, App, Arg, SubCommand};
+use gettext::Catalog;
 use i18n_build::config::I18nConfig;
 use i18n_build::run;
-use clap::{crate_authors, crate_version, App, Arg, SubCommand};
-use tr::{tr, set_translator};
-use i18n_embed::{I18nEmbed, DesktopLanguageRequester, Logger};
+use i18n_embed::I18nEmbed;
 use rust_embed::RustEmbed;
-use gettext::Catalog;
+use tr::{set_translator, tr};
 
 use unic_langid::LanguageIdentifier;
-
 
 #[derive(RustEmbed)]
 #[folder = "i18n/mo"]
@@ -30,12 +29,12 @@ impl i18n_embed::LanguageLoader for LanguageLoader {
 }
 
 impl I18nEmbed for Translations {
-    fn default_language() -> LanguageIdentifier {
+    fn src_locale() -> LanguageIdentifier {
         "en-US".parse().unwrap()
     }
 
-    fn language_file_name() -> &'static str {
-        "cargo-i18n.mo"
+    fn module_path() -> &'static str {
+        module_path!()
     }
 }
 
@@ -62,12 +61,9 @@ install xtr\".
 }
 
 fn main() -> Result<()> {
-    let requester = DesktopLanguageRequester::new();
     let loader = LanguageLoader::new();
-    let logger = Logger::new();
-    Translations::select(&requester, &loader, &logger);
-    println!("Available Languages: {:?}", Translations::available_languages());
-    
+    Translations::select(&loader);
+
     let matches = App::new("cargo-i18n")
         .bin_name("cargo")
         .about(tr!("This binary is designed to be executed as a cargo subcommand using \"cargo i18n\".").as_str())
