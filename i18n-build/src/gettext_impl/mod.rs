@@ -113,7 +113,7 @@ pub fn run_xtr(config_crate: &Crate, src_dir: &Path, pot_dir: &Path) -> Result<(
             "--msgid-bugs-address",
             "l.frisken@gmail.com",
             "--default-domain",
-            config_crate.name.as_str(),
+            config_crate.module_name().as_str(),
             "-o",
             pot_file_path.to_str().ok_or(PathError::not_valid_utf8(
                 pot_file_path.clone(),
