@@ -18,6 +18,12 @@ pub struct GettextConfig {
     /// Path to the output directory, relative to `i18n.toml` of the
     /// crate being localized.
     pub output_dir: Box<Path>,
+    /// Set the copyright holder for the generated files.
+    pub copyright_holder: Option<String>,
+    /// The reporting address for msgid bugs. This is the email address or
+    /// URL to which the translators shall report bugs in the untranslated
+    /// strings
+    pub msgid_bugs_address: Option<String>,
     /// Whether or not to perform string extraction using the `xtr` tool.
     pub xtr: Option<bool>,
     /// Path to where the pot files will be written to by
@@ -41,7 +47,7 @@ pub struct GettextConfig {
     pub mo_dir: Option<Box<Path>>,
 }
 
-pub fn run_xtr(config_crate: &Crate, src_dir: &Path, pot_dir: &Path) -> Result<()> {
+pub fn run_xtr(crt: &Crate, i18n_config: &I18nConfig, src_dir: &Path, pot_dir: &Path) -> Result<()> {
     let mut rs_files: Vec<Box<Path>> = Vec::new();
 
     for result in WalkDir::new(src_dir) {
@@ -61,7 +67,7 @@ pub fn run_xtr(config_crate: &Crate, src_dir: &Path, pot_dir: &Path) -> Result<(
             Err(err) => {
                 return Err(anyhow!(
                     "error walking directory {}/src: {}",
-                    config_crate.name,
+                    crt.name,
                     err
                 ))
             }
@@ -80,7 +86,7 @@ pub fn run_xtr(config_crate: &Crate, src_dir: &Path, pot_dir: &Path) -> Result<(
             rs_file_path.to_string_lossy()
         ))?;
         let src_dir_relative = parent_dir.strip_prefix(src_dir).map_err(|_| {
-            PathError::not_inside_dir(parent_dir, format!("crate {0}/src", config_crate.name), src_dir)
+            PathError::not_inside_dir(parent_dir, format!("crate {0}/src", crt.name), src_dir)
         })?;
         let file_stem = rs_file_path.file_stem().context(format!(
             "expected rs file path {0} would have a filename",
@@ -103,17 +109,34 @@ pub fn run_xtr(config_crate: &Crate, src_dir: &Path, pot_dir: &Path) -> Result<(
         // ======= Run the `xtr` command to extract translatable strings =======
         let xtr_command_name = "xtr";
         let mut xtr = Command::new(xtr_command_name);
+
+        let gettext_config = i18n_config.gettext.as_ref().expect("expected i18n_config to be present if running xtr");
+
+        match &gettext_config.copyright_holder {
+            Some(copyright_holder) => {
+                xtr.args(&[
+                    "--copyright-holder",
+                    copyright_holder.as_str()]);
+            },
+            None => {},
+        }
+
+        match &gettext_config.msgid_bugs_address {
+            Some(msgid_bugs_address) => {
+                xtr.args(&[
+                    "--msgid-bugs-address",
+                    msgid_bugs_address.as_str()]);
+            },
+            None => {},
+        }
+        
         xtr.args(&[
             "--package-name",
-            config_crate.name.as_str(),
+            crt.name.as_str(),
             "--package-version",
-            config_crate.version.as_str(),
-            "--copyright-holder",
-            "Luke Frisken",
-            "--msgid-bugs-address",
-            "l.frisken@gmail.com",
+            crt.version.as_str(),
             "--default-domain",
-            config_crate.module_name().as_str(),
+            crt.module_name().as_str(),
             "-o",
             pot_file_path.to_str().ok_or(PathError::not_valid_utf8(
                 pot_file_path.clone(),
@@ -138,7 +161,7 @@ pub fn run_xtr(config_crate: &Crate, src_dir: &Path, pot_dir: &Path) -> Result<(
         msgcat_args.push(Box::from(path.as_os_str()));
     }
 
-    let combined_pot_file_path = pot_dir.join(config_crate.module_name()).with_extension("pot");
+    let combined_pot_file_path = pot_dir.join(crt.module_name()).with_extension("pot");
 
     if combined_pot_file_path.exists() {
         remove_file(combined_pot_file_path.clone()).context("unable to delete .pot")?;
@@ -322,7 +345,7 @@ pub fn run(i18n_config: &I18nConfig) -> Result<()> {
         let mo_dir = i18n_dir.join("mo");
 
         if do_xtr {
-            run_xtr(subcrate, src_dir.as_path(), pot_dir.as_path())?;
+            run_xtr(subcrate, i18n_config, src_dir.as_path(), pot_dir.as_path())?;
             run_msginit(
                 subcrate,
                 i18n_config,

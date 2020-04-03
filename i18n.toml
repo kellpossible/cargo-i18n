@@ -14,3 +14,11 @@ subcrates = ["i18n-build"]
 # (Required) Path to the output directory, relative to `i18n.toml` of the crate
 # being localized.
 output_dir = "i18n"
+
+# (Optional) The reporting address for msgid bugs. This is the email address or
+# URL to which the translators shall report bugs in the untranslated
+# strings.
+msg_bugs_address = "l.frisken@gmail.com"
+
+# (Optional) Set the copyright holder for the generated files.
+copyright_holder = "Luke Frisken"

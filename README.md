@@ -26,12 +26,20 @@ subcrates = ["subcrate1", "subcrate2"]
 # being localized.
 output_dir = "i18n"
 
+# (Optional) The reporting address for msgid bugs. This is the email address or
+# URL to which the translators shall report bugs in the untranslated
+# strings.
+msg_bugs_address = "example@example.com"
+
+# (Optional) Set the copyright holder for the generated files.
+copyright_holder = "You?"
+
 # (Optional) Whether or not to perform string extraction using the `xtr` tool.
 xtr = true
 
-# Path to where the pot files will be written to by `xtr` command, and were
-# they will be read from by the `msginit` and `msgmerge` commands. By default
-# this is `output_dir/pot`.
+# (Optional )Path to where the pot files will be written to by `xtr` command,
+# and were they will be read from by the `msginit` and `msgmerge` commands. By
+# default this is `output_dir/pot`.
 pot_dir = "i18n/pot"
 
 # (Optional) Path to where the po files will be stored/edited with the
