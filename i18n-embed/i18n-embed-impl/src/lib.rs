@@ -54,7 +54,6 @@ pub fn i18n_embed(input: TokenStream) -> TokenStream {
                 return languages;
             }
         }
-        
     };
 
     gen.into()

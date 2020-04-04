@@ -11,18 +11,12 @@ readme = "README.md"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
-# TODO: make gettext an optional dependency
-
 [dependencies]
+i18n-embed = { path = "./i18n-embed" }
+i18n-build = { path = "./i18n-build", features = ["localize"] }
 anyhow = "1.0"
 gettext = "0.4"
 tr = { version = "0.1", default-features = false, features = ["gettext"] }
-walkdir = "2"
+unic-langid = "0.8.0"
 clap = "2.33.0"
-i18n-embed = { path = "./i18n-embed" }
-i18n-build = { path = "./i18n-build", features = ["localize"] }
 rust-embed = "5"
-
-locale_config = "0.3" # TODO: remove
-fluent-langneg = "0.12.1" # TODO: remove
-unic-langid = "0.8.0" # TODO: remove

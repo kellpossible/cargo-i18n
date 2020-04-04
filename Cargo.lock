@@ -59,15 +59,12 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "clap",
- "fluent-langneg",
  "gettext",
  "i18n-build",
  "i18n-embed",
- "locale_config",
  "rust-embed",
  "tr",
  "unic-langid",
- "walkdir",
 ]
 
 [[package]]

@@ -40,11 +40,13 @@ impl I18nEmbed for Translations {
     }
 }
 
+/// Produce the message to be displayed when running `cargo i18n -h`.
 fn short_about() -> String {
     // The help message displayed when running `cargo i18n -h`. 
     tr!("A Cargo sub-command to extract and build localization resources.")
 }
 
+/// Produce the message to be displayed when running `cargo i18n --help`.
 fn long_about() -> String {
     // The help message displayed when running `cargo i18n --help`. 
     // {0} is the short about message. 
