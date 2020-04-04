@@ -36,7 +36,8 @@ copyright_holder = "You?"
 
 # (Optional) If this crate is being localized as a subcrate, store the final
 # localization artifacts (the module pot and mo files) with the parent crate's
-# output.
+# output. Currently crates which contain subcrates with duplicate names are not
+# supported.
 extract_to_parent = true
 
 # (Optional) Whether or not to perform string extraction using the `xtr` tool.

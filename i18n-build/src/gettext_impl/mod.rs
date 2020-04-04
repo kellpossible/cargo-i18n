@@ -19,6 +19,8 @@ pub struct GettextConfig {
     pub output_dir: Box<Path>,
     // If this crate is being localized as a subcrate, store the
     // localization artifacts with the parent crate's output.
+    // Currently crates which contain subcrates with duplicate names
+    // are not supported.
     //
     // By default this will be treated as **false**.
     pub extract_to_parent: Option<bool>,

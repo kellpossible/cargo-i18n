@@ -12,7 +12,9 @@ target_locales = ["ru"]
 output_dir = "i18n-test"
 
 # (Optional) If this crate is being localized as a subcrate, store the
-# localization artifacts with the parent crate's output.
+# localization artifacts with the parent crate's output. Currently
+# crates which contain subcrates with duplicate names are not
+# supported.
 extract_to_parent = true
 
 # (Optional) The reporting address for msgid bugs. This is the email
