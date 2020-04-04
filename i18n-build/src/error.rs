@@ -88,23 +88,23 @@ impl Display for PathError {
             } => {
                 // {0} is the file path, {1} is the item which it is for, {2} is the type of item (file, directory, etc)
                 tr!(
-                    "path ({0}) for {1} {2} does not have valid a utf-8 encoding",
+                    "The path (\"{0}\") for {1} {2} does not have valid a utf-8 encoding.",
                     self.path.to_string_lossy(),
                     for_item,
                     path_type
                 )
             }
             PathErrorKind::DoesNotExist => tr!(
-                "the path {0} does not exist on the filesystem",
+                "The path {0} does not exist on the filesystem.",
                 self.path.to_string_lossy()
             ),
             PathErrorKind::CannotCreateDirectory(source) => tr!(
-                "cannot create the directory {0} because: {1}",
+                "Cannot create the directory \"{0}\" because: \"{1}\".",
                 self.path.to_string_lossy(),
                 source
             ),
             PathErrorKind::NotInsideDirectory(parent_name, parent_dir) => tr!(
-                "the path {0} is not inside the {1} directory {2}",
+                "The path \"{0}\" is not inside the \"{1}\" directory {2}.",
                 self.path.to_string_lossy(),
                 parent_name,
                 parent_dir.to_string_lossy(),

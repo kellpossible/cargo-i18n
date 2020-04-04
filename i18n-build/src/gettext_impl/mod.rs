@@ -330,11 +330,11 @@ pub fn run<'a>(crt: &'a Crate) -> Result<()> {
         .active_config()
         .expect("expected that there would be an active config");
 
-    let gettext_config = i18n_config
-        .gettext_config()
+    let gettext_config = config_crate
+        .gettext_config_or_err()
         .expect("expected gettext config to be present");
 
-    let do_xtr = match i18n_config.gettext_config()?.xtr {
+    let do_xtr = match config_crate.gettext_config_or_err()?.xtr {
         Some(xtr_value) => xtr_value,
         None => true,
     };
@@ -346,7 +346,13 @@ pub fn run<'a>(crt: &'a Crate) -> Result<()> {
         Some(config) => match &config.subcrates {
             Some(subcrates) => subcrates
                 .iter()
-                .map(|subcrate_path| Crate::from(subcrate_path.clone(), Some(crt), crt.config_file_path.clone()))
+                .map(|subcrate_path| {
+                    Crate::from(
+                        subcrate_path.clone(),
+                        Some(crt),
+                        crt.config_file_path.clone(),
+                    )
+                })
                 .collect(),
             None => Ok(vec![]),
         }?,
@@ -360,8 +366,15 @@ pub fn run<'a>(crt: &'a Crate) -> Result<()> {
     let mo_dir = i18n_dir.join("mo");
 
     if do_xtr {
-        let prepend_crate_path = crt.path.canonicalize().unwrap() != config_crate.path.canonicalize().unwrap();
-        run_xtr(crt, &gettext_config, src_dir.as_path(), pot_dir.as_path(), prepend_crate_path)?;
+        let prepend_crate_path =
+            crt.path.canonicalize().unwrap() != config_crate.path.canonicalize().unwrap();
+        run_xtr(
+            crt,
+            &gettext_config,
+            src_dir.as_path(),
+            pot_dir.as_path(),
+            prepend_crate_path,
+        )?;
         run_msginit(crt, i18n_config, pot_dir.as_path(), po_dir.as_path())?;
         run_msgmerge(crt, i18n_config, pot_dir.as_path(), po_dir.as_path())?;
     }

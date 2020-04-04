@@ -9,11 +9,11 @@ use tr::tr;
 pub fn run_command_and_check_success(command_name: &str, mut command: Command) -> Result<()> {
     let output = command
         .spawn()
-        .with_context(|| tr!("the {0} command was unable to start", command_name))?
+        .with_context(|| tr!("The \"{0}\" command was unable to start.", command_name))?
         .wait_with_output()
         .with_context(|| {
             tr!(
-                "the {0} command had a problem waiting for output",
+                "The \"{0}\" command had a problem waiting for output.",
                 command_name
             )
         })?;
@@ -21,7 +21,7 @@ pub fn run_command_and_check_success(command_name: &str, mut command: Command) -
     ensure!(
         output.status.success(),
         tr!(
-            "the {0} command reported that it was unsuccessful",
+            "The \"{0}\" command reported that it was unsuccessful.",
             command_name
         )
     );

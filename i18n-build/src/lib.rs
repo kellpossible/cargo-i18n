@@ -8,8 +8,7 @@ pub mod gettext_impl;
 mod util;
 pub mod watch;
 
-use anyhow::{anyhow, Result};
-use tr::tr;
+use anyhow::Result;
 
 #[cfg(feature = "localize")]
 use i18n_embed::I18nEmbed;

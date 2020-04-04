@@ -1,11 +1,11 @@
-use std::path::Path;
-use anyhow::{Context, Result};
+use anyhow::Result;
 use clap::{crate_authors, crate_version, App, Arg, SubCommand};
 use gettext::Catalog;
-use i18n_build::config::{Crate, I18nConfig};
+use i18n_build::config::Crate;
 use i18n_build::run;
 use i18n_embed::I18nEmbed;
 use rust_embed::RustEmbed;
+use std::path::Path;
 use tr::{set_translator, tr};
 
 use unic_langid::LanguageIdentifier;

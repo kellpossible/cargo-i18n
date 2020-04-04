@@ -40,36 +40,38 @@ impl<'a> Crate<'a> {
 
         let package = cargo_toml
             .as_table()
-            .ok_or(anyhow!("Cargo.toml needs have sections (such as the \"gettext\" section when using gettext"))?
+            .ok_or(anyhow!("Cargo.toml needs have sections (such as the \"gettext\" section when using gettext."))?
             .get("package")
-            .ok_or(anyhow!("Cargo.toml needs to have a \"package\" section"))?
+            .ok_or(anyhow!("Cargo.toml needs to have a \"package\" section."))?
             .as_table()
             .ok_or(anyhow!(
-                "Cargo.toml's \"package\" section needs to contain values"
+                "Cargo.toml's \"package\" section needs to contain values."
             ))?;
 
         let name = package
             .get("name")
-            .ok_or(anyhow!("expected Cargo.toml's package name to exist"))?
+            .ok_or(anyhow!("Cargo.toml needs to specify a package name."))?
             .as_str()
-            .ok_or(anyhow!("expected Cargo.toml'spackage name to be a string"))?;
+            .ok_or(anyhow!("Cargo.toml's package name needs to be a string."))?;
 
         let version = package
             .get("version")
-            .ok_or(anyhow!("expected Cargo.toml's package version to exist"))?
+            .ok_or(anyhow!("Cargo.toml needs to specify a package version."))?
             .as_str()
             .ok_or(anyhow!(
-                "expected Cargo.toml'spackage version to be a string"
+                "Cargo.toml's package version needs to be a string."
             ))?;
 
         let full_config_file_path = path.join(&config_file_path);
         let i18n_config = if full_config_file_path.exists() {
-            Some(I18nConfig::from_file(&full_config_file_path).with_context(|| {
-                tr!(
-                    "cannot load config file: {0}",
-                    full_config_file_path.to_string_lossy()
-                )
-            })?)
+            Some(
+                I18nConfig::from_file(&full_config_file_path).with_context(|| {
+                    tr!(
+                        "Cannot load i18n config file: {0}.",
+                        full_config_file_path.to_string_lossy()
+                    )
+                })?,
+            )
         } else {
             None
         };
@@ -122,9 +124,19 @@ impl<'a> Crate<'a> {
         match &self.i18n_config {
             Some(config) => Ok(config),
             None => Err(anyhow!(tr!(
-                "There is no i18n config called \"{0}\" present in this crate \"{1}\"",
+                "There is no i18n config called \"{0}\" present in this crate \"{1}\".",
                 self.config_file_path.to_string_lossy(),
                 self.name
+            ))),
+        }
+    }
+
+    pub fn gettext_config_or_err(&self) -> Result<&GettextConfig> {
+        match &self.config_or_err()?.gettext {
+            Some(gettext_config) => Ok(gettext_config),
+            None => Err(anyhow!(tr!(
+                "There is no gettext config available the i18n config \"{0}\".",
+                self.config_file_path.to_string_lossy(),
             ))),
         }
     }
@@ -146,18 +158,19 @@ pub struct I18nConfig {
 
 impl I18nConfig {
     pub fn from_file<P: AsRef<Path>>(toml_path: P) -> Result<I18nConfig> {
-        let toml_str = read_to_string(toml_path).context("trouble reading i18n.toml")?;
-        let config: I18nConfig =
-            toml::from_str(toml_str.as_ref()).context("trouble parsing i18n.toml")?;
+        let toml_path_final: &Path = toml_path.as_ref();
+        let toml_str = read_to_string(toml_path_final).with_context(|| {
+            tr!(
+                "Trouble reading file \"{0}\".",
+                toml_path_final.to_string_lossy()
+            )
+        })?;
+        let config: I18nConfig = toml::from_str(toml_str.as_ref()).with_context(|| {
+            tr!(
+                "There was an error while parsing an i18n config file \"{0}\".",
+                toml_path_final.to_string_lossy()
+            )
+        })?;
         Ok(config)
-    }
-
-    pub fn gettext_config(&self) -> Result<&GettextConfig> {
-        match &self.gettext {
-            Some(gettext_config) => Ok(gettext_config),
-            None => Err(anyhow!(tr!(
-                "there is no gettext config available in this i18n config"
-            ))),
-        }
     }
 }
