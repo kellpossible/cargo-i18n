@@ -41,10 +41,13 @@ impl I18nEmbed for Translations {
 }
 
 fn short_about() -> String {
-    tr!("A Cargo subcommand to extract and build localization resources.")
+    // The help message displayed when running `cargo i18n -h`. 
+    tr!("A Cargo sub-command to extract and build localization resources.")
 }
 
 fn long_about() -> String {
+    // The help message displayed when running `cargo i18n --help`. 
+    // {0} is the short about message. 
     tr!(
         "{0}
 
@@ -72,7 +75,10 @@ fn main() -> Result<()> {
 
     let matches = App::new("cargo-i18n")
         .bin_name("cargo")
-        .about(tr!("This binary is designed to be executed as a cargo subcommand using \"cargo i18n\".").as_str())
+        .about(
+            // The message displayed when running the binary outside of cargo using `cargo-18n`.
+            tr!("This binary is designed to be executed as a cargo subcommand using \"cargo i18n\".").as_str()
+        )
         .version(crate_version!())
         .author(crate_authors!())
         .subcommand(SubCommand::with_name("i18n")
@@ -81,13 +87,18 @@ fn main() -> Result<()> {
             .version(crate_version!())
             .author(crate_authors!())
             .arg(Arg::with_name("path")
-                .help(tr!(
+                .help(
+                    // The help message for the `--path` command line argument.
+                    tr!(
                     "Path to the crate you want to localize (if not the current directory). The crate needs to contain \"i18n.toml\" in its root.").as_str())
                 .long("path")
                 .takes_value(true)
             )
             .arg(Arg::with_name("config file name")
-                .help(tr!("The name of the i18n config file for this crate").as_str())
+                .help(
+                    // The help message for the `-c` command line argument.
+                    tr!("The name of the i18n config file for this crate").as_str()
+                )
                 .long("config-file-name")
                 .short("c")
                 .takes_value(true)

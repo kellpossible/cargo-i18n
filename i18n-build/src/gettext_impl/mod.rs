@@ -10,6 +10,7 @@ use std::process::Command;
 
 use anyhow::{anyhow, Context, Result};
 use subprocess::Exec;
+use tr::tr;
 use walkdir::WalkDir;
 
 #[derive(Deserialize, Debug)]
@@ -181,10 +182,12 @@ pub fn run_xtr(
         .args(msgcat_args.as_slice())
         .stdout(combined_pot_file);
 
-    msgcat.join().context(format!(
-        "there was a problem executing the {0} command",
-        msgcat_command_name
-    ))?;
+    msgcat.join().with_context(|| {
+        tr!(
+            "There was a problem executing the \"{0}\" command",
+            msgcat_command_name
+        )
+    })?;
 
     Ok(())
 }
@@ -344,18 +347,32 @@ pub fn run<'a>(crt: &'a Crate) -> Result<()> {
     // in an infinite loop.
     let subcrates: Vec<Crate> = match &crt.i18n_config {
         Some(config) => match &config.subcrates {
-            Some(subcrates) => subcrates
-                .iter()
-                .map(|subcrate_path| {
-                    Crate::from(
-                        subcrate_path.clone(),
-                        Some(crt),
-                        crt.config_file_path.clone(),
+            Some(subcrate_paths) => {
+                let subcrates: Result<Vec<Crate>, anyhow::Error> = subcrate_paths
+                    .iter()
+                    .map(|subcrate_path| {
+                        Crate::from(
+                            subcrate_path.clone(),
+                            Some(crt),
+                            crt.config_file_path.clone(),
+                        )
+                    })
+                    .collect();
+
+                subcrates.with_context(|| {
+                    let subcrate_path_strings: Vec<String> = subcrate_paths
+                    .iter()
+                    .map(|path| path.to_string_lossy().to_string())
+                    .collect();
+                    
+                    tr!(
+                        "There was a problem parsing one of the subcrates: {0}.",
+                        subcrate_path_strings.join(", ")
                     )
-                })
-                .collect(),
-            None => Ok(vec![]),
-        }?,
+                })?
+            }
+            None => vec![],
+        },
         None => vec![],
     };
 

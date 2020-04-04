@@ -124,7 +124,7 @@ impl<'a> Crate<'a> {
         match &self.i18n_config {
             Some(config) => Ok(config),
             None => Err(anyhow!(tr!(
-                "There is no i18n config called \"{0}\" present in this crate \"{1}\".",
+                "There is no i18n config file \"{0}\" present in this crate \"{1}\".",
                 self.config_file_path.to_string_lossy(),
                 self.name
             ))),

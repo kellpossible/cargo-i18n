@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: i18n-build 0.1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-04-04 10:11+0000\n"
+"POT-Creation-Date: 2020-04-04 14:51+0000\n"
 "PO-Revision-Date: 2020-04-04 14:11+0400\n"
 "Last-Translator: Luke Frisken <l.frisken@gmail.com>\n"
 "Language-Team: Russian <l.frisken@gmail.com>\n"
@@ -23,7 +23,7 @@ msgid "Cannot load i18n config file: {0}."
 msgstr ""
 
 #: i18n-build/src/config.rs:127
-msgid "There is no i18n config called \"{0}\" present in this crate \"{1}\"."
+msgid "There is no i18n config file \"{0}\" present in this crate \"{1}\"."
 msgstr ""
 
 #: i18n-build/src/config.rs:138
@@ -52,6 +52,14 @@ msgstr ""
 
 #: i18n-build/src/error.rs:107
 msgid "The path \"{0}\" is not inside the \"{1}\" directory {2}."
+msgstr ""
+
+#: i18n-build/src/gettext_impl/mod.rs:187
+msgid "There was a problem executing the \"{0}\" command"
+msgstr ""
+
+#: i18n-build/src/gettext_impl/mod.rs:369
+msgid "There was a problem parsing one of the subcrates: {0}."
 msgstr ""
 
 #: i18n-build/src/util.rs:12
