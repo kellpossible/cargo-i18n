@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: cargo-i18n 0.1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-04-04 14:51+0000\n"
+"POT-Creation-Date: 2020-04-04 15:00+0000\n"
 "PO-Revision-Date: 2020-04-04 14:11+0400\n"
 "Last-Translator: Luke Frisken <l.frisken@gmail.com>\n"
 "Language-Team: Russian <l.frisken@gmail.com>\n"
@@ -23,7 +23,9 @@ msgstr ""
 msgid "A Cargo sub-command to extract and build localization resources."
 msgstr ""
 
-#: src/main.rs:52
+#. The help message displayed when running `cargo i18n --help`.
+#. {0} is the short about message.
+#: src/main.rs:51
 msgid ""
 "{0}\n"
 "\n"
@@ -38,19 +40,20 @@ msgid ""
 msgstr ""
 
 #. The message displayed when running the binary outside of cargo using `cargo-18n`.
-#: src/main.rs:80
+#: src/main.rs:79
 msgid ""
 "This binary is designed to be executed as a cargo subcommand using \"cargo "
 "i18n\"."
 msgstr ""
 
-#: src/main.rs:93
+#. The help message for the `--path` command line argument.
+#: src/main.rs:91
 msgid ""
 "Path to the crate you want to localize (if not the current directory). The "
 "crate needs to contain \"i18n.toml\" in its root."
 msgstr ""
 
 #. The help message for the `-c` command line argument.
-#: src/main.rs:100
+#: src/main.rs:99
 msgid "The name of the i18n config file for this crate"
 msgstr ""

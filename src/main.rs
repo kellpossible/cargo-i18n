@@ -48,8 +48,7 @@ fn short_about() -> String {
 fn long_about() -> String {
     // The help message displayed when running `cargo i18n --help`. 
     // {0} is the short about message. 
-    tr!(
-        "{0}
+    tr!("{0}
 
 This command reads the \"i18n.toml\" config in your crate root, \
 and based on the configuration there, proceeds to extract \
@@ -89,8 +88,8 @@ fn main() -> Result<()> {
             .arg(Arg::with_name("path")
                 .help(
                     // The help message for the `--path` command line argument.
-                    tr!(
-                    "Path to the crate you want to localize (if not the current directory). The crate needs to contain \"i18n.toml\" in its root.").as_str())
+                    tr!("Path to the crate you want to localize (if not the current directory). The crate needs to contain \"i18n.toml\" in its root.").as_str()
+                    )
                 .long("path")
                 .takes_value(true)
             )
