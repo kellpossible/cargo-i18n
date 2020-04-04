@@ -5,15 +5,16 @@ src_locale = "en-US"
 # (Required) The locales that the software will be translated into.
 target_locales = ["ru"]
 
-# (Optional) Specify which subcrates to perform localization within,
-# the subcrate needs to have its own `i18n.toml`.
-subcrates = ["i18n-build"]
-
 # (Optional) Use the gettext localization system.
 [gettext]
 # (Required) Path to the output directory, relative to `i18n.toml` of
 # the crate being localized.
-output_dir = "i18n"
+output_dir = "i18n-test"
+
+# (Optional) If this crate is being localized as a subcrate, store the
+# final localization artifacts (the module pot and mo files) in the
+# parent crate's output.
+extract_to_parent = true
 
 # (Optional) The reporting address for msgid bugs. This is the email
 # address or URL to which the translators shall report bugs in the

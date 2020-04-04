@@ -2,29 +2,36 @@ use crate::gettext_impl::GettextConfig;
 
 use std::fs::read_to_string;
 use std::path::Path;
-use std::rc::Rc;
 
 use anyhow::{anyhow, Context, Result};
 use serde_derive::Deserialize;
 use toml;
 use tr::tr;
 
-/// Represents a rust crate
-pub struct Crate {
-    /// The name of the crate
+/// Represents a rust crate.
+pub struct Crate<'a> {
+    /// The name of the crate.
     pub name: String,
-    /// The version of the crate
+    /// The version of the crate.
     pub version: String,
-    /// The path to the crate
+    /// The path to the crate.
     pub path: Box<Path>,
     /// Path to the parent crate which is triggering the localization
     /// for this crate.
-    pub parent: Option<Rc<Crate>>,
+    pub parent: Option<&'a Crate<'a>>,
+    /// The file path expected to be used for `i18n_config` relative to this crate's root.
+    pub config_file_path: Box<Path>,
+    /// The localization config for this crate (if it exists).
+    pub i18n_config: Option<I18nConfig>,
 }
 
-impl Crate {
+impl<'a> Crate<'a> {
     /// Read crate from `Cargo.toml`
-    pub fn from(path: Box<Path>, parent: Option<Rc<Crate>>) -> Result<Crate> {
+    pub fn from(
+        path: Box<Path>,
+        parent: Option<&'a Crate>,
+        config_file_path: Box<Path>,
+    ) -> Result<Crate<'a>> {
         let cargo_path = path.join("Cargo.toml");
         let toml_str = read_to_string(cargo_path.clone())
             .with_context(|| format!("trouble reading {0:?}", cargo_path))?;
@@ -33,12 +40,12 @@ impl Crate {
 
         let package = cargo_toml
             .as_table()
-            .ok_or(anyhow!("expected Cargo.toml to be a table"))?
+            .ok_or(anyhow!("Cargo.toml needs have sections (such as the \"gettext\" section when using gettext"))?
             .get("package")
-            .ok_or(anyhow!("expected Cargo.toml to have a `package` section"))?
+            .ok_or(anyhow!("Cargo.toml needs to have a \"package\" section"))?
             .as_table()
             .ok_or(anyhow!(
-                "expected Cargo.toml's package section to be a map containing values"
+                "Cargo.toml's \"package\" section needs to contain values"
             ))?;
 
         let name = package
@@ -51,18 +58,75 @@ impl Crate {
             .get("version")
             .ok_or(anyhow!("expected Cargo.toml's package version to exist"))?
             .as_str()
-            .ok_or(anyhow!("expected Cargo.toml'spackage version to be a string"))?;
+            .ok_or(anyhow!(
+                "expected Cargo.toml'spackage version to be a string"
+            ))?;
+
+        let full_config_file_path = path.join(&config_file_path);
+        let i18n_config = if full_config_file_path.exists() {
+            Some(I18nConfig::from_file(&full_config_file_path).with_context(|| {
+                tr!(
+                    "cannot load config file: {0}",
+                    full_config_file_path.to_string_lossy()
+                )
+            })?)
+        } else {
+            None
+        };
 
         Ok(Crate {
             name: String::from(name),
             version: String::from(version),
             path,
             parent,
+            config_file_path,
+            i18n_config,
         })
     }
 
     pub fn module_name(&self) -> String {
         self.name.replace("-", "_")
+    }
+
+    pub fn parent_active_config(&'a self) -> Option<(&'a Crate, &'a I18nConfig)> {
+        match self.parent {
+            Some(parent) => parent.active_config(),
+            None => None,
+        }
+    }
+
+    pub fn active_config(&'a self) -> Option<(&'a Crate, &'a I18nConfig)> {
+        match &self.i18n_config {
+            Some(config) => {
+                match &config.gettext {
+                    Some(gettext_config) => match gettext_config.extract_to_parent {
+                        Some(extract_to_parent) => {
+                            if extract_to_parent {
+                                return self.parent_active_config();
+                            }
+                        }
+                        None => {}
+                    },
+                    None => {}
+                }
+
+                return Some((self, &config));
+            }
+            None => {
+                return self.parent_active_config();
+            }
+        };
+    }
+
+    pub fn config_or_err(&self) -> Result<&I18nConfig> {
+        match &self.i18n_config {
+            Some(config) => Ok(config),
+            None => Err(anyhow!(tr!(
+                "There is no i18n config called \"{0}\" present in this crate \"{1}\"",
+                self.config_file_path.to_string_lossy(),
+                self.name
+            ))),
+        }
     }
 }
 

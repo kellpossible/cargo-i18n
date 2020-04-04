@@ -8,10 +8,11 @@ pub mod gettext_impl;
 mod util;
 pub mod watch;
 
-use anyhow::Result;
+use anyhow::{anyhow, Result};
+use tr::tr;
 
 #[cfg(feature = "localize")]
-use i18n_embed::{I18nEmbed};
+use i18n_embed::I18nEmbed;
 
 #[cfg(feature = "localize")]
 use gettext::Catalog;
@@ -19,11 +20,11 @@ use gettext::Catalog;
 #[cfg(feature = "localize")]
 use tr::set_translator;
 
-
-pub fn run(config: &config::I18nConfig) -> Result<()> {
-    match config.gettext {
+pub fn run(crt: &config::Crate) -> Result<()> {
+    let i18n_config = crt.config_or_err()?;
+    match i18n_config.gettext {
         Some(_) => {
-            gettext_impl::run(config)?;
+            gettext_impl::run(crt)?;
         }
         None => {}
     }
@@ -50,7 +51,7 @@ impl i18n_embed::LanguageLoader for LanguageLoader {
     }
 }
 
-pub fn localize<E: I18nEmbed>(){
+pub fn localize<E: I18nEmbed>() {
     let loader = LanguageLoader::new();
     E::select(&loader);
 }

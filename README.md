@@ -34,6 +34,11 @@ msg_bugs_address = "example@example.com"
 # (Optional) Set the copyright holder for the generated files.
 copyright_holder = "You?"
 
+# (Optional) If this crate is being localized as a subcrate, store the final
+# localization artifacts (the module pot and mo files) in the parent crate's
+# output.
+extract_to_parent = true
+
 # (Optional) Whether or not to perform string extraction using the `xtr` tool.
 xtr = true
 

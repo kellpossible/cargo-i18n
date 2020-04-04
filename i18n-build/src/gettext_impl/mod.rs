@@ -7,7 +7,6 @@ use std::ffi::OsStr;
 use std::fs::{create_dir_all, remove_file, File};
 use std::path::Path;
 use std::process::Command;
-use std::rc::Rc;
 
 use anyhow::{anyhow, Context, Result};
 use subprocess::Exec;
@@ -18,11 +17,17 @@ pub struct GettextConfig {
     /// Path to the output directory, relative to `i18n.toml` of the
     /// crate being localized.
     pub output_dir: Box<Path>,
+    // If this crate is being localized as a subcrate, store the final
+    // localization artifacts (the module **pot** and **mo** files) in
+    // the parent crate's output.
+    //
+    // By default this will be treated as **false**.
+    pub extract_to_parent: Option<bool>,
     /// Set the copyright holder for the generated files.
     pub copyright_holder: Option<String>,
-    /// The reporting address for msgid bugs. This is the email address or
-    /// URL to which the translators shall report bugs in the untranslated
-    /// strings
+    /// The reporting address for msgid bugs. This is the email
+    /// address or URL to which the translators shall report bugs in
+    /// the untranslated strings.
     pub msgid_bugs_address: Option<String>,
     /// Whether or not to perform string extraction using the `xtr` tool.
     pub xtr: Option<bool>,
@@ -47,7 +52,13 @@ pub struct GettextConfig {
     pub mo_dir: Option<Box<Path>>,
 }
 
-pub fn run_xtr(crt: &Crate, i18n_config: &I18nConfig, src_dir: &Path, pot_dir: &Path) -> Result<()> {
+pub fn run_xtr(
+    crt: &Crate,
+    gettext_config: &GettextConfig,
+    src_dir: &Path,
+    pot_dir: &Path,
+    prepend_crate_path: bool,
+) -> Result<()> {
     let mut rs_files: Vec<Box<Path>> = Vec::new();
 
     for result in WalkDir::new(src_dir) {
@@ -64,18 +75,17 @@ pub fn run_xtr(crt: &Crate, i18n_config: &I18nConfig, src_dir: &Path, pot_dir: &
                     None => {}
                 }
             }
-            Err(err) => {
-                return Err(anyhow!(
-                    "error walking directory {}/src: {}",
-                    crt.name,
-                    err
-                ))
-            }
+            Err(err) => return Err(anyhow!("error walking directory {}/src: {}", crt.name, err)),
         }
     }
 
     let mut pot_paths = Vec::new();
-    let pot_src_dir = pot_dir.join("src");
+
+    let pot_src_dir = if prepend_crate_path {
+        pot_dir.join(&crt.path).join("src")
+    } else {
+        pot_dir.join("src")
+    };
 
     // create pot and pot/tmp if they don't exist
     util::create_dir_all_if_not_exists(&pot_src_dir)?;
@@ -110,26 +120,20 @@ pub fn run_xtr(crt: &Crate, i18n_config: &I18nConfig, src_dir: &Path, pot_dir: &
         let xtr_command_name = "xtr";
         let mut xtr = Command::new(xtr_command_name);
 
-        let gettext_config = i18n_config.gettext.as_ref().expect("expected i18n_config to be present if running xtr");
-
         match &gettext_config.copyright_holder {
             Some(copyright_holder) => {
-                xtr.args(&[
-                    "--copyright-holder",
-                    copyright_holder.as_str()]);
-            },
-            None => {},
+                xtr.args(&["--copyright-holder", copyright_holder.as_str()]);
+            }
+            None => {}
         }
 
         match &gettext_config.msgid_bugs_address {
             Some(msgid_bugs_address) => {
-                xtr.args(&[
-                    "--msgid-bugs-address",
-                    msgid_bugs_address.as_str()]);
-            },
-            None => {},
+                xtr.args(&["--msgid-bugs-address", msgid_bugs_address.as_str()]);
+            }
+            None => {}
         }
-        
+
         xtr.args(&[
             "--package-name",
             crt.name.as_str(),
@@ -166,7 +170,6 @@ pub fn run_xtr(crt: &Crate, i18n_config: &I18nConfig, src_dir: &Path, pot_dir: &
     if combined_pot_file_path.exists() {
         remove_file(combined_pot_file_path.clone()).context("unable to delete .pot")?;
     }
-
 
     let combined_pot_file =
         File::create(combined_pot_file_path).expect("unable to create .pot file");
@@ -248,7 +251,10 @@ pub fn run_msgmerge(
     let msgmerge_command_name = "msgmerge";
 
     for locale in &i18n_config.target_locales {
-        let po_file_path = po_dir.join(locale).join(crt.module_name()).with_extension("po");
+        let po_file_path = po_dir
+            .join(locale)
+            .join(crt.module_name())
+            .with_extension("po");
 
         util::check_path_exists(&po_file_path)?;
 
@@ -318,54 +324,51 @@ pub fn run_msgfmt(
     Ok(())
 }
 
-pub fn run(i18n_config: &I18nConfig) -> Result<()> {
+pub fn run<'a>(crt: &'a Crate) -> Result<()> {
+    let (config_crate, i18n_config) = crt
+        .active_config()
+        .expect("expected that there would be an active config");
+
+    let gettext_config = i18n_config
+        .gettext_config()
+        .expect("expected gettext config to be present");
+
     let do_xtr = match i18n_config.gettext_config()?.xtr {
         Some(xtr_value) => xtr_value,
         None => true,
     };
 
-    let parent_crate = Rc::from(Crate::from(Box::from(Path::new(".")), None)?);
-    let mut crates = vec![parent_crate.clone()];
-    
-    match &i18n_config.subcrates {
-        Some(subcrates) => {
-            for subcrate_path_string in subcrates {
-                crates.push(Rc::from(Crate::from(subcrate_path_string.clone(), Some(parent_crate.clone()))?));
-            }
-        },
-        None => {},
+    // We don't use the i18n_config (which potentially comes from the
+    // parent crate )to get the subcrates, because this would result
+    // in an infinite loop.
+    let subcrates: Vec<Crate> = match &crt.i18n_config {
+        Some(config) => match &config.subcrates {
+            Some(subcrates) => subcrates
+                .iter()
+                .map(|subcrate_path| Crate::from(subcrate_path.clone(), Some(crt), crt.config_file_path.clone()))
+                .collect(),
+            None => Ok(vec![]),
+        }?,
+        None => vec![],
+    };
+
+    let i18n_dir = config_crate.path.join("i18n");
+    let src_dir = crt.path.join("src");
+    let pot_dir = i18n_dir.join("pot");
+    let po_dir = i18n_dir.join("po");
+    let mo_dir = i18n_dir.join("mo");
+
+    if do_xtr {
+        let prepend_crate_path = crt.path.canonicalize().unwrap() != config_crate.path.canonicalize().unwrap();
+        run_xtr(crt, &gettext_config, src_dir.as_path(), pot_dir.as_path(), prepend_crate_path)?;
+        run_msginit(crt, i18n_config, pot_dir.as_path(), po_dir.as_path())?;
+        run_msgmerge(crt, i18n_config, pot_dir.as_path(), po_dir.as_path())?;
     }
-    
-    for subcrate in &crates {
-        let crate_dir = subcrate.path.clone();
-        let i18n_dir = crate_dir.join("i18n");
-        let src_dir = crate_dir.join("src");
-        let pot_dir = i18n_dir.join("pot");
-        let po_dir = i18n_dir.join("po");
-        let mo_dir = i18n_dir.join("mo");
 
-        if do_xtr {
-            run_xtr(subcrate, i18n_config, src_dir.as_path(), pot_dir.as_path())?;
-            run_msginit(
-                subcrate,
-                i18n_config,
-                pot_dir.as_path(),
-                po_dir.as_path(),
-            )?;
-            run_msgmerge(
-                subcrate,
-                i18n_config,
-                pot_dir.as_path(),
-                po_dir.as_path(),
-            )?;
-        }
+    run_msgfmt(crt, i18n_config, po_dir.as_path(), mo_dir.as_path())?;
 
-        run_msgfmt(
-            subcrate,
-            i18n_config,
-            po_dir.as_path(),
-            mo_dir.as_path(),
-        )?;
+    for subcrate in &subcrates {
+        run(subcrate)?;
     }
 
     return Ok(());

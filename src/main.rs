@@ -1,7 +1,8 @@
+use std::path::Path;
 use anyhow::{Context, Result};
 use clap::{crate_authors, crate_version, App, Arg, SubCommand};
 use gettext::Catalog;
-use i18n_build::config::I18nConfig;
+use i18n_build::config::{Crate, I18nConfig};
 use i18n_build::run;
 use i18n_embed::I18nEmbed;
 use rust_embed::RustEmbed;
@@ -99,10 +100,12 @@ fn main() -> Result<()> {
         let config_file_name = i18n_matches
             .value_of("config file name")
             .expect("expected a config file name to be present");
-        let config = I18nConfig::from_file(config_file_name.clone())
-            .with_context(|| tr!("cannot load config file \"{0}\"", config_file_name))?;
 
-        run(&config)?;
+        let path: Box<Path> = Box::from(Path::new("."));
+        let config_file_path: Box<Path> = Box::from(Path::new(config_file_name));
+        let crt = Crate::from(path, None, config_file_path).unwrap();
+
+        run(&crt)?;
     }
 
     Ok(())
