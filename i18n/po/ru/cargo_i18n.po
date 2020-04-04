@@ -1,0 +1,53 @@
+# Russian translations for cargo-i18n package.
+# Copyright (C) 2020 Luke Frisken
+# This file is distributed under the same license as the cargo-i18n package.
+# Luke Frisken <luke@luke-laptop.localdomain>, 2020.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: cargo-i18n 0.1.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2020-04-04 10:11+0000\n"
+"PO-Revision-Date: 2020-04-04 14:11+0400\n"
+"Last-Translator: Luke Frisken <luke@luke-laptop.localdomain>\n"
+"Language-Team: Russian <gnu@d07.ru>\n"
+"Language: ru\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
+"%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+
+#: src/main.rs:44
+msgid "A Cargo subcommand to extract and build localization resources."
+msgstr ""
+
+#: src/main.rs:49
+msgid ""
+"{0}\n"
+"\n"
+"This command reads the \"i18n.toml\" config in your crate root, and based on "
+"the configuration there, proceeds to extract localization resources, and "
+"build them.\n"
+"\n"
+"If you are using the gettext localization system, you will need to have the "
+"following gettext tools installed: \"msgcat\", \"msginit\", \"msgmerge\" and "
+"\"msgfmt\". You will also need to have the \"xtr\" tool installed, which can "
+"be installed using \"cargo install xtr\".\n"
+msgstr ""
+
+#: src/main.rs:75
+msgid ""
+"This binary is designed to be executed as a cargo subcommand using \"cargo "
+"i18n\"."
+msgstr ""
+
+#: src/main.rs:85
+msgid ""
+"Path to the crate you want to localize (if not the current directory). The "
+"crate needs to contain \"i18n.toml\" in its root."
+msgstr ""
+
+#: src/main.rs:90
+msgid "The name of the i18n config file for this crate"
+msgstr ""
