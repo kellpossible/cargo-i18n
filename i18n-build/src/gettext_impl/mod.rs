@@ -17,9 +17,8 @@ pub struct GettextConfig {
     /// Path to the output directory, relative to `i18n.toml` of the
     /// crate being localized.
     pub output_dir: Box<Path>,
-    // If this crate is being localized as a subcrate, store the final
-    // localization artifacts (the module **pot** and **mo** files) in
-    // the parent crate's output.
+    // If this crate is being localized as a subcrate, store the
+    // localization artifacts with the parent crate's output.
     //
     // By default this will be treated as **false**.
     pub extract_to_parent: Option<bool>,

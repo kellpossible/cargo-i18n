@@ -35,7 +35,7 @@ msg_bugs_address = "example@example.com"
 copyright_holder = "You?"
 
 # (Optional) If this crate is being localized as a subcrate, store the final
-# localization artifacts (the module pot and mo files) in the parent crate's
+# localization artifacts (the module pot and mo files) with the parent crate's
 # output.
 extract_to_parent = true
 

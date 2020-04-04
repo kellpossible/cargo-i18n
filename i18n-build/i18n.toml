@@ -12,8 +12,7 @@ target_locales = ["ru"]
 output_dir = "i18n-test"
 
 # (Optional) If this crate is being localized as a subcrate, store the
-# final localization artifacts (the module pot and mo files) in the
-# parent crate's output.
+# localization artifacts with the parent crate's output.
 extract_to_parent = true
 
 # (Optional) The reporting address for msgid bugs. This is the email
