@@ -19,6 +19,8 @@ use gettext::Catalog;
 #[cfg(feature = "localize")]
 use tr::set_translator;
 
+/// Run the i18n build process for the provided crate, which must
+/// contain an i18n config.
 pub fn run(crt: &config::Crate) -> Result<()> {
     let i18n_config = crt.config_or_err()?;
     match i18n_config.gettext {
@@ -31,14 +33,18 @@ pub fn run(crt: &config::Crate) -> Result<()> {
     Ok(())
 }
 
+#[cfg(feature = "localize")]
 struct LanguageLoader;
 
+#[cfg(feature = "localize")]
 impl LanguageLoader {
     fn new() -> LanguageLoader {
         LanguageLoader {}
     }
 }
 
+// TODO: change when we have more embed macros
+#[cfg(feature = "localize")]
 impl i18n_embed::LanguageLoader for LanguageLoader {
     fn load_language_file<R: std::io::Read>(&self, reader: R) {
         let catalog = Catalog::parse(reader).expect("could not parse the catalog");
@@ -50,6 +56,12 @@ impl i18n_embed::LanguageLoader for LanguageLoader {
     }
 }
 
+/// Localize this library using the provided [I18nEmbed](I18nEmbed)
+/// implementation. 
+///
+/// TODO: consider moving the translations and embedding them directly
+/// in the library, rather than as a sub-crate.
+#[cfg(feature = "localize")]
 pub fn localize<E: I18nEmbed>() {
     let loader = LanguageLoader::new();
     E::select(&loader);

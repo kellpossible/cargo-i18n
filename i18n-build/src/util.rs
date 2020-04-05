@@ -3,9 +3,10 @@ use std::path::Path;
 use std::process::Command;
 
 use crate::error::PathError;
-use anyhow::{anyhow, ensure, Context, Result};
+use anyhow::{ensure, Context, Result};
 use tr::tr;
 
+/// Run the specified command, check that it's output was reported as successful.
 pub fn run_command_and_check_success(command_name: &str, mut command: Command) -> Result<()> {
     let output = command
         .spawn()
@@ -28,15 +29,19 @@ pub fn run_command_and_check_success(command_name: &str, mut command: Command) -
     Ok(())
 }
 
-pub fn check_path_exists(path: &Path) -> Result<()> {
+/// Check that the given path exists, if it doesn't then throw a
+/// [PathError](PathError).
+pub fn check_path_exists(path: &Path) -> Result<(), PathError> {
     if !path.exists() {
-        Err(anyhow!(PathError::does_not_exist(path)))
+        Err(PathError::does_not_exist(path))
     } else {
         Ok(())
     }
 }
 
-pub fn create_dir_all_if_not_exists(path: &Path) -> Result<()> {
+/// Create any of the directories in the specified path if they don't
+/// already exist.
+pub fn create_dir_all_if_not_exists(path: &Path) -> Result<(), PathError> {
     if !path.exists() {
         create_dir_all(path.clone()).map_err(|e| PathError::cannot_create_dir(path.clone(), e))?;
     }

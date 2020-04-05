@@ -1,3 +1,6 @@
+//! Utility functions to use within a `build.rs` build script using
+//! this library.
+
 use crate::error::{PathError, PathType};
 use std::path::Path;
 
@@ -5,6 +8,8 @@ use anyhow::{anyhow, Result};
 
 use walkdir::WalkDir;
 
+/// Tell `Cargo` to rerun the build script that calls this function
+/// (upon rebuild) if the specified file/directory changes.
 pub fn cargo_rerun_if_changed(path: &Path) -> Result<(), PathError> {
     println!(
         "cargo:rerun-if-changed={}",
@@ -17,8 +22,9 @@ pub fn cargo_rerun_if_changed(path: &Path) -> Result<(), PathError> {
     Ok(())
 }
 
-/// Ensure that the build script runs every time something within the
-/// specified folder changes.
+/// Tell `Cargo` to rerun the build script that calls this function
+/// (upon rebuild) if any of the files/directories within the
+/// specified directory changes.
 pub fn cargo_rerun_if_dir_changed(path: &Path) -> Result<()> {
     cargo_rerun_if_changed(path)?;
 

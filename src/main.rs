@@ -10,10 +10,15 @@ use tr::{set_translator, tr};
 
 use unic_langid::LanguageIdentifier;
 
-// TODO: the folder here is required to be present for the code to compile, is this bad?
 #[derive(RustEmbed)]
 #[folder = "i18n/mo"]
 struct Translations;
+
+impl I18nEmbed for Translations {
+    fn src_locale() -> LanguageIdentifier {
+        "en-US".parse().unwrap()
+    }
+}
 
 struct LanguageLoader;
 
@@ -31,12 +36,6 @@ impl i18n_embed::LanguageLoader for LanguageLoader {
 
     fn module_path() -> &'static str {
         module_path!()
-    }
-}
-
-impl I18nEmbed for Translations {
-    fn src_locale() -> LanguageIdentifier {
-        "en-US".parse().unwrap()
     }
 }
 

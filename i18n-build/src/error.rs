@@ -4,6 +4,7 @@ use std::path::Path;
 use thiserror::Error;
 use tr::tr;
 
+/// Type of path being represented in an error message.
 #[derive(Debug)]
 pub enum PathType {
     File,
@@ -32,6 +33,9 @@ pub enum PathErrorKind {
     NotInsideDirectory(String, Box<Path>),
 }
 
+/// This error type collates all the various generic file/path related
+/// errors in this application into one place, so that they can be
+/// translated easily.
 #[derive(Error, Debug)]
 pub struct PathError {
     pub path: Box<Path>,
@@ -39,13 +43,15 @@ pub struct PathError {
 }
 
 impl PathError {
+    /// An error for when a directory cannot be created.
     pub fn cannot_create_dir<P: Into<Box<Path>>>(path: P, source: io::Error) -> PathError {
         PathError {
             path: path.into(),
             kind: PathErrorKind::CannotCreateDirectory(source),
         }
     }
-
+    
+    /// An error for when the given path does not exist (when it was expected to exist).
     pub fn does_not_exist<P: Into<Box<Path>>>(path: P) -> PathError {
         PathError {
             path: path.into(),
@@ -53,6 +59,8 @@ impl PathError {
         }
     }
 
+    /// An error for when the given path contains some characters
+    /// which do not conform to the UTF-8 standard/encoding.
     pub fn not_valid_utf8<F: Into<String>, P: Into<Box<Path>>>(
         path: P,
         for_item: F,
@@ -67,6 +75,8 @@ impl PathError {
         }
     }
 
+    /// An error for when the given path is not inside another given
+    /// path which is a directory.
     pub fn not_inside_dir<S: Into<String>, P: Into<Box<Path>>>(
         path: P,
         parent_name: S,
@@ -86,8 +96,9 @@ impl Display for PathError {
                 for_item,
                 path_type,
             } => {
-                // {0} is the file path, {1} is the item which it is for, {2} is the type of item (file, directory, etc)
+                
                 tr!(
+                    // {0} is the file path, {1} is the item which it is for, {2} is the type of item (file, directory, etc)
                     "The path (\"{0}\") for {1} {2} does not have valid a utf-8 encoding.",
                     self.path.to_string_lossy(),
                     for_item,

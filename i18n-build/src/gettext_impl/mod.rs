@@ -54,6 +54,18 @@ pub struct GettextConfig {
     pub mo_dir: Option<Box<Path>>,
 }
 
+/// Run the `xtr` command (<https://crates.io/crates/xtr/>) in order
+/// to extract the translateable strings from the crate.
+///
+/// `src_dir` is the directory where the Rust source code is located
+/// relative to the crate path.
+///
+/// `pot_dir` is the directory where the output `pot` files will be
+/// stored.
+///
+/// `prepend_crate_path` is whether or not to prepend the path of the
+/// crate to directory where the intermediate `pot` files will be
+/// stored within the `pot_dir`.
 pub fn run_xtr(
     crt: &Crate,
     gettext_config: &GettextConfig,
@@ -192,6 +204,12 @@ pub fn run_xtr(
     Ok(())
 }
 
+/// Run the gettext `msginit` command to create a new `po` file.
+/// 
+/// `pot_dir` is the directory where the input `pot` files are stored.
+/// 
+/// `po_dir` is the directory where the output `po` files will be
+/// stored.
 pub fn run_msginit(
     crt: &Crate,
     i18n_config: &I18nConfig,
@@ -242,6 +260,12 @@ pub fn run_msginit(
     Ok(())
 }
 
+/// Run the gettext `msgmerge` command to update the `po` files with
+/// new/deleted messages from the source `pot` files.
+///
+/// `pot_dir` is the directory where the input `pot` files are stored.
+///
+/// `po_dir` is the directory where the `po` files are stored.
 pub fn run_msgmerge(
     crt: &Crate,
     i18n_config: &I18nConfig,
@@ -284,6 +308,12 @@ pub fn run_msgmerge(
     Ok(())
 }
 
+/// Run the gettext `msgfmt` command to compile the `po` files into
+/// binary `mo` files.
+///
+/// `po_dir` is the directory where the input `po` files are stored.
+///
+/// `mo_dir` is the directory where the output `mo` files will be stored.
 pub fn run_msgfmt(
     crt: &Crate,
     i18n_config: &I18nConfig,
@@ -328,6 +358,10 @@ pub fn run_msgfmt(
     Ok(())
 }
 
+/// Run the gettext i18n build process for the provided crate. The
+/// crate must have an i18n config containing a gettext config.
+/// 
+/// This function is recursively executed for each subcrate.
 pub fn run<'a>(crt: &'a Crate) -> Result<()> {
     let (config_crate, i18n_config) = crt
         .active_config()

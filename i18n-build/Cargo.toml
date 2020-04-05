@@ -3,6 +3,7 @@ name = "i18n-build"
 version = "0.1.0"
 authors = ["Luke Frisken <l.frisken@gmail.com>"]
 edition = "2018"
+repository = "https://github.com/kellpossible/cargo-i18n"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -20,4 +21,6 @@ gettext = { version = "0.4", optional = true }
 
 [features]
 default = []
+
+# A feature to localize this library
 localize = ["i18n-embed", "gettext"]

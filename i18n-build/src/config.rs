@@ -26,7 +26,8 @@ pub struct Crate<'a> {
 }
 
 impl<'a> Crate<'a> {
-    /// Read crate from `Cargo.toml`
+    /// Read crate from `Cargo.toml` i18n config using the
+    /// `config_file_path` (if there is one).
     pub fn from(
         path: Box<Path>,
         parent: Option<&'a Crate>,
@@ -86,10 +87,15 @@ impl<'a> Crate<'a> {
         })
     }
 
+    /// The name of the module/library used for this crate. Replaces
+    /// `-` characters with `_` in the crate name.
     pub fn module_name(&self) -> String {
         self.name.replace("-", "_")
     }
 
+    /// If there is a parent, get it's
+    /// [I18nConfig#active_config()](I18nConfig#active_config()),
+    /// otherwise return None.
     pub fn parent_active_config(&'a self) -> Option<(&'a Crate, &'a I18nConfig)> {
         match self.parent {
             Some(parent) => parent.active_config(),
@@ -97,6 +103,9 @@ impl<'a> Crate<'a> {
         }
     }
 
+    /// Identify the config which should be used for this crate, and
+    /// the crate (either this crate or one of it's parents)
+    /// associated with that config.
     pub fn active_config(&'a self) -> Option<(&'a Crate, &'a I18nConfig)> {
         match &self.i18n_config {
             Some(config) => {
@@ -120,6 +129,8 @@ impl<'a> Crate<'a> {
         };
     }
 
+    /// Get the [I18nConfig](I18nConfig) in this crate, or return an
+    /// error if there is none present.
     pub fn config_or_err(&self) -> Result<&I18nConfig> {
         match &self.i18n_config {
             Some(config) => Ok(config),
@@ -131,6 +142,8 @@ impl<'a> Crate<'a> {
         }
     }
 
+    /// Get the [GettextConfig](GettextConfig) in this crate, or
+    /// return an error if there is none present.
     pub fn gettext_config_or_err(&self) -> Result<&GettextConfig> {
         match &self.config_or_err()?.gettext {
             Some(gettext_config) => Ok(gettext_config),
@@ -157,6 +170,7 @@ pub struct I18nConfig {
 }
 
 impl I18nConfig {
+    /// Load the config from the specified toml file path.
     pub fn from_file<P: AsRef<Path>>(toml_path: P) -> Result<I18nConfig> {
         let toml_path_final: &Path = toml_path.as_ref();
         let toml_str = read_to_string(toml_path_final).with_context(|| {
