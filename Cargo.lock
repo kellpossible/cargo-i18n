@@ -61,6 +61,7 @@ dependencies = [
  "clap",
  "gettext",
  "i18n-build",
+ "i18n-config",
  "i18n-embed",
  "rust-embed",
  "tr",
@@ -180,14 +181,22 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "gettext",
+ "i18n-config",
  "i18n-embed",
- "serde",
- "serde_derive",
  "subprocess",
  "thiserror",
- "toml",
  "tr",
  "walkdir",
+]
+
+[[package]]
+name = "i18n-config"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "serde",
+ "serde_derive",
+ "toml",
 ]
 
 [[package]]
@@ -207,12 +216,11 @@ dependencies = [
 name = "i18n-embed-impl"
 version = "0.1.0"
 dependencies = [
- "proc-macro2",
+ "i18n-config",
  "quote",
  "serde",
  "serde_derive",
  "syn",
- "toml",
 ]
 
 [[package]]

@@ -9,14 +9,12 @@ repository = "https://github.com/kellpossible/cargo-i18n"
 
 [dependencies]
 subprocess = "0.2"
-toml = "0.5"
-serde = { version = "1", features = ["derive"] }
-serde_derive = "1"
 anyhow = "1"
 thiserror = "1"
 tr = { version = "0.1", default-features = false, features = ["gettext"] }
 walkdir = "2"
-i18n-embed = { path = "../i18n-embed", optional = true }
+i18n-embed = { path = "../i18n-embed", features = ["desktop-requester"], optional = true }
+i18n-config = { path = "../i18n-config" }
 gettext = { version = "0.4", optional = true }
 
 [features]

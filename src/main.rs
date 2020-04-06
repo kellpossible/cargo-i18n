@@ -1,7 +1,7 @@
 use anyhow::Result;
 use clap::{crate_authors, crate_version, App, Arg, SubCommand};
 use gettext::Catalog;
-use i18n_build::config::Crate;
+use i18n_config::Crate;
 use i18n_build::run;
 use i18n_embed::I18nEmbed;
 use rust_embed::RustEmbed;
@@ -10,15 +10,9 @@ use tr::{set_translator, tr};
 
 use unic_langid::LanguageIdentifier;
 
-#[derive(RustEmbed)]
+#[derive(RustEmbed, I18nEmbed)]
 #[folder = "i18n/mo"]
 struct Translations;
-
-impl I18nEmbed for Translations {
-    fn src_locale() -> LanguageIdentifier {
-        "en-US".parse().unwrap()
-    }
-}
 
 struct LanguageLoader;
 
@@ -68,7 +62,7 @@ install xtr\".
 fn main() -> Result<()> {
     let loader = LanguageLoader::new();
     println!("Loading translations for cargo-gettext");
-    Translations::select(&loader);
+    Translations::desktop_select(&loader);
 
     println!("Loading translations for i18n_build");
     i18n_build::localize::<Translations>();

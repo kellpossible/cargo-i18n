@@ -1,12 +1,9 @@
-use crate::gettext_impl::GettextConfig;
-
 use std::fs::read_to_string;
-use std::path::Path;
+use std::path::{PathBuf, Path};
 
 use anyhow::{anyhow, Context, Result};
 use serde_derive::Deserialize;
 use toml;
-use tr::tr;
 
 /// Represents a rust crate.
 pub struct Crate<'a> {
@@ -67,7 +64,7 @@ impl<'a> Crate<'a> {
         let i18n_config = if full_config_file_path.exists() {
             Some(
                 I18nConfig::from_file(&full_config_file_path).with_context(|| {
-                    tr!(
+                    format!(
                         "Cannot load i18n config file: {0}.",
                         full_config_file_path.to_string_lossy()
                     )
@@ -134,7 +131,7 @@ impl<'a> Crate<'a> {
     pub fn config_or_err(&self) -> Result<&I18nConfig> {
         match &self.i18n_config {
             Some(config) => Ok(config),
-            None => Err(anyhow!(tr!(
+            None => Err(anyhow!(format!(
                 "There is no i18n config file \"{0}\" present in this crate \"{1}\".",
                 self.config_file_path.to_string_lossy(),
                 self.name
@@ -147,13 +144,14 @@ impl<'a> Crate<'a> {
     pub fn gettext_config_or_err(&self) -> Result<&GettextConfig> {
         match &self.config_or_err()?.gettext {
             Some(gettext_config) => Ok(gettext_config),
-            None => Err(anyhow!(tr!(
+            None => Err(anyhow!(format!(
                 "There is no gettext config available the i18n config \"{0}\".",
                 self.config_file_path.to_string_lossy(),
             ))),
         }
     }
 }
+
 
 #[derive(Deserialize, Debug)]
 pub struct I18nConfig {
@@ -174,17 +172,88 @@ impl I18nConfig {
     pub fn from_file<P: AsRef<Path>>(toml_path: P) -> Result<I18nConfig> {
         let toml_path_final: &Path = toml_path.as_ref();
         let toml_str = read_to_string(toml_path_final).with_context(|| {
-            tr!(
+            format!(
                 "Trouble reading file \"{0}\".",
                 toml_path_final.to_string_lossy()
             )
         })?;
         let config: I18nConfig = toml::from_str(toml_str.as_ref()).with_context(|| {
-            tr!(
+            format!(
                 "There was an error while parsing an i18n config file \"{0}\".",
                 toml_path_final.to_string_lossy()
             )
         })?;
         Ok(config)
+    }
+}
+
+#[derive(Deserialize, Debug)]
+pub struct GettextConfig {
+    /// Path to the output directory, relative to `i18n.toml` of the
+    /// crate being localized.
+    pub output_dir: PathBuf,
+    // If this crate is being localized as a subcrate, store the
+    // localization artifacts with the parent crate's output.
+    // Currently crates which contain subcrates with duplicate names
+    // are not supported.
+    //
+    // By default this will be treated as **false**.
+    pub extract_to_parent: Option<bool>,
+    /// Set the copyright holder for the generated files.
+    pub copyright_holder: Option<String>,
+    /// The reporting address for msgid bugs. This is the email
+    /// address or URL to which the translators shall report bugs in
+    /// the untranslated strings.
+    pub msgid_bugs_address: Option<String>,
+    /// Whether or not to perform string extraction using the `xtr` tool.
+    pub xtr: Option<bool>,
+    /// Path to where the pot files will be written to by
+    /// [run_xtr()](run_xtr()), and were they will be read from by
+    /// [run_msginit()](run_msginit()) and
+    /// [run_msgmerge()](run_msgmerge()).
+    pot_dir: Option<PathBuf>,
+    /// Path to where the po files will be stored/edited with the
+    /// [run_msgmerge()](run_msgmerge()) and
+    /// [run_msginit()](run_msginit()) commands, and where they will
+    /// be read from with the [run_msgfmt()](run_msgfmt()) command.
+    po_dir: Option<PathBuf>,
+    /// Path to where the mo files will be written to by the
+    /// [run_msgfmt()](run_msgfmt()) command.
+    mo_dir: Option<PathBuf>,
+}
+
+impl GettextConfig {
+    /// Path to where the pot files will be written to by
+    /// [run_xtr()](run_xtr()), and were they will be read from by
+    /// [run_msginit()](run_msginit()) and
+    /// [run_msgmerge()](run_msgmerge()).
+    ///
+    /// By default this is **[output_dir](GettextConfig::output_dir)/pot**.
+    pub fn pot_dir(&self) -> PathBuf {
+        // match self.pot_dir {
+        //     Some(pot_dir) => pot_dir,
+        //     None => {
+        //         panic!("panic");
+        //     },
+        // }
+        self.pot_dir.clone().unwrap_or(self.output_dir.join("pot"))
+    }
+
+    /// Path to where the po files will be stored/edited with the
+    /// [run_msgmerge()](run_msgmerge()) and
+    /// [run_msginit()](run_msginit()) commands, and where they will
+    /// be read from with the [run_msgfmt()](run_msgfmt()) command.
+    ///
+    /// By default this is **[output_dir](GettextConfig::output_dir)/po**.
+    pub fn po_dir(&self) -> PathBuf {
+        self.po_dir.clone().unwrap_or(self.output_dir.join("po"))
+    }
+
+    /// Path to where the mo files will be written to by the
+    /// [run_msgfmt()](run_msgfmt()) command.
+    ///
+    /// By default this is **[output_dir](GettextConfig::output_dir)/mo**.
+    pub fn mo_dir(&self) -> PathBuf {
+        self.mo_dir.clone().unwrap_or(self.output_dir.join("mo"))
     }
 }

@@ -1,21 +1,13 @@
 [package]
-name = "i18n-embed-impl"
+name = "i18n-config"
 version = "0.1.0"
 authors = ["Luke Frisken <l.frisken@gmail.com>"]
 edition = "2018"
-repository = "https://github.com/kellpossible/cargo-i18n"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-[lib]
-proc-macro = true
 
 [dependencies]
-quote = "1.0.3"
+toml = "0.5"
 serde = { version = "1", features = ["derive"] }
 serde_derive = "1"
-i18n-config = { path = "../../i18n-config" }
-
-[dependencies.syn]
-version = "1.0.17"
-default-features = false
-features = ["derive", "proc-macro"]
+anyhow = "1"

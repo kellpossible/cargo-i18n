@@ -13,8 +13,9 @@ repository = "https://github.com/kellpossible/cargo-i18n"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-i18n-embed = { path = "./i18n-embed" }
+i18n-embed = { path = "./i18n-embed", features = ["desktop-requester"] }
 i18n-build = { path = "./i18n-build", features = ["localize"] }
+i18n-config = { path = "./i18n-config" }
 anyhow = "1.0"
 gettext = "0.4"
 tr = { version = "0.1", default-features = false, features = ["gettext"] }

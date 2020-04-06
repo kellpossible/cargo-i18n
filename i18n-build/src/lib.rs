@@ -2,7 +2,6 @@
 //! `msginit`, `msgfmt`, `msgmerge` and `msgcat` to be present in your
 //! system path.
 
-pub mod config;
 mod error;
 pub mod gettext_impl;
 mod util;
@@ -19,9 +18,11 @@ use gettext::Catalog;
 #[cfg(feature = "localize")]
 use tr::set_translator;
 
+use i18n_config;
+
 /// Run the i18n build process for the provided crate, which must
 /// contain an i18n config.
-pub fn run(crt: &config::Crate) -> Result<()> {
+pub fn run(crt: &i18n_config::Crate) -> Result<()> {
     let i18n_config = crt.config_or_err()?;
     match i18n_config.gettext {
         Some(_) => {
@@ -64,5 +65,5 @@ impl i18n_embed::LanguageLoader for LanguageLoader {
 #[cfg(feature = "localize")]
 pub fn localize<E: I18nEmbed>() {
     let loader = LanguageLoader::new();
-    E::select(&loader);
+    E::desktop_select(&loader);
 }

@@ -1,8 +1,7 @@
-use crate::config::{Crate, I18nConfig};
+use i18n_config::{Crate, I18nConfig, GettextConfig};
 use crate::error::{PathError, PathType};
 use crate::util;
 
-use serde_derive::Deserialize;
 use std::ffi::OsStr;
 use std::fs::{create_dir_all, remove_file, File};
 use std::path::Path;
@@ -12,47 +11,6 @@ use anyhow::{anyhow, Context, Result};
 use subprocess::Exec;
 use tr::tr;
 use walkdir::WalkDir;
-
-#[derive(Deserialize, Debug)]
-pub struct GettextConfig {
-    /// Path to the output directory, relative to `i18n.toml` of the
-    /// crate being localized.
-    pub output_dir: Box<Path>,
-    // If this crate is being localized as a subcrate, store the
-    // localization artifacts with the parent crate's output.
-    // Currently crates which contain subcrates with duplicate names
-    // are not supported.
-    //
-    // By default this will be treated as **false**.
-    pub extract_to_parent: Option<bool>,
-    /// Set the copyright holder for the generated files.
-    pub copyright_holder: Option<String>,
-    /// The reporting address for msgid bugs. This is the email
-    /// address or URL to which the translators shall report bugs in
-    /// the untranslated strings.
-    pub msgid_bugs_address: Option<String>,
-    /// Whether or not to perform string extraction using the `xtr` tool.
-    pub xtr: Option<bool>,
-    /// Path to where the pot files will be written to by
-    /// [run_xtr()](run_xtr()), and were they will be read from by
-    /// [run_msginit()](run_msginit()) and
-    /// [run_msgmerge()](run_msgmerge()).
-    ///
-    /// By default this is **[output_dir](GettextConfig::output_dir)/pot**.
-    pub pot_dir: Option<Box<Path>>,
-    /// Path to where the po files will be stored/edited with the
-    /// [run_msgmerge()](run_msgmerge()) and
-    /// [run_msginit()](run_msginit()) commands, and where they will
-    /// be read from with the [run_msgfmt()](run_msgfmt()) command.
-    ///
-    /// By default this is **[output_dir](GettextConfig::output_dir)/po**.
-    pub po_dir: Option<Box<Path>>,
-    /// Path to where the mo files will be written to by the
-    /// [run_msgfmt()](run_msgfmt()) command.
-    ///
-    /// By default this is **[output_dir](GettextConfig::output_dir)/mo**.
-    pub mo_dir: Option<Box<Path>>,
-}
 
 /// Run the `xtr` command (<https://crates.io/crates/xtr/>) in order
 /// to extract the translateable strings from the crate.
@@ -400,7 +358,7 @@ pub fn run<'a>(crt: &'a Crate) -> Result<()> {
                     .collect();
                     
                     tr!(
-                        "There was a problem parsing one of the subcrates: {0}.",
+                        "There was a problem parsing one of the subcrates: \"{0}\".",
                         subcrate_path_strings.join(", ")
                     )
                 })?
@@ -410,11 +368,10 @@ pub fn run<'a>(crt: &'a Crate) -> Result<()> {
         None => vec![],
     };
 
-    let i18n_dir = config_crate.path.join("i18n");
     let src_dir = crt.path.join("src");
-    let pot_dir = i18n_dir.join("pot");
-    let po_dir = i18n_dir.join("po");
-    let mo_dir = i18n_dir.join("mo");
+    let pot_dir = config_crate.path.join(gettext_config.pot_dir());
+    let po_dir = config_crate.path.join(gettext_config.po_dir());
+    let mo_dir = config_crate.path.join(gettext_config.mo_dir());
 
     if do_xtr {
         let prepend_crate_path =
