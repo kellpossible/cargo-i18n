@@ -1,59 +1,114 @@
-# Russian translations for cargo-i18n package.
-# Copyright (C) 2020 Luke Frisken
-# This file is distributed under the same license as the cargo-i18n package.
-# Luke Frisken <luke@luke-laptop.localdomain>, 2020.
-#
 msgid ""
 msgstr ""
-"Project-Id-Version: cargo-i18n 0.1.0\n"
-"Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-04-06 08:42+0000\n"
-"PO-Revision-Date: 2020-04-04 14:11+0400\n"
-"Last-Translator: Luke Frisken <l.frisken@gmail.com>\n"
-"Language-Team: Russian <l.frisken@gmail.com>\n"
-"Language: ru\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
-"%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+"X-Generator: POEditor.com\n"
+"Project-Id-Version: cargo-i18n\n"
+"Language: ru\n"
 
-#. The help message displayed when running `cargo i18n -h`.
-#: src/main.rs:39
-msgid "A Cargo sub-command to extract and build localization resources."
-msgstr ""
+#: i18n-build/src/config.rs:70
+msgid "Cannot load i18n config file: {0}."
+msgstr "Не удается загрузить i18n файл настроек: {0}.\n"
+""
+
+#: i18n-build/src/config.rs:127
+msgid "There is no i18n config called \"{0}\" present in this crate \"{1}\"."
+msgstr "Настройки i18n с этим именем \"{0}\" отсутствует в этом ящике \"{1}\"."
+
+#: i18n-build/src/config.rs:138
+msgid "There is no gettext config available the i18n config \"{0}\"."
+msgstr "Настройка gettext недоступна для настройки i18n \"{0}\"."
+
+#: i18n-build/src/config.rs:164
+msgid "Trouble reading file \"{0}\"."
+msgstr "Ошибка чтения файла \"{0}\"."
+
+#: i18n-build/src/config.rs:170
+msgid "There was an error while parsing an i18n config file \"{0}\"."
+msgstr "Произошла ошибка при анализе i18n файла настроек \"{0}\"."
+
+#. {0} is the file path, {1} is the item which it is for, {2} is the type of item (file, directory, etc)
+#: i18n-build/src/error.rs:102
+msgid "The path (\"{0}\") for {1} {2} does not have valid a utf-8 encoding."
+msgstr "Путь (\"{0}\") для {1} {2} не имеeт допустимой кодировки utf-8."
+
+#: i18n-build/src/error.rs:109
+msgid "The path {0} does not exist on the filesystem."
+msgstr "Путь {0} не существует в файловой системе."
+
+#: i18n-build/src/error.rs:113
+msgid "Cannot create the directory \"{0}\" because: \"{1}\"."
+msgstr "Не удалось создать католог \"{0}\" так как \"{1}\"."
+
+#: i18n-build/src/error.rs:118
+msgid "The path \"{0}\" is not inside the \"{1}\" directory {2}."
+msgstr "Путь \"{0}\" не находится \"{1}\" в каталоге {2}."
+
+#: i18n-build/src/util.rs:13
+msgid "The \"{0}\" command was unable to start."
+msgstr "Команду \"{0}\" не удалось запустить."
+
+#: i18n-build/src/util.rs:17
+msgid "The \"{0}\" command had a problem waiting for output."
+msgstr "У команды \"{0}\" возникла проблема при ожидании вывода."
+
+#: i18n-build/src/util.rs:25
+msgid "The \"{0}\" command reported that it was unsuccessful."
+msgstr "Команда \"{0}\" сообщила что она не удалась."
+
+#: src/main.rs:44
+msgid "A Cargo subcommand to extract and build localization resources."
+msgstr "Подкоманда Cargo для извлечения и построения ресурсов локализации."
 
 #. The help message displayed when running `cargo i18n --help`.
 #. {0} is the short about message.
 #: src/main.rs:46
-msgid ""
-"{0}\n"
+msgid "{0}\n"
 "\n"
-"This command reads the \"i18n.toml\" config in your crate root, and based on "
-"the configuration there, proceeds to extract localization resources, and "
-"build them.\n"
+"This command reads the \"i18n.toml\" config in your crate root, and based on the configuration there, proceeds to extract localization resources, and build them.\n"
 "\n"
-"If you are using the gettext localization system, you will need to have the "
-"following gettext tools installed: \"msgcat\", \"msginit\", \"msgmerge\" and "
-"\"msgfmt\". You will also need to have the \"xtr\" tool installed, which can "
-"be installed using \"cargo install xtr\".\n"
-msgstr ""
+"If you are using the gettext localization system, you will need to have the following gettext tools installed: \"msgcat\", \"msginit\", \"msgmerge\" and \"msgfmt\". You will also need to have the \"xtr\" tool installed, which can be installed using \"cargo install xtr\".\n"
+""
+msgstr "{0}\n"
+"\n"
+"Эта команда читает  \"i18n.toml\" программа корневой крэйтера, основываясь на конфигурации, продолжает извлекать ресурсы локализации и собирать их.\n"
+"\n"
+"Если вы используете систему локализации gettext, вам необходимо установить следующие инструменты gettext: \"msgcat\", \"msginit\", \"msgmerge\" и \"msgfmt\". Вам также необходимо установить инструмент «xtr», который можно установить с помощью \"cargo install xtr\"."
 
 #. The message displayed when running the binary outside of cargo using `cargo-18n`.
 #: src/main.rs:74
-msgid ""
-"This binary is designed to be executed as a cargo subcommand using \"cargo "
-"i18n\"."
+msgid "This binary is designed to be executed as a cargo subcommand using \"cargo i18n\"."
 msgstr ""
 
 #. The help message for the `--path` command line argument.
 #: src/main.rs:86
-msgid ""
-"Path to the crate you want to localize (if not the current directory). The "
-"crate needs to contain \"i18n.toml\" in its root."
+msgid "Path to the crate you want to localize (if not the current directory). The crate needs to contain \"i18n.toml\" in its root."
 msgstr ""
 
 #. The help message for the `-c` command line argument.
 #: src/main.rs:94
 msgid "The name of the i18n config file for this crate"
 msgstr ""
+
+#: i18n-build/src/config.rs:127
+msgid "There is no i18n config file \"{0}\" present in this crate \"{1}\"."
+msgstr ""
+
+#: i18n-build/src/gettext_impl/mod.rs:157
+msgid "There was a problem executing the \"{0}\" command"
+msgstr ""
+
+#: i18n-build/src/gettext_impl/mod.rs:369
+msgid "There was a problem parsing one of the subcrates: {0}."
+msgstr ""
+
+#. The help message displayed when running `cargo i18n -h`.
+#: src/main.rs:39
+msgid "A Cargo sub-command to extract and build localization resources."
+msgstr ""
+
+#: i18n-build/src/gettext_impl/mod.rs:361
+msgid "There was a problem parsing one of the subcrates: \"{0}\"."
+msgstr ""
+
