@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: i18n-build 0.1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-04-04 14:51+0000\n"
+"POT-Creation-Date: 2020-04-06 08:42+0000\n"
 "PO-Revision-Date: 2020-04-04 14:11+0400\n"
 "Last-Translator: Luke Frisken <l.frisken@gmail.com>\n"
 "Language-Team: Russian <l.frisken@gmail.com>\n"
@@ -18,58 +18,39 @@ msgstr ""
 "Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
 "%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
 
-#: i18n-build/src/config.rs:70
-msgid "Cannot load i18n config file: {0}."
-msgstr ""
-
-#: i18n-build/src/config.rs:127
-msgid "There is no i18n config file \"{0}\" present in this crate \"{1}\"."
-msgstr ""
-
-#: i18n-build/src/config.rs:138
-msgid "There is no gettext config available the i18n config \"{0}\"."
-msgstr ""
-
-#: i18n-build/src/config.rs:164
-msgid "Trouble reading file \"{0}\"."
-msgstr ""
-
-#: i18n-build/src/config.rs:170
-msgid "There was an error while parsing an i18n config file \"{0}\"."
-msgstr ""
-
-#: i18n-build/src/error.rs:91
+#. {0} is the file path, {1} is the item which it is for, {2} is the type of item (file, directory, etc)
+#: i18n-build/src/error.rs:102
 msgid "The path (\"{0}\") for {1} {2} does not have valid a utf-8 encoding."
 msgstr ""
 
-#: i18n-build/src/error.rs:98
+#: i18n-build/src/error.rs:109
 msgid "The path {0} does not exist on the filesystem."
 msgstr ""
 
-#: i18n-build/src/error.rs:102
+#: i18n-build/src/error.rs:113
 msgid "Cannot create the directory \"{0}\" because: \"{1}\"."
 msgstr ""
 
-#: i18n-build/src/error.rs:107
+#: i18n-build/src/error.rs:118
 msgid "The path \"{0}\" is not inside the \"{1}\" directory {2}."
 msgstr ""
 
-#: i18n-build/src/gettext_impl/mod.rs:187
+#: i18n-build/src/gettext_impl/mod.rs:157
 msgid "There was a problem executing the \"{0}\" command"
 msgstr ""
 
-#: i18n-build/src/gettext_impl/mod.rs:369
-msgid "There was a problem parsing one of the subcrates: {0}."
+#: i18n-build/src/gettext_impl/mod.rs:361
+msgid "There was a problem parsing one of the subcrates: \"{0}\"."
 msgstr ""
 
-#: i18n-build/src/util.rs:12
+#: i18n-build/src/util.rs:13
 msgid "The \"{0}\" command was unable to start."
 msgstr ""
 
-#: i18n-build/src/util.rs:16
+#: i18n-build/src/util.rs:17
 msgid "The \"{0}\" command had a problem waiting for output."
 msgstr ""
 
-#: i18n-build/src/util.rs:24
+#: i18n-build/src/util.rs:25
 msgid "The \"{0}\" command reported that it was unsuccessful."
 msgstr ""
