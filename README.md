@@ -40,6 +40,10 @@ copyright_holder = "You?"
 # supported.
 extract_to_parent = true
 
+# (Optional) If a subcrate has extract_to_parent set to true, then merge the
+# output pot file of that subcrate into this crate's pot file.
+collate_extracted_subcrates = true
+
 # (Optional) Whether or not to perform string extraction using the `xtr` tool.
 xtr = true
 

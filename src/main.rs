@@ -1,8 +1,8 @@
 use anyhow::Result;
 use clap::{crate_authors, crate_version, App, Arg, SubCommand};
 use gettext::Catalog;
-use i18n_config::Crate;
 use i18n_build::run;
+use i18n_config::Crate;
 use i18n_embed::I18nEmbed;
 use rust_embed::RustEmbed;
 use std::path::Path;
@@ -35,15 +35,16 @@ impl i18n_embed::LanguageLoader for LanguageLoader {
 
 /// Produce the message to be displayed when running `cargo i18n -h`.
 fn short_about() -> String {
-    // The help message displayed when running `cargo i18n -h`. 
+    // The help message displayed when running `cargo i18n -h`.
     tr!("A Cargo sub-command to extract and build localization resources.")
 }
 
 /// Produce the message to be displayed when running `cargo i18n --help`.
 fn long_about() -> String {
-    // The help message displayed when running `cargo i18n --help`. 
-    // {0} is the short about message. 
-    tr!("{0}
+    tr!(
+        // The help message displayed when running `cargo i18n --help`.
+        // {0} is the short about message.
+        "{0}
 
 This command reads the \"i18n.toml\" config in your crate root, \
 and based on the configuration there, proceeds to extract \
@@ -70,8 +71,9 @@ fn main() -> Result<()> {
     let matches = App::new("cargo-i18n")
         .bin_name("cargo")
         .about(
-            // The message displayed when running the binary outside of cargo using `cargo-18n`.
-            tr!("This binary is designed to be executed as a cargo subcommand using \"cargo i18n\".").as_str()
+            tr!(
+                // The message displayed when running the binary outside of cargo using `cargo-18n`.
+                "This binary is designed to be executed as a cargo subcommand using \"cargo i18n\".").as_str()
         )
         .version(crate_version!())
         .author(crate_authors!())
@@ -90,8 +92,9 @@ fn main() -> Result<()> {
             )
             .arg(Arg::with_name("config file name")
                 .help(
-                    // The help message for the `-c` command line argument.
-                    tr!("The name of the i18n config file for this crate").as_str()
+                    tr!(
+                        // The help message for the `-c` command line argument.
+                        "The name of the i18n config file for this crate").as_str()
                 )
                 .long("config-file-name")
                 .short("c")

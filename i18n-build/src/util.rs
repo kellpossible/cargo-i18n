@@ -1,4 +1,4 @@
-use std::fs::create_dir_all;
+use std::fs::{create_dir_all, remove_file, rename};
 use std::path::Path;
 use std::process::Command;
 
@@ -31,9 +31,9 @@ pub fn run_command_and_check_success(command_name: &str, mut command: Command) -
 
 /// Check that the given path exists, if it doesn't then throw a
 /// [PathError](PathError).
-pub fn check_path_exists(path: &Path) -> Result<(), PathError> {
-    if !path.exists() {
-        Err(PathError::does_not_exist(path))
+pub fn check_path_exists<P: AsRef<Path>>(path: P) -> Result<(), PathError> {
+    if !path.as_ref().exists() {
+        Err(PathError::does_not_exist(path.as_ref()))
     } else {
         Ok(())
     }
@@ -41,9 +41,31 @@ pub fn check_path_exists(path: &Path) -> Result<(), PathError> {
 
 /// Create any of the directories in the specified path if they don't
 /// already exist.
-pub fn create_dir_all_if_not_exists(path: &Path) -> Result<(), PathError> {
-    if !path.exists() {
-        create_dir_all(path.clone()).map_err(|e| PathError::cannot_create_dir(path.clone(), e))?;
+pub fn create_dir_all_if_not_exists<P: AsRef<Path>>(path: P) -> Result<(), PathError> {
+    if !path.as_ref().exists() {
+        create_dir_all(path.as_ref())
+            .map_err(|e| PathError::cannot_create_dir(path.as_ref(), e))?;
     }
     Ok(())
+}
+
+pub fn remove_file_if_exists<P: AsRef<Path>>(file_path: P) -> Result<(), PathError> {
+    if file_path.as_ref().exists() {
+        remove_file(file_path.as_ref().clone())
+            .map_err(|e| PathError::cannot_delete_file(file_path.as_ref(), e))?;
+    }
+
+    Ok(())
+}
+
+pub fn remove_file_or_error<P: AsRef<Path>>(file_path: P) -> Result<(), PathError> {
+    remove_file(file_path.as_ref().clone())
+        .map_err(|e| PathError::cannot_delete_file(file_path.as_ref(), e))
+}
+
+pub fn rename_file<P1: AsRef<Path>, P2: AsRef<Path>>(from: P1, to: P2) -> Result<(), PathError> {
+    let from_ref = from.as_ref();
+    let to_ref = to.as_ref();
+    rename(from_ref, to_ref)
+        .map_err(|e| PathError::cannot_rename_file(from_ref.to_path_buf(), to_ref.to_path_buf(), e))
 }

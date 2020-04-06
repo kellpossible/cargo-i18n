@@ -1,10 +1,10 @@
-use i18n_config::{Crate, I18nConfig, GettextConfig};
 use crate::error::{PathError, PathType};
 use crate::util;
+use i18n_config::{Crate, GettextConfig, I18nConfig};
 
 use std::ffi::OsStr;
-use std::fs::{create_dir_all, remove_file, File};
-use std::path::Path;
+use std::fs::{create_dir_all, File};
+use std::path::{Path, PathBuf};
 use std::process::Command;
 
 use anyhow::{anyhow, Context, Result};
@@ -80,14 +80,6 @@ pub fn run_xtr(
             .join(file_stem)
             .with_extension("pot");
 
-        let pot_dir = pot_file_path.parent().with_context(|| {
-            format!(
-                "the pot file {0} is not inside a directory",
-                pot_file_path.to_string_lossy()
-            )
-        })?;
-        create_dir_all(pot_dir)?;
-
         // ======= Run the `xtr` command to extract translatable strings =======
         let xtr_command_name = "xtr";
         let mut xtr = Command::new(xtr_command_name);
@@ -133,24 +125,59 @@ pub fn run_xtr(
 
     let mut msgcat_args: Vec<Box<OsStr>> = Vec::new();
 
-    for path in pot_paths {
+    for path in &pot_paths {
         msgcat_args.push(Box::from(path.as_os_str()));
     }
 
-    let combined_pot_file_path = pot_dir.join(crt.module_name()).with_extension("pot");
+    let combined_pot_file_path = crate_module_pot_file_path(crt, pot_dir)?;
+    
+    run_msgcat(&pot_paths, &combined_pot_file_path).context("There was a problem while trying to run the \"msgcat\" command.")?;
 
-    if combined_pot_file_path.exists() {
-        remove_file(combined_pot_file_path.clone()).context("unable to delete .pot")?;
+    Ok(())
+}
+
+fn crate_module_pot_file_path<'a, P: AsRef<Path>>(crt: &Crate<'a>, pot_dir: P) -> Result<PathBuf> {
+    Ok(pot_dir.as_ref()
+        .join(crt.module_name())
+        .with_extension("pot"))
+}
+
+/// Run the gettext utils `msgcat` command to concatinate pot files
+/// into a single pot file.
+pub fn run_msgcat<P: AsRef<Path>, I: IntoIterator<Item = P>>(
+    input_pot_paths: I,
+    output_pot_path: P,
+) -> Result<()> {
+    let mut msgcat_args: Vec<Box<OsStr>> = Vec::new();
+
+    let mut output_in_input = false;
+    for input_path in input_pot_paths.into_iter() {
+        let input_path_ref = input_path.as_ref();
+        msgcat_args.push(Box::from(input_path_ref.as_os_str()));
+        output_in_input |= input_path_ref == output_pot_path.as_ref();
     }
 
-    let combined_pot_file =
-        File::create(combined_pot_file_path).expect("unable to create .pot file");
+    let interim_output_pot_path = if output_in_input {
+        output_pot_path.as_ref().with_extension("pot.tmp")
+    } else {
+        output_pot_path.as_ref().to_path_buf()
+    };
 
-    // ====== run the `msgcat` command to combine pot files into gui.pot =======
+    util::create_dir_all_if_not_exists(
+        &interim_output_pot_path
+            .parent()
+            .expect("expected there to be a parent to the interim output pot path"),
+    )?;
+
+    util::remove_file_if_exists(&interim_output_pot_path)?;
+
+    let output_pot_file = File::create(&interim_output_pot_path)
+        .map_err(|e| PathError::cannot_create_file(&interim_output_pot_path, e))?;
+
     let msgcat_command_name = "msgcat";
     let msgcat = Exec::cmd(msgcat_command_name)
         .args(msgcat_args.as_slice())
-        .stdout(combined_pot_file);
+        .stdout(output_pot_file);
 
     msgcat.join().with_context(|| {
         tr!(
@@ -159,13 +186,18 @@ pub fn run_xtr(
         )
     })?;
 
+    if output_in_input {
+        util::remove_file_if_exists(&output_pot_path)?;
+        util::rename_file(&interim_output_pot_path, &output_pot_path)?;
+    }
+
     Ok(())
 }
 
 /// Run the gettext `msginit` command to create a new `po` file.
-/// 
+///
 /// `pot_dir` is the directory where the input `pot` files are stored.
-/// 
+///
 /// `po_dir` is the directory where the output `po` files will be
 /// stored.
 pub fn run_msginit(
@@ -318,7 +350,7 @@ pub fn run_msgfmt(
 
 /// Run the gettext i18n build process for the provided crate. The
 /// crate must have an i18n config containing a gettext config.
-/// 
+///
 /// This function is recursively executed for each subcrate.
 pub fn run<'a>(crt: &'a Crate) -> Result<()> {
     let (config_crate, i18n_config) = crt
@@ -353,10 +385,10 @@ pub fn run<'a>(crt: &'a Crate) -> Result<()> {
 
                 subcrates.with_context(|| {
                     let subcrate_path_strings: Vec<String> = subcrate_paths
-                    .iter()
-                    .map(|path| path.to_string_lossy().to_string())
-                    .collect();
-                    
+                        .iter()
+                        .map(|path| path.to_string_lossy().to_string())
+                        .collect();
+
                     tr!(
                         "There was a problem parsing one of the subcrates: \"{0}\".",
                         subcrate_path_strings.join(", ")
@@ -373,6 +405,7 @@ pub fn run<'a>(crt: &'a Crate) -> Result<()> {
     let po_dir = config_crate.path.join(gettext_config.po_dir());
     let mo_dir = config_crate.path.join(gettext_config.mo_dir());
 
+    // perform string extraction if required
     if do_xtr {
         let prepend_crate_path =
             crt.path.canonicalize().unwrap() != config_crate.path.canonicalize().unwrap();
@@ -383,14 +416,47 @@ pub fn run<'a>(crt: &'a Crate) -> Result<()> {
             pot_dir.as_path(),
             prepend_crate_path,
         )?;
-        run_msginit(crt, i18n_config, pot_dir.as_path(), po_dir.as_path())?;
-        run_msgmerge(crt, i18n_config, pot_dir.as_path(), po_dir.as_path())?;
     }
 
-    run_msgfmt(crt, i18n_config, po_dir.as_path(), mo_dir.as_path())?;
-
+    // figure out where there are any subcrates which need their output 
+    // pot files concatinated with this crate's pot file
+    let mut concatinate_crates = vec![];
     for subcrate in &subcrates {
         run(subcrate)?;
+        if subcrate.collated_subcrate() {
+            concatinate_crates.push(subcrate);
+        }
+    }
+
+    // Perform the concatination (if there are any required)
+    if concatinate_crates.len() > 0 {
+        assert!(crt.gettext_config_or_err()?.collate_extracted_subcrates == true);
+        concatinate_crates.insert(0, crt);
+
+        let concatinate_crate_paths_result: Result<Vec<PathBuf>, _> = concatinate_crates
+            .iter()
+            .map(|concat_crt: &&Crate| crate_module_pot_file_path(concat_crt, &pot_dir))
+            .collect();
+
+        let concatinate_crate_paths = concatinate_crate_paths_result?;
+
+        let output_pot_path = crate_module_pot_file_path(crt, &pot_dir)?;
+        run_msgcat(concatinate_crate_paths, output_pot_path)?;
+
+        // remove this crate from the list because we don't want to delete it's pot file
+        concatinate_crates.remove(0);
+
+        for subcrate in concatinate_crates {
+            let subcrate_output_pot_path = crate_module_pot_file_path(subcrate, &pot_dir)?;
+            util::remove_file_or_error(subcrate_output_pot_path)?;
+        }
+
+    }
+
+    if !(crt.collated_subcrate()) {
+        run_msginit(crt, i18n_config, pot_dir.as_path(), po_dir.as_path())?;
+        run_msgmerge(crt, i18n_config, pot_dir.as_path(), po_dir.as_path())?;
+        run_msgfmt(crt, i18n_config, po_dir.as_path(), mo_dir.as_path())?;
     }
 
     return Ok(());

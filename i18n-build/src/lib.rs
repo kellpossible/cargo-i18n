@@ -58,7 +58,7 @@ impl i18n_embed::LanguageLoader for LanguageLoader {
 }
 
 /// Localize this library using the provided [I18nEmbed](I18nEmbed)
-/// implementation. 
+/// implementation.
 ///
 /// TODO: consider moving the translations and embedding them directly
 /// in the library, rather than as a sub-crate.

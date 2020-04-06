@@ -6,18 +6,19 @@ use serde_derive::Deserialize;
 use toml;
 
 /// Represents a rust crate.
+#[derive(Debug)]
 pub struct Crate<'a> {
     /// The name of the crate.
     pub name: String,
     /// The version of the crate.
     pub version: String,
     /// The path to the crate.
-    pub path: Box<Path>,
+    pub path: PathBuf,
     /// Path to the parent crate which is triggering the localization
     /// for this crate.
     pub parent: Option<&'a Crate<'a>>,
     /// The file path expected to be used for `i18n_config` relative to this crate's root.
-    pub config_file_path: Box<Path>,
+    pub config_file_path: PathBuf,
     /// The localization config for this crate (if it exists).
     pub i18n_config: Option<I18nConfig>,
 }
@@ -25,12 +26,15 @@ pub struct Crate<'a> {
 impl<'a> Crate<'a> {
     /// Read crate from `Cargo.toml` i18n config using the
     /// `config_file_path` (if there is one).
-    pub fn from(
-        path: Box<Path>,
+    pub fn from<P: Into<PathBuf>>(
+        path: P,
         parent: Option<&'a Crate>,
-        config_file_path: Box<Path>,
+        config_file_path: P,
     ) -> Result<Crate<'a>> {
-        let cargo_path = path.join("Cargo.toml");
+        let path_into = path.into();
+        let config_file_path_into = config_file_path.into();
+
+        let cargo_path = path_into.join("Cargo.toml");
         let toml_str = read_to_string(cargo_path.clone())
             .with_context(|| format!("trouble reading {0:?}", cargo_path))?;
         let cargo_toml: toml::Value = toml::from_str(toml_str.as_ref())
@@ -60,7 +64,7 @@ impl<'a> Crate<'a> {
                 "Cargo.toml's package version needs to be a string."
             ))?;
 
-        let full_config_file_path = path.join(&config_file_path);
+        let full_config_file_path = path_into.join(&config_file_path_into);
         let i18n_config = if full_config_file_path.exists() {
             Some(
                 I18nConfig::from_file(&full_config_file_path).with_context(|| {
@@ -77,9 +81,9 @@ impl<'a> Crate<'a> {
         Ok(Crate {
             name: String::from(name),
             version: String::from(version),
-            path,
+            path: path_into,
             parent,
-            config_file_path,
+            config_file_path: config_file_path_into,
             i18n_config,
         })
     }
@@ -107,13 +111,10 @@ impl<'a> Crate<'a> {
         match &self.i18n_config {
             Some(config) => {
                 match &config.gettext {
-                    Some(gettext_config) => match gettext_config.extract_to_parent {
-                        Some(extract_to_parent) => {
-                            if extract_to_parent {
-                                return self.parent_active_config();
-                            }
+                    Some(gettext_config) => {
+                        if gettext_config.extract_to_parent {
+                            return self.parent_active_config();
                         }
-                        None => {}
                     },
                     None => {}
                 }
@@ -150,6 +151,27 @@ impl<'a> Crate<'a> {
             ))),
         }
     }
+
+    /// If this crate has a parent, check whether the parent wants to
+    /// collate subcrates string extraction, as per the parent's
+    /// [GettextConfig#collate_extracted_subcrates](GettextConfig#collate_extracted_subcrates).
+    /// This also requires that the current crate's [GettextConfig#extract_to_parent](GettextConfig#extract_to_parent)
+    /// is **true**.
+    /// 
+    /// Returns **false** if there is no parent or the parent has no gettext config.
+    pub fn collated_subcrate(&self) -> bool {
+        let parent_extract_to_subcrate = self.parent.map(|parent_crate| {
+            parent_crate.gettext_config_or_err().map(|parent_gettext_config| {
+                parent_gettext_config.collate_extracted_subcrates
+            }).unwrap_or(false)
+        }).unwrap_or(false);
+
+        let extract_to_parent = self.gettext_config_or_err().map(|gettext_config| {
+            gettext_config.extract_to_parent
+        }).unwrap_or(false);
+
+        return parent_extract_to_subcrate && extract_to_parent;
+    }
 }
 
 
@@ -161,7 +183,7 @@ pub struct I18nConfig {
     pub target_locales: Vec<String>,
     /// Specify which subcrates to perform localization within. The
     /// subcrate needs to have its own `i18n.toml`.
-    pub subcrates: Option<Vec<Box<Path>>>,
+    pub subcrates: Option<Vec<PathBuf>>,
     /// The subcomponent of this config relating to gettext, only
     /// present if the gettext localization system will be used.
     pub gettext: Option<GettextConfig>,
@@ -197,8 +219,16 @@ pub struct GettextConfig {
     // Currently crates which contain subcrates with duplicate names
     // are not supported.
     //
-    // By default this will be treated as **false**.
-    pub extract_to_parent: Option<bool>,
+    // By default this is **false**.
+    #[serde(default)]
+    pub extract_to_parent: bool,
+    // If a subcrate has extract_to_parent set to true,
+    // then merge the output pot file of that subcrate into this
+    // crate's pot file.
+    //
+    // By default this is **false**.
+    #[serde(default)]
+    pub collate_extracted_subcrates: bool,
     /// Set the copyright holder for the generated files.
     pub copyright_holder: Option<String>,
     /// The reporting address for msgid bugs. This is the email

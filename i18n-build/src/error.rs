@@ -1,6 +1,6 @@
 use std::fmt::Display;
 use std::io;
-use std::path::Path;
+use std::path::PathBuf;
 use thiserror::Error;
 use tr::tr;
 
@@ -29,8 +29,10 @@ pub enum PathErrorKind {
         path_type: PathType,
     },
     DoesNotExist,
-    CannotCreateDirectory(io::Error),
-    NotInsideDirectory(String, Box<Path>),
+    CannotCreate(PathType, io::Error),
+    CannotDelete(PathType, io::Error),
+    CannotRename(PathType, PathBuf, io::Error),
+    NotInsideDirectory(String, PathBuf),
 }
 
 /// This error type collates all the various generic file/path related
@@ -38,21 +40,53 @@ pub enum PathErrorKind {
 /// translated easily.
 #[derive(Error, Debug)]
 pub struct PathError {
-    pub path: Box<Path>,
+    pub path: PathBuf,
     pub kind: PathErrorKind,
 }
 
 impl PathError {
     /// An error for when a directory cannot be created.
-    pub fn cannot_create_dir<P: Into<Box<Path>>>(path: P, source: io::Error) -> PathError {
+    pub fn cannot_create_dir<P: Into<PathBuf>>(path: P, source: io::Error) -> PathError {
         PathError {
             path: path.into(),
-            kind: PathErrorKind::CannotCreateDirectory(source),
+            kind: PathErrorKind::CannotCreate(PathType::Directory, source),
         }
     }
-    
+
+    /// An error for when a file cannot be created.
+    pub fn cannot_create_file<P: Into<PathBuf>>(path: P, source: io::Error) -> PathError {
+        PathError {
+            path: path.into(),
+            kind: PathErrorKind::CannotCreate(PathType::File, source),
+        }
+    }
+
+    /// An error for when a directory cannot be deleted.
+    pub fn cannot_delete_dir<P: Into<PathBuf>>(path: P, source: io::Error) -> PathError {
+        PathError {
+            path: path.into(),
+            kind: PathErrorKind::CannotDelete(PathType::Directory, source),
+        }
+    }
+
+    /// An error for when a file cannot be deleted.
+    pub fn cannot_delete_file<P: Into<PathBuf>>(path: P, source: io::Error) -> PathError {
+        PathError {
+            path: path.into(),
+            kind: PathErrorKind::CannotCreate(PathType::Directory, source),
+        }
+    }
+
+    /// An error for when a file cannot be renamed.
+    pub fn cannot_rename_file<P: Into<PathBuf>>(from: P, to: P, source: io::Error) -> PathError {
+        PathError {
+            path: from.into(),
+            kind: PathErrorKind::CannotRename(PathType::File, to.into(), source),
+        }
+    }
+
     /// An error for when the given path does not exist (when it was expected to exist).
-    pub fn does_not_exist<P: Into<Box<Path>>>(path: P) -> PathError {
+    pub fn does_not_exist<P: Into<PathBuf>>(path: P) -> PathError {
         PathError {
             path: path.into(),
             kind: PathErrorKind::DoesNotExist,
@@ -61,7 +95,7 @@ impl PathError {
 
     /// An error for when the given path contains some characters
     /// which do not conform to the UTF-8 standard/encoding.
-    pub fn not_valid_utf8<F: Into<String>, P: Into<Box<Path>>>(
+    pub fn not_valid_utf8<F: Into<String>, P: Into<PathBuf>>(
         path: P,
         for_item: F,
         path_type: PathType,
@@ -77,7 +111,7 @@ impl PathError {
 
     /// An error for when the given path is not inside another given
     /// path which is a directory.
-    pub fn not_inside_dir<S: Into<String>, P: Into<Box<Path>>>(
+    pub fn not_inside_dir<S: Into<String>, P: Into<PathBuf>>(
         path: P,
         parent_name: S,
         parent_path: P,
@@ -96,7 +130,6 @@ impl Display for PathError {
                 for_item,
                 path_type,
             } => {
-                
                 tr!(
                     // {0} is the file path, {1} is the item which it is for, {2} is the type of item (file, directory, etc)
                     "The path (\"{0}\") for {1} {2} does not have valid a utf-8 encoding.",
@@ -109,9 +142,23 @@ impl Display for PathError {
                 "The path {0} does not exist on the filesystem.",
                 self.path.to_string_lossy()
             ),
-            PathErrorKind::CannotCreateDirectory(source) => tr!(
-                "Cannot create the directory \"{0}\" because: \"{1}\".",
+            PathErrorKind::CannotCreate(path_type, source) => tr!(
+                "Cannot create the {0} \"{1}\" because: \"{2}\".",
+                path_type,
                 self.path.to_string_lossy(),
+                source
+            ),
+            PathErrorKind::CannotDelete(path_type, source) => tr!(
+                "Cannot delete the {0} \"{1}\" because: \"{2}\".",
+                path_type,
+                self.path.to_string_lossy(),
+                source
+            ),
+            PathErrorKind::CannotRename(path_type, to, source) => tr!(
+                "Cannot rename the {0} \"{1}\" to \"{2}\" because {3}.",
+                path_type,
+                self.path.to_string_lossy(),
+                to.to_string_lossy(),
                 source
             ),
             PathErrorKind::NotInsideDirectory(parent_name, parent_dir) => tr!(
