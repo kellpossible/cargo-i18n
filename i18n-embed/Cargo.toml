@@ -12,10 +12,11 @@ i18n-embed-impl = { path = "./i18n-embed-impl" }
 unic-langid = "0.8"
 locale_config = { version = "0.3", optional = true }
 fluent-langneg = "0.12"
-web-sys = { version = "0.3", features = ["Window", "Navigator", "console"], optional = true }
+web-sys = { version = "0.3", features = ["Window", "Navigator"], optional = true }
 rust-embed = "5"
 gettext = { version = "0.4", optional = true }
 tr = { version = "0.1", default-features = false, optional = true }
+log = "0.4"
 
 [features]
 default = ["gettext-system"]

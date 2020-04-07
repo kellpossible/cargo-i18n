@@ -10,7 +10,7 @@ pub mod watch;
 use anyhow::Result;
 
 #[cfg(feature = "localize")]
-use i18n_embed::I18nEmbed;
+use i18n_embed::{DesktopLanguageRequester, I18nEmbed};
 
 #[cfg(feature = "localize")]
 use gettext::Catalog;
@@ -65,5 +65,6 @@ impl i18n_embed::LanguageLoader for LanguageLoader {
 #[cfg(feature = "localize")]
 pub fn localize<E: I18nEmbed>() {
     let loader = LanguageLoader::new();
-    E::desktop_select(&loader);
+    let requester = DesktopLanguageRequester::new();
+    E::select(&requester, &loader);
 }

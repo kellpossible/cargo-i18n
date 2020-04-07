@@ -3,11 +3,10 @@ use clap::{crate_authors, crate_version, App, Arg, SubCommand};
 use gettext::Catalog;
 use i18n_build::run;
 use i18n_config::Crate;
-use i18n_embed::I18nEmbed;
+use i18n_embed::{DesktopLanguageRequester, I18nEmbed};
 use rust_embed::RustEmbed;
 use std::path::Path;
 use tr::{set_translator, tr};
-
 use unic_langid::LanguageIdentifier;
 
 #[derive(RustEmbed, I18nEmbed)]
@@ -54,18 +53,16 @@ If you are using the gettext localization system, you will \
 need to have the following gettext tools installed: \"msgcat\", \
 \"msginit\", \"msgmerge\" and \"msgfmt\". You will also need to have \
 the \"xtr\" tool installed, which can be installed using \"cargo \
-install xtr\".
-",
+install xtr\".",
         short_about()
     )
 }
 
 fn main() -> Result<()> {
-    let loader = LanguageLoader::new();
-    println!("Loading translations for cargo-gettext");
-    Translations::desktop_select(&loader);
-
-    println!("Loading translations for i18n_build");
+    env_logger::init();
+    let language_loader = LanguageLoader::new();
+    let language_requester = DesktopLanguageRequester::new();
+    Translations::select(&language_requester, &language_loader);
     i18n_build::localize::<Translations>();
 
     let matches = App::new("cargo-i18n")

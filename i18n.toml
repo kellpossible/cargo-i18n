@@ -22,8 +22,3 @@ msg_bugs_address = "l.frisken@gmail.com"
 
 # (Optional) Set the copyright holder for the generated files.
 copyright_holder = "Luke Frisken"
-
-# (Optional) If a subcrate has extract_to_parent set to true, then
-# merge the output pot file of that subcrate into this crate's pot
-# file.
-collate_extracted_subcrates = true
