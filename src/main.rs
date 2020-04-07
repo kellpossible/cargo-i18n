@@ -37,8 +37,8 @@ need to have the following gettext tools installed: \"msgcat\", \
 the \"xtr\" tool installed, which can be installed using \"cargo \
 install xtr\".
 
-You can the \"i18n-embed\" library to conveniently embed the output of \
-this localization process into your application.",
+You can the \"i18n-embed\" library to conventiently embed the \
+localizations inside your application.",
         short_about()
     )
 }
