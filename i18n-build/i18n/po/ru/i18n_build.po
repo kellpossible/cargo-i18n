@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: cargo-i18n\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-04-07 06:55+0000\n"
+"POT-Creation-Date: 2020-04-07 12:56+0000\n"
 "Language: ru\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -37,11 +37,11 @@ msgstr "Не удалось создать католог \"{0}\" так как 
 msgid "The path \"{0}\" is not inside the \"{1}\" directory {2}."
 msgstr "Путь \"{0}\" не находится \"{1}\" в каталоге {2}."
 
-#: i18n-build/src/gettext_impl/mod.rs:210
+#: i18n-build/src/gettext_impl/mod.rs:213
 msgid "There was a problem executing the \"{0}\" command"
 msgstr ""
 
-#: i18n-build/src/gettext_impl/mod.rs:435
+#: i18n-build/src/gettext_impl/mod.rs:438
 msgid "There was a problem parsing one of the subcrates: \"{0}\"."
 msgstr ""
 
