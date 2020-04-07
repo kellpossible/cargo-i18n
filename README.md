@@ -49,12 +49,13 @@ copyright_holder = "You?"
 # (Optional) If this crate is being localized as a subcrate, store the final
 # localization artifacts (the module pot and mo files) with the parent crate's
 # output. Currently crates which contain subcrates with duplicate names are not
-# supported.
-extract_to_parent = true
+# supported. By default this is false.
+extract_to_parent = false
 
 # (Optional) If a subcrate has extract_to_parent set to true, then merge the
-# output pot file of that subcrate into this crate's pot file.
-collate_extracted_subcrates = true
+# output pot file of that subcrate into this crate's pot file. By default this
+# is false.
+collate_extracted_subcrates = false
 
 # (Optional) Whether or not to perform string extraction using the `xtr` tool.
 xtr = true
