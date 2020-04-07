@@ -3,7 +3,9 @@ name = "i18n-build"
 version = "0.1.0"
 authors = ["Luke Frisken <l.frisken@gmail.com>"]
 edition = "2018"
+description = "Designed for use within the cargo-i18n tool for localizing crates. It has been published to allow its direct use within project build scripts if required."
 repository = "https://github.com/kellpossible/cargo-i18n"
+readme = "README.md"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

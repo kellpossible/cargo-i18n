@@ -61,3 +61,12 @@ po_dir = "i18n/po"
 # command. By default this is `output_dir/mo`.
 mo_dir = "i18n/mo"
 ```
+
+## Contributing
+
+Pull-requests are welcome, and you can also contribute to the localization of this library via:
+
++ [POEditor - cargo-i18n](https://poeditor.com/join/project/J7NiRCGpXa)
++ [POEditor - i18n-build](https://poeditor.com/join/project/BCW39cVoco)
+
+Or you can also use your favourite `po` editor directly to help with localizing the files located in [i18n/po](./i18n/po) and [i18n-build/i18n/po](./i18n-build/i18n/po).
