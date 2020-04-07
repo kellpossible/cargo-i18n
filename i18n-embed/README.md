@@ -4,6 +4,15 @@ This library contains traits and macros to conveniently embed the output of [car
 
 Currently this library depends on [rust-embed](https://crates.io/crates/rust-embed) to perform the actual embedding of the language files. This may change in the future to make the library more convenient to use.
 
+## Optional Features
+
+The `i18n-embed` crate has the following optional Cargo features:
+
++ `desktop-requester`
+  + Enables a convenience implementation of `LanguageRequester` trait called `DesktopLanguageRequester` for the desktop platform (windows, mac, linux),which makes use of the [locale_config](https://crates.io/crates/locale_config) crate for resolving the current system locale.
++ `web-sys-requester`
+  + Enables a convenience implementation of `LanguageRequester` trait called `WebLanguageRequester` which makes use of the [web-sys](https://crates.io/crates/web-sys) crate for resolving the language being requested by the user's web browser in a WASM context.
+
 ## Example
 
 The following is an example for how to derive the required traits on structs, and localize your binary using this library:

@@ -6,6 +6,15 @@
 //! `xtr` (installed with `cargo install xtr`), and GNU Gettext CLI
 //! tools `msginit`, `msgfmt`, `msgmerge` and `msgcat` to be present
 //! in your system path.
+//!
+//! # Optional Features
+//!
+//! The `i18n-build` crate has the following optional Cargo features:
+//!
+//! + `localize`
+//!   + Enables the runtime localization of this library using
+//!     [localize()](#localize()) function via the
+//!     [i18n-embed](https://crates.io/crates/i18n-embed) crate
 
 mod error;
 pub mod gettext_impl;

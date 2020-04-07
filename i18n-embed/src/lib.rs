@@ -19,6 +19,27 @@
 //! project, or committing the compiled resources to ensure that the
 //! project can build without requiring `cargo i18n`.
 //!
+//! # Optional Features
+//!
+//! The `i18n-embed` crate has the following optional Cargo features:
+//!
+//! + `desktop-requester`
+//!   + Enables a convenience implementation of
+//!     [LanguageRequester](LanguageRequester) trait called
+//!     [DesktopLanguageRequester](DesktopLanguageRequester) for the
+//!     desktop platform (windows, mac, linux), which makes use of
+//!     the [locale_config](https://crates.io/crates/locale_config)
+//!     crate for resolving the current system locale.
+//! + `web-sys-requester`
+//!   + Enables a convenience implementation of
+//!     [LanguageRequester](LanguageRequester) trait called
+//!     [WebLanguageRequester](WebLanguageRequester) which makes use
+//!     of the [web-sys](https://crates.io/crates/web-sys) crate for
+//!     resolving the language being requested by the user's web
+//!     browser in a WASM context.
+//!
+//! # Examples
+//!
 //! The following is an example for how to derive the required traits
 //! on structs, and localize your binary using this library:
 //!
