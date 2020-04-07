@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: cargo-i18n\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-04-07 12:56+0000\n"
+"POT-Creation-Date: 2020-04-07 13:29+0000\n"
 "Language: ru\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -18,23 +18,41 @@ msgstr "Путь (\"{0}\") для {1} {2} не имеeт допустимой к
 msgid "The path {0} does not exist on the filesystem."
 msgstr "Путь {0} не существует в файловой системе."
 
-#: i18n-build/src/error.rs:146
+#. {0} can be either "file", or "directory", or "symlink"
+#. {1} is a file path
+#. {2} is more detailed information about the error
+#. Example: Cannot create the file "i18n/ru/something.pot" because "some error occurred"
+#: i18n-build/src/error.rs:150
 #, fuzzy
 msgid "Cannot create the {0} \"{1}\" because: \"{2}\"."
 msgstr "Не удалось создать католог \"{0}\" так как \"{1}\"."
 
-#: i18n-build/src/error.rs:152
+#. {0} can be either "file", or "directory", or "symlink"
+#. {1} is a file path
+#. {2} is more detailed information about the error
+#. Example: Cannot delete the file "i18n/ru/something.pot" because "some error occurred"
+#: i18n-build/src/error.rs:160
 #, fuzzy
 msgid "Cannot delete the {0} \"{1}\" because: \"{2}\"."
 msgstr "Не удалось создать католог \"{0}\" так как \"{1}\"."
 
-#: i18n-build/src/error.rs:158
+#. {0} can be either "file", or "directory", or "symlink"
+#. {1} is the name of the file to be renamed
+#. {2} is the new file name
+#. {3} is more detailed information about the error
+#. Example: Cannot rename the file "old.pot" to "new.pot" because "some error occurred"
+#: i18n-build/src/error.rs:171
 #, fuzzy
 msgid "Cannot rename the {0} \"{1}\" to \"{2}\" because {3}."
 msgstr "Не удалось создать католог \"{0}\" так как \"{1}\"."
 
-#: i18n-build/src/error.rs:165
-msgid "The path \"{0}\" is not inside the \"{1}\" directory {2}."
+#. {0} is a directory path
+#. {1} is the name of the parent directory
+#. {2} is the expected parent of the directory in {0}
+#. Example: The path "i18n/src/po" is not inside the "src" directory: "i18n/src"."
+#: i18n-build/src/error.rs:182
+#, fuzzy
+msgid "The path \"{0}\" is not inside the \"{1}\" directory: \"{2}\"."
 msgstr "Путь \"{0}\" не находится \"{1}\" в каталоге {2}."
 
 #: i18n-build/src/gettext_impl/mod.rs:213

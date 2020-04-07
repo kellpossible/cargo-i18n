@@ -143,18 +143,31 @@ impl Display for PathError {
                 self.path.to_string_lossy()
             ),
             PathErrorKind::CannotCreate(path_type, source) => tr!(
+                // {0} can be either "file", or "directory", or "symlink"
+                // {1} is a file path
+                // {2} is more detailed information about the error
+                // Example: Cannot create the file "i18n/ru/something.pot" because "some error occurred"
                 "Cannot create the {0} \"{1}\" because: \"{2}\".",
                 path_type,
                 self.path.to_string_lossy(),
                 source
             ),
             PathErrorKind::CannotDelete(path_type, source) => tr!(
+                // {0} can be either "file", or "directory", or "symlink"
+                // {1} is a file path
+                // {2} is more detailed information about the error
+                // Example: Cannot delete the file "i18n/ru/something.pot" because "some error occurred"
                 "Cannot delete the {0} \"{1}\" because: \"{2}\".",
                 path_type,
                 self.path.to_string_lossy(),
                 source
             ),
             PathErrorKind::CannotRename(path_type, to, source) => tr!(
+                // {0} can be either "file", or "directory", or "symlink"
+                // {1} is the name of the file to be renamed
+                // {2} is the new file name
+                // {3} is more detailed information about the error
+                // Example: Cannot rename the file "old.pot" to "new.pot" because "some error occurred"
                 "Cannot rename the {0} \"{1}\" to \"{2}\" because {3}.",
                 path_type,
                 self.path.to_string_lossy(),
@@ -162,7 +175,11 @@ impl Display for PathError {
                 source
             ),
             PathErrorKind::NotInsideDirectory(parent_name, parent_dir) => tr!(
-                "The path \"{0}\" is not inside the \"{1}\" directory {2}.",
+                // {0} is a directory path
+                // {1} is the name of the parent directory
+                // {2} is the expected parent of the directory in {0}
+                // Example: The path "i18n/src/po" is not inside the "src" directory: "i18n/src"."
+                "The path \"{0}\" is not inside the \"{1}\" directory: \"{2}\".",
                 self.path.to_string_lossy(),
                 parent_name,
                 parent_dir.to_string_lossy(),
