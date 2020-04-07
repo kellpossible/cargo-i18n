@@ -4,7 +4,7 @@ A library for use within the [cargo-i18n](https://crates.io/crates/cargo_i18n) t
 
 ## Contributing
 
-Pull-requests are welcome, and you can also contribute to the localization of this library via [POEditor - i18n-build](https://poeditor.com/join/project/BCW39cVoco) or use your favourite `po` editor.
+Pull-requests are welcome, but for design changes it is preferred that you create an issue first to discuss it before implementation. You can also contribute to the localization of this library via [POEditor - i18n-build](https://poeditor.com/join/project/BCW39cVoco) or use your favourite `po` editor.
 
 To add a new language, you can make a request via a GitHub issue, or submit a pull request adding the new locale to [i18n.toml](https://github.com/kellpossible/cargo-i18n/blob/master/i18n.toml) and generating the associated new po files using `cargo i18n`.
 
