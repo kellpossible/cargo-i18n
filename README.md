@@ -10,7 +10,9 @@ The [i18n-embed](https://crates.io/crates/i18n-embed) library has been created t
 
 The [i18n-build](https://crates.io/crates/i18n-build) library contains most of the implementation for this tool. It has been published separately to allow its direct use within project build scripts if required.
 
-For an example usage you can see the source code for this project, localizes itself. This project was originally created to aid in the work in progress [coster](https://github.com/kellpossible/coster) self-hosted web application.
+For an example usage you can see the source code for this project, localizes
+itself. This project was originally created to aid in the work in progress
+[coster](https://github.com/kellpossible/coster) self-hosted web application.
 
 ## i18n.toml Configuration
 
