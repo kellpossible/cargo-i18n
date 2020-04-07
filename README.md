@@ -2,11 +2,15 @@
 
 This crate is a Cargo sub-command `cargo i18n` which can be used to extract and build localization resources for your crate.
 
+You can install this tool using the command: `cargo install cargo-i18n`.
+
 The `cargo i18n` command reads the configuration file (by default called `i18n.toml`) in the root directory of your crate, and then proceeds to extract  localization resources from your source files, and build them.
 
 The [i18n-embed](https://crates.io/crates/i18n-embed) library has been created to allow you to conveniently embed the localizations in your application or library, and have them selected at runtime.
 
 The [i18n-build](https://crates.io/crates/i18n-build) library contains most of the implementation for this tool. It has been published separately to allow its direct use within project build scripts if required.
+
+For an example usage you can see the source code for this project, localizes itself. This project was originally created to aid in the work in progress [coster](https://github.com/kellpossible/coster) self-hosted web application.
 
 ## i18n.toml Configuration
 
