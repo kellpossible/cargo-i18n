@@ -12,7 +12,7 @@ The [i18n-build](https://crates.io/crates/i18n-build) library contains most of t
 
 ## Examples
 
-For an example usage, including localizing sub-crates as libraries, you can see the [source code](https://github.com/kellpossible/cargo-i18n/) for this project, which localizes itself. This project was originally created to aid in the work in progress [coster](https://github.com/kellpossible/coster) self-hosted web application.
+For an example usage, including localizing sub-crates as libraries, you can see the [source code](https://github.com/kellpossible/cargo-i18n/) for this project, which localizes itself. This project was originally created to aid in the localization for the [coster (work in progress)](https://github.com/kellpossible/coster) self-hosted web application.
 
 ## i18n.toml Configuration
 
