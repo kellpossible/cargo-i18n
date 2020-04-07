@@ -49,7 +49,8 @@ You can the \"i18n-embed\" library to conveniently embed the \
 localizations inside your application.
 
 The display language used for this command is selected automatically \
-using your system settings (as described at https://github.com/rust-locale/locale_config#supported-systems) \
+using your system settings (as described at 
+https://github.com/rust-locale/locale_config#supported-systems ) \
 however you can override it using the -l, --language option.
 
 Logging for this command is available using the \"env_logger\" crate. \
