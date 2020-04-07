@@ -5,3 +5,8 @@ A library for use within the [cargo-i18n](https://crates.io/crates/cargo_i18n) t
 ## Contributing
 
 Pull-requests are welcome, and you can also contribute to the localization of this library via [POEditor - i18n-build](https://poeditor.com/join/project/BCW39cVoco) or use your favourite `po` editor.
+
+## Authors
+
++ [Contributors](https://github.com/kellpossible/cargo-i18n/graphs/contributors)
++ [Translators](https://github.com/kellpossible/cargo-i18n/blob/master/i18n-build/i18n/TRANSLATORS)
