@@ -1,14 +1,14 @@
 [package]
-name = "i18n-build"
-version = "0.1.0"
 authors = ["Luke Frisken <l.frisken@gmail.com>"]
-edition = "2018"
-description = "Designed for use within the cargo-i18n tool for localizing crates. It has been published to allow its direct use within project build scripts if required."
-repository = "https://github.com/kellpossible/cargo-i18n/tree/master/i18n-build"
-keywords = ["script", "build", "i18n", "gettext", "locale"]
 categories = ["localization", "internationalization", "development-tools::build-utils"]
-readme = "README.md"
+description = "Designed for use within the cargo-i18n tool for localizing crates. It has been published to allow its direct use within project build scripts if required."
+edition = "2018"
+keywords = ["script", "build", "i18n", "gettext", "locale"]
 license = "MIT"
+name = "i18n-build"
+readme = "README.md"
+repository = "https://github.com/kellpossible/cargo-i18n/tree/master/i18n-build"
+version = "0.1.0"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

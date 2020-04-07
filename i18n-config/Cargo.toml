@@ -1,13 +1,14 @@
 [package]
-name = "i18n-config"
-version = "0.1.0"
 authors = ["Luke Frisken <l.frisken@gmail.com>"]
-keywords = ["cargo", "build", "i18n", "gettext", "locale"]
-description = "This library contains the configuration stucts (along with their parsing functions) for the cargo-i18n tool/system."
-license = "MIT"
 categories = ["localization", "internationalization"]
+description = "This library contains the configuration stucts (along with their parsing functions) for the cargo-i18n tool/system."
 edition = "2018"
+keywords = ["cargo", "build", "i18n", "gettext", "locale"]
+license = "MIT"
+name = "i18n-config"
 readme = "README.md"
+repository = "https://github.com/kellpossible/cargo-i18n/tree/master/i18n-config"
+version = "0.1.0"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

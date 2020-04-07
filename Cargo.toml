@@ -1,14 +1,14 @@
 [package]
-name = "cargo-i18n"
-version = "0.1.0"
 authors = ["Luke Frisken <l.frisken@gmail.com>"]
-edition = "2018"
+categories = ["development-tools::cargo-plugins", "localization", "internationalization", "development-tools::build-utils"]
 description = "Cargo sub-command to extract and build localization resources"
+edition = "2018"
 keywords = ["cargo", "build", "i18n", "gettext", "locale"]
 license = "MIT"
-categories = ["development-tools::cargo-plugins", "localization", "internationalization", "development-tools::build-utils"]
+name = "cargo-i18n"
 readme = "README.md"
 repository = "https://github.com/kellpossible/cargo-i18n"
+version = "0.1.0"
 
 [badges]
 maintenance = { status = "actively-developed" }
