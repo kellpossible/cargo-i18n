@@ -67,7 +67,6 @@ dependencies = [
  "log",
  "rust-embed",
  "tr",
- "unic-langid",
 ]
 
 [[package]]
@@ -223,7 +222,7 @@ dependencies = [
 
 [[package]]
 name = "i18n-config"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "anyhow",
  "serde",
@@ -233,7 +232,7 @@ dependencies = [
 
 [[package]]
 name = "i18n-embed"
-version = "0.1.2"
+version = "0.2.0"
 dependencies = [
  "fluent-langneg",
  "gettext",
@@ -247,7 +246,7 @@ dependencies = [
 
 [[package]]
 name = "i18n-embed-impl"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "i18n-config",
  "quote",

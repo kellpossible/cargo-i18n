@@ -80,7 +80,7 @@ pub fn language_loader_derive(input: TokenStream) -> TokenStream {
                 i18n_embed::tr::set_translator!(catalog);
             }
         
-            fn module_path() -> &'static str {
+            fn module_path(&self) -> &'static str {
                 module_path!()
             }
         }

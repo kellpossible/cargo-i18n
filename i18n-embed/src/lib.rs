@@ -164,7 +164,7 @@ pub trait LanguageRequester {
 /// the specified module path.
 pub trait LanguageLoader {
     /// The module that this language loader is requesting.
-    fn module_path() -> &'static str;
+    fn module_path(&self) -> &'static str;
     /// Load the language file corresponding to the module that this
     /// loader requested in `module_path()`.
     fn load_language_file<R: io::Read>(&self, reader: R);
@@ -180,13 +180,13 @@ pub trait I18nEmbed: RustEmbed {
 
     /// Calculate the language file name to use for the given
     /// [LanguageLoader](LanguageLoader).
-    fn language_file_name<L: LanguageLoader>() -> String {
-        format!("{}.{}", domain_from_module(L::module_path()), "mo")
+    fn language_file_name<L: LanguageLoader>(language_loader: &L) -> String {
+        format!("{}.{}", domain_from_module(language_loader.module_path()), "mo")
     }
 
     /// Calculate the embedded languages available to be selected for
     /// the module requested by the provided [LanguageLoader](LanguageLoader).
-    fn available_languages<L: LanguageLoader>() -> Vec<unic_langid::LanguageIdentifier> {
+    fn available_languages<L: LanguageLoader>(language_loader: &L) -> Vec<unic_langid::LanguageIdentifier> {
         use std::path::{Component, Path};
 
         let mut language_strings: Vec<String> = Self::iter()
@@ -219,7 +219,7 @@ pub trait I18nEmbed: RustEmbed {
                 match language_file_name {
                     Some(language_file_name) => {
                         debug!("Found language file: \"{0}\"", &filename);
-                        if language_file_name == Self::language_file_name::<L>() {
+                        if language_file_name == Self::language_file_name(language_loader) {
                             locale
                         } else {
                             None
@@ -257,11 +257,11 @@ pub trait I18nEmbed: RustEmbed {
     ) {
         info!(
             "Selecting translations for module \"{0}\"",
-            L::module_path()
+            language_loader.module_path()
         );
         let requested_languages = language_requester.requested_languages();
 
-        let available_languages: Vec<unic_langid::LanguageIdentifier> = Self::available_languages::<L>();
+        let available_languages: Vec<unic_langid::LanguageIdentifier> = Self::available_languages(language_loader);
         let default_language: unic_langid::LanguageIdentifier = Self::src_locale();
 
         let supported_languages = negotiate_languages(
@@ -280,7 +280,7 @@ pub trait I18nEmbed: RustEmbed {
                 if language_id != &&default_language {
                     let language_id_string = language_id.to_string();
 
-                    let file_path = format!("{}/{}", language_id_string, Self::language_file_name::<L>());
+                    let file_path = format!("{}/{}", language_id_string, Self::language_file_name(language_loader));
                     let f = Self::get(file_path.as_ref())
                         .expect("could not read the file");
 
