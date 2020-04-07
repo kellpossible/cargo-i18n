@@ -1,4 +1,4 @@
-//! This module contains the configuration stucts (along with their
+//! This library contains the configuration stucts (along with their
 //! parsing functions) for the
 //! [cargo-i18n](https://crates.io/crates/cargo_i18n) tool/system.
 

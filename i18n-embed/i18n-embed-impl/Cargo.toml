@@ -6,6 +6,7 @@ edition = "2018"
 description = "Derive macros for the traits defined in i18n-embed"
 keywords = ["embed", "build", "i18n", "gettext", "locale"]
 repository = "https://github.com/kellpossible/cargo-i18n"
+license = "MIT"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [lib]
@@ -15,7 +16,7 @@ proc-macro = true
 quote = "1.0.3"
 serde = { version = "1", features = ["derive"] }
 serde_derive = "1"
-i18n-config = { path = "../../i18n-config" }
+i18n-config = { version = "0.1", path = "../../i18n-config" }
 
 [dependencies.syn]
 version = "1.0.17"

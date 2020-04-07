@@ -2,9 +2,17 @@
 name = "i18n-config"
 version = "0.1.0"
 authors = ["Luke Frisken <l.frisken@gmail.com>"]
+keywords = ["cargo", "build", "i18n", "gettext", "locale"]
+description = "This library contains the configuration stucts (along with their parsing functions) for the cargo-i18n tool/system."
+license = "MIT"
+categories = ["localization", "internationalization"]
 edition = "2018"
+readme = "README.md"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[badges]
+maintenance = { status = "actively-developed" }
 
 [dependencies]
 toml = "0.5"

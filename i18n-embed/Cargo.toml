@@ -3,12 +3,13 @@ name = "i18n-embed"
 version = "0.1.0"
 authors = ["Luke Frisken <l.frisken@gmail.com>"]
 edition = "2018"
-description = "Traits and derive macros to conveniently embed the output of the cargo-i18n into your application binary at runtime"
-keywords = ["embed", "build", "i18n", "gettext", "locale"]
+description = "Derive macros for the traits defined in i18n-embed to conveniently embed localizations from cargo-i18n into your application binary at runtime"
+keywords = ["embed", "macro", "i18n", "gettext", "locale"]
 categories = ["localization", "internationalization", "development-tools::build-utils", "wasm"]
 repository = "https://github.com/kellpossible/cargo-i18n/tree/master/i18n-embed"
 exclude = ["i18n/", "i18n.toml"]
 readme = "README.md"
+license = "MIT"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -16,7 +17,7 @@ readme = "README.md"
 maintenance = { status = "actively-developed" }
 
 [dependencies]
-i18n-embed-impl = { path = "./i18n-embed-impl" }
+i18n-embed-impl = { version = "0.1", path = "./i18n-embed-impl" }
 unic-langid = "0.8"
 locale_config = { version = "0.3", optional = true }
 fluent-langneg = "0.12"
