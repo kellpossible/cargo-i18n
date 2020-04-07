@@ -81,7 +81,9 @@ Pull-requests are welcome, and you can also contribute to the localization of th
 + [POEditor - cargo-i18n](https://poeditor.com/join/project/J7NiRCGpXa)
 + [POEditor - i18n-build](https://poeditor.com/join/project/BCW39cVoco)
 
-Or you can also use your favourite `po` editor directly to help with localizing the files located in [i18n/po](./i18n/po) and [i18n-build/i18n/po](./i18n-build/i18n/po).
+Or you can also use your favourite `po` editor directly to help with localizing the files located in [i18n/po](./i18n/po) and [i18n-build/i18n/po](./i18n-build/i18n/po). 
+
+To add a new language, you can make a request via a GitHub issue, or submit a pull request adding the new locale to [i18n.toml](https://github.com/kellpossible/cargo-i18n/blob/master/i18n.toml) and generating the associated new po files using `cargo i18n`.
 
 ## Authors
 
