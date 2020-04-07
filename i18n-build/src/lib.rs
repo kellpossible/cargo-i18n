@@ -1,6 +1,11 @@
-//! `xtr`, and GNU Gettext CLI tools
-//! `msginit`, `msgfmt`, `msgmerge` and `msgcat` to be present in your
-//! system path.
+//! This library is designed for use within the
+//! [cargo-i18n](https://crates.io/crates/cargo_i18n) tool for
+//! localizing crates. It has been exposed and published as a library
+//! to allow its direct use within project build scripts if required.
+//!
+//! `xtr` (installed with `cargo install xtr`), and GNU Gettext CLI
+//! tools `msginit`, `msgfmt`, `msgmerge` and `msgcat` to be present
+//! in your system path.
 
 mod error;
 pub mod gettext_impl;

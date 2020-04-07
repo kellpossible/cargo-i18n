@@ -1,3 +1,6 @@
+//! This module contains the implementation for localizing using the
+//! `gettext` localization system.
+
 use crate::error::{PathError, PathType};
 use crate::util;
 use i18n_config::{Crate, GettextConfig, I18nConfig};

@@ -1,0 +1,1 @@
+This directory, and `README.md` file exist only to allow the code examples in this crate to compile.

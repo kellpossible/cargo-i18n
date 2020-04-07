@@ -1,3 +1,124 @@
+//! Traits and macros to conveniently embed the output of
+//! [cargo-i18n](https://crates.io/crates/cargo_i18n) into your
+//! application binary in order to localize it at runtime.
+//!
+//! The core trait for this library is [I18nEmbed](I18nEmbed), which
+//! also has a derive macro to allow it to be easily implemented on a
+//! struct in your project.
+//!
+//! This library makes use of
+//! [rust-embed](https://crates.io/crates/rust-embed) to perform the
+//! actual embedding of the language files, unfortunately using this
+//! currently requires you to manually add it as a dependency to your
+//! project and implement its trait on your struct in addition to
+//! [I18nEmbed](I18nEmbed). At some point in the future this library
+//! may incorperate the embedding process into the `I18nEmbed` trait
+//! and remove this dependency. [RustEmbed](RustEmbed) currently will
+//! not compile if the target `folder` path is invalid, so it is
+//! recommended to either run `cargo i18n` before building your
+//! project, or committing the compiled resources to ensure that the
+//! project can build without requiring `cargo i18n`.
+//!
+//! The following is an example for how to derive the required traits
+//! on structs, and localize your binary using this library:
+//!
+//! ```
+//! use i18n_embed::{I18nEmbed, LanguageLoader, DesktopLanguageRequester};
+//! use rust_embed::RustEmbed;
+//!
+//! #[derive(RustEmbed, I18nEmbed)]
+//! #[folder = "i18n/mo"] // path to the compiled localization resources
+//! struct Translations;
+//!
+//! #[derive(LanguageLoader)]
+//! struct MyLanguageLoader;
+//!
+//! fn main() {
+//!     let language_loader = MyLanguageLoader {};
+//!
+//!     // Use the language requester for the desktop platform (linux, windows, mac).
+//!     // There is also a requester available for the web-sys WASM platform called
+//!     // WebLanguageRequester, or you can implement your own.
+//!     let language_requester = DesktopLanguageRequester::new();
+//!     Translations::select(&language_requester, &language_loader);
+//! }
+//! ```
+//!
+//! If you wish to create a localizable library using `i18n-embed`,
+//! you can follow this code pattern:
+//!
+//! ```
+//! use i18n_embed::{LanguageRequester, I18nEmbed, LanguageLoader};
+//! use rust_embed::RustEmbed;
+//!
+//! #[derive(RustEmbed, I18nEmbed)]
+//! #[folder = "i18n/mo"] // path to the compiled localization resources
+//! struct Translations;
+//!
+//! #[derive(LanguageLoader)]
+//! struct MyLanguageLoader;
+//!
+//! /// Localize this library, and select the language using the provided
+//! /// LanguageRequester.
+//! pub fn localize<L: LanguageRequester>(language_requester: L) {
+//!     let loader = MyLanguageLoader {};
+//!     Translations::select(&language_requester, &loader);
+//! }
+//! ```
+//!
+//! People using this library can call `localize()` to perform the
+//! localization at runtime, and provide their own
+//! [LanguageRequester](LanguageRequester) specific to the platform
+//! they that they are targetting.
+//!
+//! If you want to localize a sub-crate in your project, and want to
+//! extract strings from this sub-crate and store/embed them in one
+//! location in the parent crate, you can use the following pattern
+//! for the library:
+//!
+//! ```
+//! use i18n_embed::{LanguageRequester, I18nEmbed, LanguageLoader};
+//!
+//! #[derive(LanguageLoader)]
+//! struct MyLanguageLoader;
+//!
+//! /// Localize this library, and select the language using the 
+//! /// provided I18nEmbed and LanguageRequester.
+//! pub fn localize<E: I18nEmbed, L: LanguageRequester>(language_requester: L) {
+//!     let loader = MyLanguageLoader {};
+//!     E::select(&language_requester, &loader);
+//! }
+//! ```
+//!
+//! For the above example, you can enable the following options in the
+//! sub-crate's `i18n.toml` to ensure that the localization resources
+//! are extracted and merged with the parent crate's `pot` file:
+//!
+//! ```toml
+//! # ...
+//!
+//! [gettext]
+//!
+//! # ...
+//!
+//! # (Optional) If this crate is being localized as a subcrate, store the final
+//! # localization artifacts (the module pot and mo files) with the parent crate's
+//! # output. Currently crates which contain subcrates with duplicate names are not
+//! # supported.
+//! extract_to_parent = true
+//!
+//! # (Optional) If a subcrate has extract_to_parent set to true, then merge the
+//! # output pot file of that subcrate into this crate's pot file.
+//! collate_extracted_subcrates = true
+//! ```
+
+#[cfg(doctest)]
+#[macro_use]
+extern crate doc_comment;
+
+#[cfg(doctest)]
+doctest!("../README.md");
+
 #[allow(unused_imports)]
 #[macro_use]
 extern crate i18n_embed_impl;
@@ -8,14 +129,14 @@ use std::io;
 use fluent_langneg::{negotiate_languages, NegotiationStrategy};
 use log::{debug, error, info};
 use rust_embed::RustEmbed;
-pub use unic_langid::LanguageIdentifier;
-pub use tr::set_translator;
-pub use gettext::Catalog;
+pub use unic_langid;
+pub use tr;
+pub use gettext;
 
 /// A trait used by [I18nEmbed](I18nEmbed) to ascertain which
 /// languages are being requested.
 pub trait LanguageRequester {
-    fn requested_languages(&self) -> Vec<LanguageIdentifier>;
+    fn requested_languages(&self) -> Vec<unic_langid::LanguageIdentifier>;
 }
 
 /// A trait used by [I18nEmbed](I18nEmbed) to load a language file for
@@ -34,7 +155,7 @@ pub trait LanguageLoader {
 pub trait I18nEmbed: RustEmbed {
     /// The locale for the project the translations are being embedded
     /// into.
-    fn src_locale() -> LanguageIdentifier;
+    fn src_locale() -> unic_langid::LanguageIdentifier;
 
     /// Calculate the language file name to use for the given
     /// [LanguageLoader](LanguageLoader).
@@ -44,7 +165,7 @@ pub trait I18nEmbed: RustEmbed {
 
     /// Calculate the embedded languages available to be selected for
     /// the module requested by the provided [LanguageLoader](LanguageLoader).
-    fn available_languages<L: LanguageLoader>() -> Vec<LanguageIdentifier> {
+    fn available_languages<L: LanguageLoader>() -> Vec<unic_langid::LanguageIdentifier> {
         use std::path::{Component, Path};
 
         let mut language_strings: Vec<String> = Self::iter()
@@ -108,7 +229,7 @@ pub trait I18nEmbed: RustEmbed {
     /// Select the language currently requested by the system by the
     /// the [LanguageRequester](LanguageRequester)), and load it using
     /// the provided [LanguageLoader](LanguageLoader). Logging is
-    /// performed using the provided [I18nEmbedLogger](I18nEmbedLogger).
+    /// performed using the [log](log) crate.
     fn select<R: LanguageRequester, L: LanguageLoader>(
         language_requester: &R,
         language_loader: &L,
@@ -119,8 +240,8 @@ pub trait I18nEmbed: RustEmbed {
         );
         let requested_languages = language_requester.requested_languages();
 
-        let available_languages: Vec<LanguageIdentifier> = Self::available_languages::<L>();
-        let default_language: LanguageIdentifier = Self::src_locale();
+        let available_languages: Vec<unic_langid::LanguageIdentifier> = Self::available_languages::<L>();
+        let default_language: unic_langid::LanguageIdentifier = Self::src_locale();
 
         let supported_languages = negotiate_languages(
             &requested_languages,
@@ -162,7 +283,7 @@ pub struct DesktopLanguageRequester;
 
 #[cfg(feature = "desktop-requester")]
 impl LanguageRequester for DesktopLanguageRequester {
-    fn requested_languages(&self) -> Vec<LanguageIdentifier> {
+    fn requested_languages(&self) -> Vec<unic_langid::LanguageIdentifier> {
         Self::requested_languages()
     }
 }
@@ -173,12 +294,12 @@ impl DesktopLanguageRequester {
         DesktopLanguageRequester {}
     }
 
-    pub fn requested_languages() -> Vec<LanguageIdentifier> {
+    pub fn requested_languages() -> Vec<unic_langid::LanguageIdentifier> {
         use locale_config::{LanguageRange, Locale};
 
         let current_locale = Locale::current();
 
-        let ids: Vec<LanguageIdentifier> = current_locale
+        let ids: Vec<unic_langid::LanguageIdentifier> = current_locale
             .tags_for("messages")
             .filter_map(|tag: LanguageRange| match tag.to_string().parse() {
                 Ok(tag) => Some(tag),
@@ -208,7 +329,7 @@ impl WebLanguageRequester {
 
 #[cfg(feature = "web-sys-requester")]
 impl LanguageRequester for WebLanguageRequester {
-    fn requested_languages(&self) -> Vec<LanguageIdentifier> {
+    fn requested_languages(&self) -> Vec<unic_langid::LanguageIdentifier> {
         use fluent_langneg::convert_vec_str_to_langids_lossy;
         let window = web_sys::window().expect("no global `window` exists");
         let navigator = window.navigator();

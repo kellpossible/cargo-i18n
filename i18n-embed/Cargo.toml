@@ -3,7 +3,11 @@ name = "i18n-embed"
 version = "0.1.0"
 authors = ["Luke Frisken <l.frisken@gmail.com>"]
 edition = "2018"
+description = "Traits and derive macros to conveniently embed the output of the cargo-i18n into your application binary at runtime"
+keywords = ["embed", "build", "i18n", "gettext", "locale"]
 repository = "https://github.com/kellpossible/cargo-i18n"
+exclude = ["i18n/", "i18n.toml"]
+readme = "README.md"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -17,6 +21,9 @@ rust-embed = "5"
 gettext = { version = "0.4", optional = true }
 tr = { version = "0.1", default-features = false, optional = true }
 log = "0.4"
+
+[dev-dependencies]
+doc-comment = "0.3"
 
 [features]
 default = ["gettext-system"]

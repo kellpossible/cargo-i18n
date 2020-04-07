@@ -27,15 +27,18 @@ fn long_about() -> String {
         // {0} is the short about message.
         "{0}
 
-This command reads the \"i18n.toml\" config in your crate root, \
-and based on the configuration there, proceeds to extract \
-localization resources, and build them.
+This command reads a configuration file (typically called \"i18n.toml\") \
+in the root directory of your crate, and then proceeds to extract \
+localization resources from your source files, and build them.
 
 If you are using the gettext localization system, you will \
 need to have the following gettext tools installed: \"msgcat\", \
 \"msginit\", \"msgmerge\" and \"msgfmt\". You will also need to have \
 the \"xtr\" tool installed, which can be installed using \"cargo \
-install xtr\".",
+install xtr\".
+
+You can the \"i18n-embed\" library to conveniently embed the output of \
+this localization process into your application.",
         short_about()
     )
 }

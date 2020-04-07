@@ -1,3 +1,7 @@
+//! This module contains the configuration stucts (along with their
+//! parsing functions) for the
+//! [cargo-i18n](https://crates.io/crates/cargo_i18n) tool/system.
+
 use std::fs::read_to_string;
 use std::path::{PathBuf, Path};
 
@@ -174,7 +178,8 @@ impl<'a> Crate<'a> {
     }
 }
 
-
+/// The data structure representing what is stored (and possible to
+/// store) within a `i18n.toml` file.
 #[derive(Deserialize, Debug)]
 pub struct I18nConfig {
     /// The locale/language identifier of the language used in the source code.
@@ -209,6 +214,8 @@ impl I18nConfig {
     }
 }
 
+/// The data structure representing what is stored (and possible to
+/// store) within the `gettext` subsection of a `i18n.toml` file.
 #[derive(Deserialize, Debug)]
 pub struct GettextConfig {
     /// Path to the output directory, relative to `i18n.toml` of the
@@ -235,30 +242,28 @@ pub struct GettextConfig {
     /// address or URL to which the translators shall report bugs in
     /// the untranslated strings.
     pub msgid_bugs_address: Option<String>,
-    /// Whether or not to perform string extraction using the `xtr` tool.
+    /// Whether or not to perform string extraction using the `xtr` command.
     pub xtr: Option<bool>,
-    /// Path to where the pot files will be written to by
-    /// [run_xtr()](run_xtr()), and were they will be read from by
-    /// [run_msginit()](run_msginit()) and
-    /// [run_msgmerge()](run_msgmerge()).
+    /// Path to where the pot files will be written to by the `xtr`
+    /// command, and were they will be read from by `msginit` and
+    /// `msgmerge`.
     pot_dir: Option<PathBuf>,
     /// Path to where the po files will be stored/edited with the
-    /// [run_msgmerge()](run_msgmerge()) and
-    /// [run_msginit()](run_msginit()) commands, and where they will
-    /// be read from with the [run_msgfmt()](run_msgfmt()) command.
+    /// `msgmerge` and `msginit` commands, and where they will be read
+    /// from with the `msgfmt` command.
     po_dir: Option<PathBuf>,
     /// Path to where the mo files will be written to by the
-    /// [run_msgfmt()](run_msgfmt()) command.
+    /// `msgfmt` command.
     mo_dir: Option<PathBuf>,
 }
 
 impl GettextConfig {
-    /// Path to where the pot files will be written to by
-    /// [run_xtr()](run_xtr()), and were they will be read from by
-    /// [run_msginit()](run_msginit()) and
-    /// [run_msgmerge()](run_msgmerge()).
+    /// Path to where the pot files will be written to by the `xtr`
+    /// command, and were they will be read from by `msginit` and
+    /// `msgmerge`.
     ///
-    /// By default this is **[output_dir](GettextConfig::output_dir)/pot**.
+    /// By default this is
+    /// **[output_dir](GettextConfig::output_dir)/pot**.
     pub fn pot_dir(&self) -> PathBuf {
         // match self.pot_dir {
         //     Some(pot_dir) => pot_dir,
@@ -270,9 +275,8 @@ impl GettextConfig {
     }
 
     /// Path to where the po files will be stored/edited with the
-    /// [run_msgmerge()](run_msgmerge()) and
-    /// [run_msginit()](run_msginit()) commands, and where they will
-    /// be read from with the [run_msgfmt()](run_msgfmt()) command.
+    /// `msgmerge` and `msginit` commands, and where they will
+    /// be read from with the `msgfmt` command.
     ///
     /// By default this is **[output_dir](GettextConfig::output_dir)/po**.
     pub fn po_dir(&self) -> PathBuf {
@@ -280,7 +284,7 @@ impl GettextConfig {
     }
 
     /// Path to where the mo files will be written to by the
-    /// [run_msgfmt()](run_msgfmt()) command.
+    /// [run_msgfmt()](#run_msgfmt()) command.
     ///
     /// By default this is **[output_dir](GettextConfig::output_dir)/mo**.
     pub fn mo_dir(&self) -> PathBuf {

@@ -1,0 +1,6 @@
+# This is included only to allow the code examples in this crate to
+# compile.
+
+src_locale = "en"
+
+target_locales = ["es", "ru", "fr"]

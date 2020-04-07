@@ -3,13 +3,16 @@ extern crate proc_macro;
 use crate::proc_macro::TokenStream;
 
 use std::path::PathBuf;
-
 use i18n_config::I18nConfig;
-
 use quote::quote;
 use syn;
 
 /// A procedural macro to implement the `I18nEmbed` trait on a struct.
+///
+/// The following struct level attributes available:
+///
+/// + (Optional) `#[config_file = "i18n.toml"]` - path to i18n config
+///   file relative to the crate root.
 #[proc_macro_derive(I18nEmbed, attributes(config_file))]
 pub fn i18n_embed_derive(input: TokenStream) -> TokenStream {
     let ast: syn::DeriveInput = syn::parse(input).unwrap();
@@ -53,7 +56,7 @@ pub fn i18n_embed_derive(input: TokenStream) -> TokenStream {
 
     let gen = quote! {
         impl I18nEmbed for #struct_name {
-            fn src_locale() -> i18n_embed::LanguageIdentifier {
+            fn src_locale() -> i18n_embed::unic_langid::LanguageIdentifier {
                 #src_locale.parse().unwrap()
             }
         }
@@ -62,7 +65,9 @@ pub fn i18n_embed_derive(input: TokenStream) -> TokenStream {
     gen.into()
 }
 
+/// A procedural macro to implement the `LanguageLoader` trait on a struct.
 #[proc_macro_derive(LanguageLoader)]
+#[cfg(feature = "gettext-system")]
 pub fn language_loader_derive(input: TokenStream) -> TokenStream {
     let ast: syn::DeriveInput = syn::parse(input).unwrap();
 
@@ -71,8 +76,8 @@ pub fn language_loader_derive(input: TokenStream) -> TokenStream {
     let gen = quote! {
         impl LanguageLoader for #struct_name {
             fn load_language_file<R: std::io::Read>(&self, reader: R) {
-                let catalog = i18n_embed::Catalog::parse(reader).expect("could not parse the catalog");
-                i18n_embed::set_translator!(catalog);
+                let catalog = i18n_embed::gettext::Catalog::parse(reader).expect("could not parse the catalog");
+                i18n_embed::tr::set_translator!(catalog);
             }
         
             fn module_path() -> &'static str {
