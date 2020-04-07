@@ -1,11 +1,13 @@
 msgid ""
 msgstr ""
+"Project-Id-Version: i18n-build\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2020-04-07 15:18+0000\n"
+"Language: ru\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "X-Generator: POEditor.com\n"
-"Project-Id-Version: i18n-build\n"
-"Language: ru\n"
 
 #. {0} is the file path, {1} is the item which it is for, {2} is the type of item (file, directory, etc)
 #: i18n-build/src/error.rs:135
@@ -41,6 +43,14 @@ msgstr "Не удалось удалить {0} \"{1}\" так как: \"{2}\"."
 msgid "Cannot rename the {0} \"{1}\" to \"{2}\" because {3}."
 msgstr "Не удалось переименовать {0} \"{1}\" в \"{2}\" так как {3}."
 
+#. {0} is a directory path
+#. {1} is the name of the parent directory
+#. {2} is the expected parent of the directory in {0}
+#. Example: The path "i18n/src/po" is not inside the "src" directory: "i18n/src"."
+#: i18n-build/src/error.rs:182
+msgid "The path \"{0}\" is not inside the \"{1}\" directory: \"{2}\"."
+msgstr "Путь \"{0}\" не находится \"{1}\" в каталоге: \"{2}\"."
+
 #: i18n-build/src/gettext_impl/mod.rs:213
 msgid "There was a problem executing the \"{0}\" command"
 msgstr "Произошла ошибка при выполнении команды \"{0}\"."
@@ -60,12 +70,3 @@ msgstr "У команды \"{0}\" возникла проблема при ож�
 #: i18n-build/src/util.rs:27
 msgid "The \"{0}\" command reported that it was unsuccessful."
 msgstr "Команда \"{0}\" сообщила что она не удалась."
-
-#. {0} is a directory path
-#. {1} is the name of the parent directory
-#. {2} is the expected parent of the directory in {0}
-#. Example: The path "i18n/src/po" is not inside the "src" directory: "i18n/src"."
-#: i18n-build/src/error.rs:182
-msgid "The path \"{0}\" is not inside the \"{1}\" directory: \"{2}\"."
-msgstr "Путь \"{0}\" не находится \"{1}\" в каталоге: \"{2}\"."
-
