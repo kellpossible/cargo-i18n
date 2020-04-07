@@ -3,7 +3,7 @@
 //! [cargo-i18n](https://crates.io/crates/cargo_i18n) tool/system.
 
 use std::fs::read_to_string;
-use std::path::{PathBuf, Path};
+use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
 use serde_derive::Deserialize;
@@ -119,7 +119,7 @@ impl<'a> Crate<'a> {
                         if gettext_config.extract_to_parent {
                             return self.parent_active_config();
                         }
-                    },
+                    }
                     None => {}
                 }
 
@@ -161,18 +161,23 @@ impl<'a> Crate<'a> {
     /// [GettextConfig#collate_extracted_subcrates](GettextConfig#collate_extracted_subcrates).
     /// This also requires that the current crate's [GettextConfig#extract_to_parent](GettextConfig#extract_to_parent)
     /// is **true**.
-    /// 
+    ///
     /// Returns **false** if there is no parent or the parent has no gettext config.
     pub fn collated_subcrate(&self) -> bool {
-        let parent_extract_to_subcrate = self.parent.map(|parent_crate| {
-            parent_crate.gettext_config_or_err().map(|parent_gettext_config| {
-                parent_gettext_config.collate_extracted_subcrates
-            }).unwrap_or(false)
-        }).unwrap_or(false);
+        let parent_extract_to_subcrate = self
+            .parent
+            .map(|parent_crate| {
+                parent_crate
+                    .gettext_config_or_err()
+                    .map(|parent_gettext_config| parent_gettext_config.collate_extracted_subcrates)
+                    .unwrap_or(false)
+            })
+            .unwrap_or(false);
 
-        let extract_to_parent = self.gettext_config_or_err().map(|gettext_config| {
-            gettext_config.extract_to_parent
-        }).unwrap_or(false);
+        let extract_to_parent = self
+            .gettext_config_or_err()
+            .map(|gettext_config| gettext_config.extract_to_parent)
+            .unwrap_or(false);
 
         return parent_extract_to_subcrate && extract_to_parent;
     }
@@ -283,10 +288,10 @@ impl GettextConfig {
         self.po_dir.clone().unwrap_or(self.output_dir.join("po"))
     }
 
-    /// Path to where the mo files will be written to by the
-    /// [run_msgfmt()](#run_msgfmt()) command.
+    /// Path to where the mo files will be written to by the `msgfmt` command.
     ///
-    /// By default this is **[output_dir](GettextConfig::output_dir)/mo**.
+    /// By default this is
+    /// **[output_dir](GettextConfig::output_dir)/mo**.
     pub fn mo_dir(&self) -> PathBuf {
         self.mo_dir.clone().unwrap_or(self.output_dir.join("mo"))
     }
