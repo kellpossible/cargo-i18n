@@ -48,12 +48,12 @@ install xtr\".
 You can the \"i18n-embed\" library to conveniently embed the \
 localizations inside your application.
 
-Logging for this command is available using the \"env_logger\" crate. \
-You can enable debug logging using \"RUST_LOG=debug cargo i18n\".
+The display language used for this command is selected automatically \
+using your system settings (as described at https://github.com/rust-locale/locale_config#supported-systems) \
+however you can override it using the -l, --language option.
 
-The language is selected automatically for your system using the method \
-described at https://github.com/rust-locale/locale_config#supported-systems \
-however you can override it using the -l, --language option.",
+Logging for this command is available using the \"env_logger\" crate. \
+You can enable debug logging using \"RUST_LOG=debug cargo i18n\".",
         short_about()
     )
 }
