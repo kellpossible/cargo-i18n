@@ -10,7 +10,7 @@ pub mod watch;
 use anyhow::Result;
 
 #[cfg(feature = "localize")]
-use i18n_embed::{DesktopLanguageRequester, I18nEmbed};
+use i18n_embed::{LanguageRequester, I18nEmbed};
 
 #[cfg(feature = "localize")]
 use gettext::Catalog;
@@ -18,7 +18,15 @@ use gettext::Catalog;
 #[cfg(feature = "localize")]
 use tr::set_translator;
 
+#[cfg(feature = "localize")]
+use rust_embed::RustEmbed;
+
 use i18n_config;
+
+#[derive(RustEmbed, I18nEmbed)]
+#[folder = "i18n/mo"]
+#[cfg(feature = "localize")]
+struct Translations;
 
 /// Run the i18n build process for the provided crate, which must
 /// contain an i18n config.
@@ -57,14 +65,10 @@ impl i18n_embed::LanguageLoader for LanguageLoader {
     }
 }
 
-/// Localize this library using the provided [I18nEmbed](I18nEmbed)
-/// implementation.
-///
-/// TODO: consider moving the translations and embedding them directly
-/// in the library, rather than as a sub-crate.
+/// Localize this library, and select the language using the provided
+/// [LanguageRequester](LanguageRequester).
 #[cfg(feature = "localize")]
-pub fn localize<E: I18nEmbed>() {
+pub fn localize<L: LanguageRequester>(language_requester: L) {
     let loader = LanguageLoader::new();
-    let requester = DesktopLanguageRequester::new();
-    E::select(&requester, &loader);
+    Translations::select(&language_requester, &loader);
 }

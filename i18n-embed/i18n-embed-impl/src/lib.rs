@@ -53,7 +53,7 @@ pub fn i18n_embed_derive(input: TokenStream) -> TokenStream {
 
     let gen = quote! {
         impl I18nEmbed for #struct_name {
-            fn src_locale() -> LanguageIdentifier {
+            fn src_locale() -> i18n_embed::LanguageIdentifier {
                 #src_locale.parse().unwrap()
             }
         }

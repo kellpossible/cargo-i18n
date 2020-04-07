@@ -18,5 +18,3 @@ msg_bugs_address = "l.frisken@gmail.com"
 
 # (Optional) Set the copyright holder for the generated files.
 copyright_holder = "Luke Frisken"
-
-extract_to_parent = true

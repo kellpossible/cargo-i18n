@@ -7,7 +7,6 @@ use i18n_embed::{DesktopLanguageRequester, I18nEmbed};
 use rust_embed::RustEmbed;
 use std::path::Path;
 use tr::{set_translator, tr};
-use unic_langid::LanguageIdentifier;
 
 #[derive(RustEmbed, I18nEmbed)]
 #[folder = "i18n/mo"]
@@ -63,7 +62,7 @@ fn main() -> Result<()> {
     let language_loader = LanguageLoader::new();
     let language_requester = DesktopLanguageRequester::new();
     Translations::select(&language_requester, &language_loader);
-    i18n_build::localize::<Translations>();
+    i18n_build::localize(language_requester);
 
     let matches = App::new("cargo-i18n")
         .bin_name("cargo")

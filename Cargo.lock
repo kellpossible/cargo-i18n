@@ -214,6 +214,7 @@ dependencies = [
  "i18n-config",
  "i18n-embed",
  "log",
+ "rust-embed",
  "subprocess",
  "thiserror",
  "tr",

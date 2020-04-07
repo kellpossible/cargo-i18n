@@ -8,7 +8,7 @@ use std::io;
 use fluent_langneg::{negotiate_languages, NegotiationStrategy};
 use log::{debug, error, info};
 use rust_embed::RustEmbed;
-use unic_langid::LanguageIdentifier;
+pub use unic_langid::LanguageIdentifier;
 
 /// A trait used by [I18nEmbed](I18nEmbed) to ascertain which
 /// languages are being requested.
@@ -135,11 +135,12 @@ pub trait I18nEmbed: RustEmbed {
             Some(language_id) => {
                 if language_id != &&default_language {
                     let language_id_string = language_id.to_string();
-                    let f = Self::get(
-                        format!("{}/{}", language_id_string, Self::language_file_name::<L>())
-                            .as_ref(),
-                    )
-                    .expect("could not read the file");
+
+                    let file_path = format!("{}/{}", language_id_string, Self::language_file_name::<L>());
+                    let f = Self::get(file_path.as_ref())
+                        .expect("could not read the file");
+
+                    info!("Selected language {0:?}, loading from file \"{1}\"", language_id, file_path);
                     language_loader.load_language_file(&*f);
                 }
             }
@@ -147,8 +148,6 @@ pub trait I18nEmbed: RustEmbed {
                 // do nothing
             }
         }
-
-        info!("Completed setting langauge/translations");
     }
 }
 
