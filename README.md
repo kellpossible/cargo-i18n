@@ -1,10 +1,16 @@
-# cargo-i18n
+# cargo-i18n [![crates.io badge](https://img.shields.io/crates/v/cargo-i18n.svg)](https://crates.io/crates/cargo-i18n) [![license badge](https://img.shields.io/github/license/kellpossible/cargo-i18n)](https://github.com/kellpossible/cargo-i18n/blob/master/LICENSE.txt) [![docs.rs badge](https://docs.rs/cargo-i18n/badge.svg)](https://docs.rs/cargo-i18n/)
 
-This crate is a Cargo subcommand `cargo i18n` which can be used to extract and build localization resources for your crate.
+This crate is a Cargo sub-command `cargo i18n` which can be used to extract and build localization resources for your crate.
 
-The `cargo i18n` command reads the `i18n.toml` config in your crate root, and based on the configuration there, proceeds to extract localization resources, and build them.
+The `cargo i18n` command reads the configuration file (by default called `i18n.toml`) in the root directory of your crate, and then proceeds to extract  localization resources from your source files, and build them.
 
-An example `i18n.toml` config:
+The [i18n-embed](https://crates.io/crates/i18n-embed) library has been created to allow you to conveniently embed the localizations in your application or library, and have them selected at runtime.
+
+The [i18n-build](https://crates.io/crates/i18n-build) library contains most of the implementation for this tool. It has been published separately to allow its direct use within project build scripts if required.
+
+## i18n.toml Configuration
+
+Available configuration options for `i18n.toml`:
 
 ```toml
 # (Required) The locale/language identifier of the language used in the source
@@ -64,7 +70,7 @@ mo_dir = "i18n/mo"
 
 ## Contributing
 
-Pull-requests are welcome, and you can also contribute to the localization of this library via:
+Pull-requests are welcome, and you can also contribute to the localization of this tool via:
 
 + [POEditor - cargo-i18n](https://poeditor.com/join/project/J7NiRCGpXa)
 + [POEditor - i18n-build](https://poeditor.com/join/project/BCW39cVoco)
