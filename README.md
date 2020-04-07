@@ -76,7 +76,7 @@ mo_dir = "i18n/mo"
 
 ## Contributing
 
-Pull-requests are welcome, but for design changes it is preferred that you create an issue first to discuss it before implementation. You can also contribute to the localization of this tool via:
+Pull-requests are welcome, but for design changes it is preferred that you create a GitHub first to discuss it before implementation. You can also contribute to the localization of this tool via:
 
 + [POEditor - cargo-i18n](https://poeditor.com/join/project/J7NiRCGpXa)
 + [POEditor - i18n-build](https://poeditor.com/join/project/BCW39cVoco)
