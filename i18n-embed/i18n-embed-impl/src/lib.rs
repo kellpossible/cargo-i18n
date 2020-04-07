@@ -61,3 +61,25 @@ pub fn i18n_embed_derive(input: TokenStream) -> TokenStream {
 
     gen.into()
 }
+
+#[proc_macro_derive(LanguageLoader)]
+pub fn language_loader_derive(input: TokenStream) -> TokenStream {
+    let ast: syn::DeriveInput = syn::parse(input).unwrap();
+
+    let struct_name = &ast.ident;
+
+    let gen = quote! {
+        impl LanguageLoader for #struct_name {
+            fn load_language_file<R: std::io::Read>(&self, reader: R) {
+                let catalog = i18n_embed::Catalog::parse(reader).expect("could not parse the catalog");
+                i18n_embed::set_translator!(catalog);
+            }
+        
+            fn module_path() -> &'static str {
+                module_path!()
+            }
+        }
+    };
+
+    gen.into()
+}

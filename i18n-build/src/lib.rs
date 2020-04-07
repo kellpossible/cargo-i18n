@@ -10,13 +10,7 @@ pub mod watch;
 use anyhow::Result;
 
 #[cfg(feature = "localize")]
-use i18n_embed::{LanguageRequester, I18nEmbed};
-
-#[cfg(feature = "localize")]
-use gettext::Catalog;
-
-#[cfg(feature = "localize")]
-use tr::set_translator;
+use i18n_embed::{LanguageRequester, I18nEmbed, LanguageLoader};
 
 #[cfg(feature = "localize")]
 use rust_embed::RustEmbed;
@@ -27,6 +21,10 @@ use i18n_config;
 #[folder = "i18n/mo"]
 #[cfg(feature = "localize")]
 struct Translations;
+
+#[derive(LanguageLoader)]
+#[cfg(feature = "localize")]
+struct I18nBuildLanguageLoader;
 
 /// Run the i18n build process for the provided crate, which must
 /// contain an i18n config.
@@ -42,33 +40,10 @@ pub fn run(crt: &i18n_config::Crate) -> Result<()> {
     Ok(())
 }
 
-#[cfg(feature = "localize")]
-struct LanguageLoader;
-
-#[cfg(feature = "localize")]
-impl LanguageLoader {
-    fn new() -> LanguageLoader {
-        LanguageLoader {}
-    }
-}
-
-// TODO: change when we have more embed macros
-#[cfg(feature = "localize")]
-impl i18n_embed::LanguageLoader for LanguageLoader {
-    fn load_language_file<R: std::io::Read>(&self, reader: R) {
-        let catalog = Catalog::parse(reader).expect("could not parse the catalog");
-        set_translator!(catalog);
-    }
-
-    fn module_path() -> &'static str {
-        module_path!()
-    }
-}
-
 /// Localize this library, and select the language using the provided
 /// [LanguageRequester](LanguageRequester).
 #[cfg(feature = "localize")]
 pub fn localize<L: LanguageRequester>(language_requester: L) {
-    let loader = LanguageLoader::new();
+    let loader = I18nBuildLanguageLoader {};
     Translations::select(&language_requester, &loader);
 }

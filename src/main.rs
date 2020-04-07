@@ -1,35 +1,18 @@
 use anyhow::Result;
 use clap::{crate_authors, crate_version, App, Arg, SubCommand};
-use gettext::Catalog;
 use i18n_build::run;
 use i18n_config::Crate;
-use i18n_embed::{DesktopLanguageRequester, I18nEmbed};
+use i18n_embed::{DesktopLanguageRequester, I18nEmbed, LanguageLoader};
 use rust_embed::RustEmbed;
 use std::path::Path;
-use tr::{set_translator, tr};
+use tr::tr;
 
 #[derive(RustEmbed, I18nEmbed)]
 #[folder = "i18n/mo"]
 struct Translations;
 
-struct LanguageLoader;
-
-impl LanguageLoader {
-    fn new() -> LanguageLoader {
-        LanguageLoader {}
-    }
-}
-
-impl i18n_embed::LanguageLoader for LanguageLoader {
-    fn load_language_file<R: std::io::Read>(&self, reader: R) {
-        let catalog = Catalog::parse(reader).expect("could not parse the catalog");
-        set_translator!(catalog);
-    }
-
-    fn module_path() -> &'static str {
-        module_path!()
-    }
-}
+#[derive(LanguageLoader)]
+struct CargoI18nLanguageLoader;
 
 /// Produce the message to be displayed when running `cargo i18n -h`.
 fn short_about() -> String {
@@ -59,7 +42,7 @@ install xtr\".",
 
 fn main() -> Result<()> {
     env_logger::init();
-    let language_loader = LanguageLoader::new();
+    let language_loader = CargoI18nLanguageLoader {};
     let language_requester = DesktopLanguageRequester::new();
     Translations::select(&language_requester, &language_loader);
     i18n_build::localize(language_requester);

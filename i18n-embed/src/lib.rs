@@ -9,6 +9,8 @@ use fluent_langneg::{negotiate_languages, NegotiationStrategy};
 use log::{debug, error, info};
 use rust_embed::RustEmbed;
 pub use unic_langid::LanguageIdentifier;
+pub use tr::set_translator;
+pub use gettext::Catalog;
 
 /// A trait used by [I18nEmbed](I18nEmbed) to ascertain which
 /// languages are being requested.
