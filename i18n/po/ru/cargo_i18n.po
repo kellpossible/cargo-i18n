@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: cargo-i18n\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-04-07 15:18+0000\n"
+"POT-Creation-Date: 2020-04-07 16:38+0000\n"
 "Language: ru\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -16,7 +16,9 @@ msgstr "Подкоманда Cargo для извлечения и компили
 
 #. The help message displayed when running `cargo i18n --help`.
 #. {0} is the short about message.
-#: src/main.rs:28
+#. {1} is a list of available languages. e.g. "en", "ru", etc
+#: src/main.rs:36
+#, fuzzy
 msgid ""
 "{0}\n"
 "\n"
@@ -30,7 +32,14 @@ msgid ""
 "be installed using \"cargo install xtr\".\n"
 "\n"
 "You can the \"i18n-embed\" library to conveniently embed the localizations "
-"inside your application."
+"inside your application.\n"
+"\n"
+"Logging for this command is available using the \"env_logger\" crate. You "
+"can enable debug logging using \"RUST_LOG=debug cargo i18n\".\n"
+"\n"
+"The language is selected automatically for your system using the method "
+"described at https://github.com/rust-locale/locale_config#supported-systems "
+"however you can override it using the -l, --language option."
 msgstr ""
 "{0}\n"
 "\n"
@@ -47,7 +56,7 @@ msgstr ""
 "локализаций в ваше приложение."
 
 #. The message displayed when running the binary outside of cargo using `cargo-18n`.
-#: src/main.rs:58
+#: src/main.rs:78
 msgid ""
 "This binary is designed to be executed as a cargo subcommand using \"cargo "
 "i18n\"."
@@ -56,7 +65,7 @@ msgstr ""
 "использованием \"cargo i18n\"."
 
 #. The help message for the `--path` command line argument.
-#: src/main.rs:70
+#: src/main.rs:90
 msgid ""
 "Path to the crate you want to localize (if not the current directory). The "
 "crate needs to contain \"i18n.toml\" in its root."
@@ -64,7 +73,14 @@ msgstr ""
 "Путь к крэйтору, который вы хотите локализовать (если это не текущий "
 "каталог). Крэйтор должен содержать \"i18n.toml\" в своем корне."
 
-#. The help message for the `-c` command line argument.
-#: src/main.rs:79
+#. The help message for the `-c`, `--config-file-name` command line argument.
+#: src/main.rs:99
 msgid "The name of the i18n config file for this crate"
 msgstr "Имя файла конфигурации i18n для этого крэйтора."
+
+#. The help message for the `-l`, `--language` command line argument.
+#: src/main.rs:110
+msgid ""
+"Set the language to use for this application. Overrides the language "
+"selected automatically by your operating system."
+msgstr ""

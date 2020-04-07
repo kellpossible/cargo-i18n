@@ -23,7 +23,7 @@ fn short_about() -> String {
 fn available_languages<L: LanguageLoader>(language_loader: &L) -> Vec<String> {
     Translations::available_languages(language_loader)
         .iter()
-        .map(|li| format!("\"{}\"", li.to_string()))
+        .map(|li| li.to_string())
         .collect()
 }
 
