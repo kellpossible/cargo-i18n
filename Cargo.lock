@@ -232,7 +232,7 @@ dependencies = [
 
 [[package]]
 name = "i18n-embed"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "fluent-langneg",
  "gettext",
@@ -240,15 +240,17 @@ dependencies = [
  "locale_config",
  "log",
  "rust-embed",
+ "thiserror",
  "tr",
  "unic-langid",
 ]
 
 [[package]]
 name = "i18n-embed-impl"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "i18n-config",
+ "proc-macro2",
  "quote",
  "serde",
  "serde_derive",

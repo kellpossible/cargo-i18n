@@ -16,7 +16,7 @@ maintenance = { status = "actively-developed" }
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-i18n-embed = { version = "0.2", path = "./i18n-embed", features = ["desktop-requester"] }
+i18n-embed = { version = "0.3", path = "./i18n-embed", features = ["desktop-requester"] }
 i18n-build = { version = "0.1", path = "./i18n-build", features = ["localize"] }
 i18n-config = { version = "0.1", path = "./i18n-config" }
 anyhow = "1.0"
