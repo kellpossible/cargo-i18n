@@ -2,22 +2,22 @@ use anyhow::{Context, Result};
 use clap::{crate_authors, crate_version, App, Arg, SubCommand};
 use i18n_build::run;
 use i18n_config::Crate;
-use i18n_embed::{DesktopLanguageRequester, I18nEmbed, LanguageLoader, Localizer, LanguageRequester, const_localizer};
+use i18n_embed::{SimpleLocalizer, DesktopLanguageRequester, I18nEmbed, I18nEmbedDyn, LanguageLoader, Localizer, LanguageRequester, const_localizer};
 use rust_embed::RustEmbed;
 use std::path::Path;
+use std::rc::Rc;
 use tr::tr;
 
 #[derive(RustEmbed, I18nEmbed)]
 #[folder = "i18n/mo"]
+#[dynamic(DynamicTranslations)]
 struct Translations;
 
 #[derive(LanguageLoader)]
 struct CargoI18nLanguageLoader;
 
 const LANGUAGE_LOADER: CargoI18nLanguageLoader = CargoI18nLanguageLoader {};
-const DYNAMIC_TRANSLATIONS: DynamicTranslations = DynamicTranslations {};
-
-const_localizer!(CargoI18nLocalizer);
+const TRANSLATIONS: Translations = Translations {};
 
 /// Produce the message to be displayed when running `cargo i18n -h`.
 fn short_about() -> String {
@@ -25,7 +25,7 @@ fn short_about() -> String {
     tr!("A Cargo sub-command to extract and build localization resources.")
 }
 
-fn available_languages<'a, L: Localizer<'a>>(localizer: &L) -> Result<Vec<String>> {
+fn available_languages<'a>(localizer: &Rc<Box<dyn Localizer<'a>>>) -> Result<Vec<String>> {
     Ok(localizer.available_languages()?
         .iter()
         .map(|li| li.to_string())
@@ -68,13 +68,22 @@ You can enable debug logging using \"RUST_LOG=debug cargo i18n\".",
 fn main() -> Result<()> {
     env_logger::init();
     let mut language_requester = DesktopLanguageRequester::new();
+
+    let cargo_i18n_localizer = SimpleLocalizer::new(
+         &LANGUAGE_LOADER,
+         &TRANSLATIONS as &dyn I18nEmbedDyn,
+    );
+
+    let cargo_i18n_localizer_rc: Rc<Box<dyn Localizer>> = Rc::new(Box::from(cargo_i18n_localizer));
+
+    let i18n_build_localizer = Rc::new(i18n_build::localizer(&TRANSLATIONS));
     
-    language_requester.add_listener(&LOCALIZER);
-    language_requester.add_listener(i18n_build::localizer());
+    language_requester.add_listener(&cargo_i18n_localizer_rc);
+    language_requester.add_listener(&i18n_build_localizer);
     language_requester.poll()?;
 
     let src_locale = LANGUAGE_LOADER.src_locale().to_string();
-    let available_languages = available_languages(&LOCALIZER)?;
+    let available_languages = available_languages(&cargo_i18n_localizer_rc)?;
     let available_languages_slice: Vec<&str> = available_languages.iter().map(|l| l.as_str()).collect();
 
     let matches = App::new("cargo-i18n")

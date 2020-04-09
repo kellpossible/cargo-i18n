@@ -8,63 +8,77 @@ use quote::quote;
 use syn;
 use syn::punctuated::Punctuated;
 use syn::token::Comma;
-use proc_macro2::{Span, Ident};
 
 use syn::parse_macro_input::ParseMacroInput;
 
 /// A procedural macro to implement the `I18nEmbed` trait on a struct.
+///
+/// The following struct level attributes available:
+///
+/// + (Optional) `#[dynamic(DynamicStructName)]` - also create and
+///   derive a `I18nEmbedDyn` implementation with the specified
+///   struct name.
 #[proc_macro_derive(I18nEmbed, attributes(dynamic))]
 pub fn i18n_embed_derive(input: TokenStream) -> TokenStream {
     let ast: syn::DeriveInput = syn::parse(input).unwrap();
 
+    let dynamic_attribute: Option<&syn::Attribute> = ast.attrs.iter().find(|item: &&syn::Attribute| {
+        match item.path.segments.first() {
+            Some(segment) => {
+                segment.ident.to_string() == "dynamic"
+            },
+            None => false
+        }
+    });
+
     let struct_name = &ast.ident;
 
-    let gen = quote! {
+    let mut gen1 = quote! {
         impl I18nEmbed for #struct_name {
         }
-
-        i18n_embed::dynamic_i18n_embed!(#struct_name);
     };
 
-    gen.into()
+    let gen_final = match dynamic_attribute {
+        Some(attribute) => {
+            let tokens: proc_macro::TokenStream = attribute.tokens.clone().into();
+
+            let ast = syn::parse_macro_input!(tokens as syn::TypeParen);
+
+            let dynamic_struct_name = match &*ast.elem {
+                syn::Type::Path(path_type) => {
+                    path_type.path.segments.first().expect("expected there to be at least one segment in dynamic(DynamicStructName) attribute").ident.clone()
+                },
+                _ => panic!("incorrectly formated dynamic(DynamicStructName) attribute")
+            };
+
+            let gen2 = quote! {
+                #[derive(i18n_embed::I18nEmbedDyn)]
+                struct #dynamic_struct_name;
+            };
+
+            gen1.extend(gen2);
+
+            gen1
+        },
+        None => gen1
+    };
+
+    gen_final.into()
 }
 
-/// A procedural macro to implement the `I18nEmbed` trait on a struct.
-#[proc_macro_derive(DynamicI18nEmbed, attributes(i18n_embed))]
+/// A procedural macro to implement the `I18nEmbedDyn` trait on a struct.
+#[proc_macro_derive(I18nEmbedDyn, attributes(i18n_embed))]
 pub fn dynamic_i18n_embed_derive(input: TokenStream) -> TokenStream {
     let ast: syn::DeriveInput = syn::parse(input).unwrap();
 
     let struct_name = &ast.ident;
 
     let gen = quote! {
-        impl i18n_embed::DynamicI18nEmbed for #struct_name {
-            fn available_languages<'a>(&self, language_loader: &'a dyn i18n_embed::LanguageLoader) -> Result<Vec<i18n_embed::unic_langid::LanguageIdentifier>, i18n_embed::I18nEmbedError> {
+        impl i18n_embed::I18nEmbedDyn for #struct_name {
+            fn available_languages_dyn<'a>(&self, language_loader: &'a dyn i18n_embed::LanguageLoader) -> Result<Vec<i18n_embed::unic_langid::LanguageIdentifier>, i18n_embed::I18nEmbedError> {
                 Translations::available_languages(language_loader)
             }
-            fn load_language_file<'a>(&self, language_id: &i18n_embed::unic_langid::LanguageIdentifier, language_loader: &'a dyn i18n_embed::LanguageLoader) -> Result<(), i18n_embed::I18nEmbedError> {
-                Translations::load_language_file(language_id, language_loader)
-            }
-        }
-    };
-
-    gen.into()
-}
-
-/// A procedural macro to create an implementation of `DynamicI18nEmbed`.
-#[proc_macro]
-pub fn dynamic_i18n_embed(input: TokenStream) -> TokenStream {
-    let ident = syn::parse_macro_input!(input as syn::Ident);
-
-    let struct_name = Ident::new(format!("Dynamic{}", ident.to_string()).as_str(), Span::call_site());
-
-    let gen = quote! {
-        struct #struct_name;
-
-        impl i18n_embed::DynamicI18nEmbed for #struct_name {
-            fn available_languages<'a>(&self, language_loader: &'a dyn i18n_embed::LanguageLoader) -> Result<Vec<i18n_embed::unic_langid::LanguageIdentifier>, i18n_embed::I18nEmbedError> {
-                Translations::available_languages(language_loader)
-            }
-            fn load_language_file<'a>(&self, language_id: &i18n_embed::unic_langid::LanguageIdentifier, language_loader: &'a dyn i18n_embed::LanguageLoader) -> Result<(), i18n_embed::I18nEmbedError> {
+            fn load_language_file_dyn<'a>(&self, language_id: &i18n_embed::unic_langid::LanguageIdentifier, language_loader: &'a dyn i18n_embed::LanguageLoader) -> Result<(), i18n_embed::I18nEmbedError> {
                 Translations::load_language_file(language_id, language_loader)
             }
         }
@@ -146,121 +160,40 @@ impl ParseMacroInput for ConstLocalizerInput {
     
 }
 
-/// A procedural macro to implement the `I18nEmbed` trait on a struct.
-#[proc_macro]
-pub fn localizer(input: TokenStream) -> TokenStream {
-    let args = syn::parse_macro_input!(input as ConstLocalizerInput);
-    dbg!(&args);
-
-    let localizer_struct_name = &args.localizer_struct_name;
-    let localizer_var_name = &args.localizer_var_name;
-    let embed_struct_name = &args.embed_struct_name;
-    let embed_var_name = &args.embed_var_name;
-    let loader_struct_name = &args.loader_struct_name;
-    let loader_var_name = &args.loader_var_name;
-
-    let gen = quote!{
-        #[derive(i18n_embed::LanguageLoader)]
-        #[cfg(feature = "localize")]
-        struct #loader_struct_name;
-
-        const #loader_var_name: #loader_struct_name = #loader_struct_name {};
-        const #embed_var_name: #embed_struct_name = #embed_struct_name {};
-
-        struct #localizer_struct_name<'a> {
-            language_loader: &'a dyn i18n_embed::LanguageLoader,
-            i18n_embed: &'a dyn i18n_embed::DynamicI18nEmbed,
-        }
-
-        impl <'a> i18n_embed::Localizer<'a> for #localizer_struct_name<'a> {
-            fn language_loader(&self) -> &'a dyn i18n_embed::LanguageLoader { self.language_loader }
-            fn i18n_embed(&self) -> &'a dyn i18n_embed::DynamicI18nEmbed { self.i18n_embed }
-        }
-
-        const #localizer_var_name: #localizer_struct_name = #localizer_struct_name {
-            language_loader: &#loader_var_name,
-            i18n_embed: &#embed_var_name,
-        };
-    };
-
-    gen.into()
-}
-
-/// A procedural macro to implement the `I18nEmbed` trait on a struct.
-#[proc_macro]
-pub fn const_localizer2(input: TokenStream) -> TokenStream {
-    let args = syn::parse_macro_input!(input as ConstLocalizerInput);
-    dbg!(&args);
-
-    let localizer_struct_name = &args.localizer_struct_name;
-    let localizer_var_name = &args.localizer_var_name;
-    let embed_struct_name = &args.embed_struct_name;
-    let embed_var_name = &args.embed_var_name;
-    let loader_struct_name = &args.loader_struct_name;
-    let loader_var_name = &args.loader_var_name;
-
-    let gen = quote!{
-        #[derive(i18n_embed::LanguageLoader)]
-        #[cfg(feature = "localize")]
-        struct #loader_struct_name;
-
-        const #loader_var_name: #loader_struct_name = #loader_struct_name {};
-        const #embed_var_name: #embed_struct_name = #embed_struct_name {};
-
-        struct #localizer_struct_name<'a> {
-            language_loader: &'a dyn i18n_embed::LanguageLoader,
-            i18n_embed: &'a dyn i18n_embed::DynamicI18nEmbed,
-        }
-
-        impl <'a> i18n_embed::Localizer<'a> for #localizer_struct_name<'a> {
-            fn language_loader(&self) -> &'a dyn i18n_embed::LanguageLoader { self.language_loader }
-            fn i18n_embed(&self) -> &'a dyn i18n_embed::DynamicI18nEmbed { self.i18n_embed }
-        }
-
-        const #localizer_var_name: #localizer_struct_name = #localizer_struct_name {
-            language_loader: &#loader_var_name,
-            i18n_embed: &#embed_var_name,
-        };
-    };
-
-    gen.into()
-}
-
-
-/// A procedural macro to implement the `I18nEmbed` trait on a struct.
+/// A procedural macro to implement the `Localizer` trait on a struct.
 #[proc_macro]
 pub fn const_localizer(input: TokenStream) -> TokenStream {
-    let ast = syn::parse_macro_input!(input as syn::Ident);
-    // let ast = syn::parse_macro_input!(input as CreateLocalizerInput);
+    let args = syn::parse_macro_input!(input as ConstLocalizerInput);
+    dbg!(&args);
 
-    let struct_name = ast;
+    let localizer_struct_name = &args.localizer_struct_name;
+    let localizer_var_name = &args.localizer_var_name;
+    let embed_struct_name = &args.embed_struct_name;
+    let embed_var_name = &args.embed_var_name;
+    let loader_struct_name = &args.loader_struct_name;
+    let loader_var_name = &args.loader_var_name;
 
-    // let input2 = "Test".parse().unwrap();
-    // let struct_name = syn::parse_macro_input!(input2 as syn::Ident);
+    let gen = quote!{
+        #[derive(i18n_embed::LanguageLoader)]
+        #[cfg(feature = "localize")]
+        struct #loader_struct_name;
 
-    let gen = quote! {
-        struct #struct_name<'a> {
+        const #loader_var_name: #loader_struct_name = #loader_struct_name {};
+        const #embed_var_name: #embed_struct_name = #embed_struct_name {};
+
+        struct #localizer_struct_name<'a> {
             language_loader: &'a dyn i18n_embed::LanguageLoader,
-            i18n_embed: &'a dyn i18n_embed::DynamicI18nEmbed,
+            i18n_embed: &'a dyn i18n_embed::I18nEmbedDyn,
         }
 
-        impl <'a> #struct_name<'a> {
-            pub fn new(language_loader: &'a dyn i18n_embed::LanguageLoader, i18n_embed: &'a dyn i18n_embed::DynamicI18nEmbed) -> #struct_name<'a> {
-                #struct_name {
-                    language_loader,
-                    i18n_embed,
-                }
-            }
-        }
-
-        impl <'a> i18n_embed::Localizer<'a> for #struct_name<'a> {
+        impl <'a> i18n_embed::Localizer<'a> for #localizer_struct_name<'a> {
             fn language_loader(&self) -> &'a dyn i18n_embed::LanguageLoader { self.language_loader }
-            fn i18n_embed(&self) -> &'a dyn i18n_embed::DynamicI18nEmbed { self.i18n_embed }
+            fn i18n_embed(&self) -> &'a dyn i18n_embed::I18nEmbedDyn { self.i18n_embed }
         }
 
-        const LOCALIZER: #struct_name = #struct_name {
-            language_loader: &LANGUAGE_LOADER,
-            i18n_embed: &DYNAMIC_TRANSLATIONS,
+        const #localizer_var_name: #localizer_struct_name = #localizer_struct_name {
+            language_loader: &#loader_var_name,
+            i18n_embed: &#embed_var_name,
         };
     };
 

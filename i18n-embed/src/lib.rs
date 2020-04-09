@@ -69,13 +69,13 @@
 //! you can follow this code pattern:
 //!
 //! ```
-//! use i18n_embed::{LanguageRequester, I18nEmbed, LanguageLoader};
+//! use i18n_embed::{LanguageRequester, I18nEmbed, LanguageLoader, select};
 //! use rust_embed::RustEmbed;
 //!
 //! #[derive(RustEmbed, I18nEmbed)]
 //! #[folder = "i18n/mo"] // path to the compiled localization resources
 //! struct Translations;
-//!
+//! 
 //! #[derive(LanguageLoader)]
 //! struct MyLanguageLoader;
 //!
@@ -83,7 +83,7 @@
 //! /// LanguageRequester.
 //! pub fn localize<L: LanguageRequester>(language_requester: L) {
 //!     let loader = MyLanguageLoader {};
-//!     Translations::select_auto(&language_requester, &loader);
+//!     select(&loader);
 //! }
 //! ```
 //!
@@ -146,6 +146,7 @@ extern crate i18n_embed_impl;
 pub use i18n_embed_impl::*;
 
 use std::borrow::Cow;
+use std::rc::{Rc, Weak};
 
 use fluent_langneg::{negotiate_languages, NegotiationStrategy};
 use log::{debug, error, info};
@@ -166,10 +167,10 @@ pub enum I18nEmbedError {
 
 pub trait Localizer<'a> {
     fn language_loader(&self) -> &'a dyn LanguageLoader;
-    fn i18n_embed(&self) -> &'a dyn DynamicI18nEmbed;
+    fn i18n_embed(&self) -> &'a dyn I18nEmbedDyn;
 
     fn available_languages(&self) -> Result<Vec<unic_langid::LanguageIdentifier>, I18nEmbedError> {
-        self.i18n_embed().available_languages(self.language_loader())
+        self.i18n_embed().available_languages_dyn(self.language_loader())
     }
 
     /// Automatically the language currently requested by the system
@@ -180,11 +181,30 @@ pub trait Localizer<'a> {
     }
 }
 
+pub struct SimpleLocalizer<'a> {
+    pub language_loader: &'a dyn LanguageLoader,
+    pub i18n_embed: &'a dyn I18nEmbedDyn,
+}
+
+impl <'a> Localizer<'a> for SimpleLocalizer<'a> {
+    fn language_loader(&self) -> &'a dyn LanguageLoader { self.language_loader }
+    fn i18n_embed(&self) -> &'a dyn I18nEmbedDyn { self.i18n_embed }
+}
+
+impl <'a> SimpleLocalizer<'a> {
+    pub fn new(language_loader: &'a dyn LanguageLoader, i18n_embed: &'a dyn I18nEmbedDyn) -> SimpleLocalizer<'a> {
+        SimpleLocalizer {
+            language_loader,
+            i18n_embed,
+        }
+    }
+}
+
 /// A trait used by [I18nEmbed](I18nEmbed) to ascertain which
 /// languages are being requested.
 pub trait LanguageRequester<'a> {
-    fn add_listener(&mut self, localizer: &'a dyn Localizer<'a>);
-    fn poll(&self) -> Result<(), I18nEmbedError>;
+    fn add_listener(&mut self, localizer: &Rc<Box<dyn Localizer<'a>>>);
+    fn poll(&mut self) -> Result<(), I18nEmbedError>;
     // fn override_request(&self, language_id: unic_langid::LanguageIdentifier);
     // fn reset_override_request(&self);
     // /// Attach a listener to the system this requester is mediating
@@ -201,13 +221,13 @@ pub trait LanguageRequester<'a> {
 /// Automatically the language currently requested by the system
 /// by the the [LanguageRequester](LanguageRequester)), and load
 /// it using the provided [LanguageLoader](LanguageLoader).
-pub fn select(language_loader: &dyn LanguageLoader, i18n_embed: &dyn DynamicI18nEmbed, requested_languages: &Vec<unic_langid::LanguageIdentifier>) -> Result<(), I18nEmbedError> {
+pub fn select(language_loader: &dyn LanguageLoader, i18n_embed: &dyn I18nEmbedDyn, requested_languages: &Vec<unic_langid::LanguageIdentifier>) -> Result<(), I18nEmbedError> {
     info!(
         "Selecting translations for domain \"{0}\"",
         language_loader.domain()
     );
 
-    let available_languages: Vec<unic_langid::LanguageIdentifier> = i18n_embed.available_languages(language_loader)?;
+    let available_languages: Vec<unic_langid::LanguageIdentifier> = i18n_embed.available_languages_dyn(language_loader)?;
     let default_language: unic_langid::LanguageIdentifier = language_loader.src_locale();
 
     let supported_languages = negotiate_languages(
@@ -233,9 +253,9 @@ pub fn select(language_loader: &dyn LanguageLoader, i18n_embed: &dyn DynamicI18n
     Ok(())
 }
 
-pub fn select_single(language_loader: &dyn LanguageLoader, i18n_embed: &dyn DynamicI18nEmbed, language_id: &unic_langid::LanguageIdentifier) -> Result<(), I18nEmbedError> {
+pub fn select_single(language_loader: &dyn LanguageLoader, i18n_embed: &dyn I18nEmbedDyn, language_id: &unic_langid::LanguageIdentifier) -> Result<(), I18nEmbedError> {
     if language_id != &language_loader.src_locale() {
-        i18n_embed.load_language_file(language_id, language_loader)?;
+        i18n_embed.load_language_file_dyn(language_id, language_loader)?;
     }
 
     info!("Selected languge \"{0}\"", language_id.to_string());
@@ -260,9 +280,21 @@ pub trait LanguageLoader {
     fn language_file_name(&self) -> String;
 }
 
-pub trait DynamicI18nEmbed {
-    fn available_languages<'a>(&self, language_loader: &'a dyn LanguageLoader) -> Result<Vec<unic_langid::LanguageIdentifier>, I18nEmbedError>;
-    fn load_language_file<'a>(&self, language_id: &unic_langid::LanguageIdentifier, language_loader: &'a dyn LanguageLoader) -> Result<(), I18nEmbedError>;
+
+//TODO: try to move these methods into Embed, and implement itself on a struct
+// that can be returned in the dynamic() method of embed!
+pub trait I18nEmbedDyn {
+    fn available_languages_dyn<'a>(&self, language_loader: &'a dyn LanguageLoader) -> Result<Vec<unic_langid::LanguageIdentifier>, I18nEmbedError>;
+    fn load_language_file_dyn<'a>(&self, language_id: &unic_langid::LanguageIdentifier, language_loader: &'a dyn LanguageLoader) -> Result<(), I18nEmbedError>;
+}
+
+impl <T: I18nEmbed +?Sized> I18nEmbedDyn for T {
+    fn available_languages_dyn<'a>(&self, language_loader: &'a dyn LanguageLoader) -> Result<Vec<unic_langid::LanguageIdentifier>, I18nEmbedError> { 
+        T::available_languages(language_loader)
+    }
+    fn load_language_file_dyn<'a>(&self, language_id: &unic_langid::LanguageIdentifier, language_loader: &'a dyn LanguageLoader) -> Result<(), I18nEmbedError> { 
+        T::load_language_file(language_id, language_loader)
+    }
 }
 
 /// A trait to handle the embedding of software translations within
@@ -340,7 +372,7 @@ pub trait I18nEmbed: RustEmbed {
 /// system selected language.
 #[cfg(feature = "desktop-requester")]
 pub struct DesktopLanguageRequester<'a> {
-    listeners: Vec<&'a dyn Localizer<'a>>
+    listeners: Vec<Weak<Box<dyn Localizer<'a>>>>
 }
 
 #[cfg(feature = "desktop-requester")]
@@ -349,16 +381,23 @@ impl <'a> LanguageRequester<'a> for DesktopLanguageRequester<'a> {
         Self::requested_languages()
     }
 
-    fn add_listener(&mut self, localizer: &'a dyn Localizer<'a>) {
-        self.listeners.push(localizer);
+    fn add_listener(&mut self, localizer: &Rc<Box<dyn Localizer<'a>>>) {
+        self.listeners.push(Rc::downgrade(localizer));
     }
 
-    fn poll(&self) -> Result<(), I18nEmbedError> { 
+    fn poll(&mut self) -> Result<(), I18nEmbedError> { 
         let requested_languages = self.requested_languages();
 
-        for listener in &self.listeners {
-            listener.select(&requested_languages)?;
-        }
+        // TODO: drain listeners which no longer exist
+        self.listeners.retain(|listener| {
+            match listener.upgrade() {
+                Some(l) => {
+                    l.select(&requested_languages);
+                    true
+                },
+                None => false,
+            }
+        });
 
         Ok(())
     }
