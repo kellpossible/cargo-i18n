@@ -159,9 +159,9 @@ pub use gettext;
 
 #[derive(Error, Debug)]
 pub enum I18nEmbedError {
-    #[error("Error parsing a language identifier string \"{0}\" because {1}")]
+    #[error("Error parsing a language identifier string \"{0}\"")]
     ErrorParsingLocale(String, #[source] unic_langid::LanguageIdentifierError),
-    #[error("The requested language \"{0}\" is not available")]
+    #[error("The requested language \"{0}\" is not available.")]
     LanguageNotAvailable(String)
 }
 

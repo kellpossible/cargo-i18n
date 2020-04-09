@@ -12,75 +12,14 @@ use syn::token::Comma;
 use syn::parse_macro_input::ParseMacroInput;
 
 /// A procedural macro to implement the `I18nEmbed` trait on a struct.
-///
-/// The following struct level attributes available:
-///
-/// + (Optional) `#[dynamic(DynamicStructName)]` - also create and
-///   derive a `I18nEmbedDyn` implementation with the specified
-///   struct name.
-#[proc_macro_derive(I18nEmbed, attributes(dynamic))]
+#[proc_macro_derive(I18nEmbed)]
 pub fn i18n_embed_derive(input: TokenStream) -> TokenStream {
-    let ast: syn::DeriveInput = syn::parse(input).unwrap();
-
-    let dynamic_attribute: Option<&syn::Attribute> = ast.attrs.iter().find(|item: &&syn::Attribute| {
-        match item.path.segments.first() {
-            Some(segment) => {
-                segment.ident.to_string() == "dynamic"
-            },
-            None => false
-        }
-    });
-
-    let struct_name = &ast.ident;
-
-    let mut gen1 = quote! {
-        impl I18nEmbed for #struct_name {
-        }
-    };
-
-    let gen_final = match dynamic_attribute {
-        Some(attribute) => {
-            let tokens: proc_macro::TokenStream = attribute.tokens.clone().into();
-
-            let ast = syn::parse_macro_input!(tokens as syn::TypeParen);
-
-            let dynamic_struct_name = match &*ast.elem {
-                syn::Type::Path(path_type) => {
-                    path_type.path.segments.first().expect("expected there to be at least one segment in dynamic(DynamicStructName) attribute").ident.clone()
-                },
-                _ => panic!("incorrectly formated dynamic(DynamicStructName) attribute")
-            };
-
-            let gen2 = quote! {
-                #[derive(i18n_embed::I18nEmbedDyn)]
-                struct #dynamic_struct_name;
-            };
-
-            gen1.extend(gen2);
-
-            gen1
-        },
-        None => gen1
-    };
-
-    gen_final.into()
-}
-
-/// A procedural macro to implement the `I18nEmbedDyn` trait on a struct.
-#[proc_macro_derive(I18nEmbedDyn, attributes(i18n_embed))]
-pub fn dynamic_i18n_embed_derive(input: TokenStream) -> TokenStream {
     let ast: syn::DeriveInput = syn::parse(input).unwrap();
 
     let struct_name = &ast.ident;
 
     let gen = quote! {
-        impl i18n_embed::I18nEmbedDyn for #struct_name {
-            fn available_languages_dyn<'a>(&self, language_loader: &'a dyn i18n_embed::LanguageLoader) -> Result<Vec<i18n_embed::unic_langid::LanguageIdentifier>, i18n_embed::I18nEmbedError> {
-                Translations::available_languages(language_loader)
-            }
-            fn load_language_file_dyn<'a>(&self, language_id: &i18n_embed::unic_langid::LanguageIdentifier, language_loader: &'a dyn i18n_embed::LanguageLoader) -> Result<(), i18n_embed::I18nEmbedError> {
-                Translations::load_language_file(language_id, language_loader)
-            }
+        impl I18nEmbed for #struct_name {
         }
     };
 
