@@ -2,7 +2,7 @@ use anyhow::{Context, Result};
 use clap::{crate_authors, crate_version, App, Arg, SubCommand};
 use i18n_build::run;
 use i18n_config::Crate;
-use i18n_embed::{SimpleLocalizer, DesktopLanguageRequester, I18nEmbed, I18nEmbedDyn, LanguageLoader, Localizer, LanguageRequester, const_localizer};
+use i18n_embed::{DefaultLocalizer, DesktopLanguageRequester, I18nEmbed, I18nEmbedDyn, LanguageLoader, Localizer, LanguageRequester, const_localizer};
 use rust_embed::RustEmbed;
 use std::path::Path;
 use std::rc::Rc;
@@ -10,7 +10,6 @@ use tr::tr;
 
 #[derive(RustEmbed, I18nEmbed)]
 #[folder = "i18n/mo"]
-#[dynamic(DynamicTranslations)]
 struct Translations;
 
 #[derive(LanguageLoader)]
@@ -69,7 +68,7 @@ fn main() -> Result<()> {
     env_logger::init();
     let mut language_requester = DesktopLanguageRequester::new();
 
-    let cargo_i18n_localizer = SimpleLocalizer::new(
+    let cargo_i18n_localizer = DefaultLocalizer::new(
          &LANGUAGE_LOADER,
          &TRANSLATIONS as &dyn I18nEmbedDyn,
     );

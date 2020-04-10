@@ -29,13 +29,15 @@ struct Translations;
 struct MyLanguageLoader;
 
 fn main() {
+    let translations = Translations {};
     let language_loader = MyLanguageLoader {};
 
     // Use the language requester for the desktop platform (linux, windows, mac).
     // There is also a requester available for the web-sys WASM platform called
     // WebLanguageRequester, or you can implement your own.
-    let language_requester = DesktopLanguageRequester::new();
-    Translations::select(&language_requester, &language_loader);
+    let requested_languages = DesktopLanguageRequester::requested_languages();
+
+    i18n_embed::select(&language_loader, &translations, &requested_languages);
 }
 ```
 

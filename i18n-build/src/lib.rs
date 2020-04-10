@@ -24,7 +24,7 @@ pub mod watch;
 use anyhow::Result;
 
 #[cfg(feature = "localize")]
-use i18n_embed::{I18nEmbedDyn, I18nEmbed, LanguageLoader, Localizer, SimpleLocalizer};
+use i18n_embed::{I18nEmbedDyn, I18nEmbed, LanguageLoader, Localizer, DefaultLocalizer};
 
 #[cfg(feature = "localize")]
 use rust_embed::RustEmbed;
@@ -39,7 +39,7 @@ struct Translations;
 struct I18nBuildLanguageLoader;
 
 const LANGUAGE_LOADER: I18nBuildLanguageLoader = I18nBuildLanguageLoader {};
-// const TRANSLATIONS: Translations = Translations {};
+const TRANSLATIONS: Translations = Translations {};
 
 
 
@@ -59,14 +59,17 @@ pub fn run(crt: &i18n_config::Crate) -> Result<()> {
 
 /// Localize this library, and select the language using the provided
 /// [LanguageRequester](LanguageRequester).
-// #[cfg(feature = "localize")]
-// pub fn localizer() -> &'static dyn Localizer<'static> {
-//     &LOCALIZER
-// }
 #[cfg(feature = "localize")]
-pub fn localizer(embed: &'static dyn I18nEmbedDyn) -> Box<dyn Localizer> {
-    Box::from(SimpleLocalizer::new(
+pub fn localizer() -> Box<dyn Localizer<'static>> {
+    Box::from(DefaultLocalizer::new(
         &LANGUAGE_LOADER,
-        embed
+        &TRANSLATIONS
     ))
 }
+// #[cfg(feature = "localize")]
+// pub fn localizer(embed: &'static dyn I18nEmbedDyn) -> Box<dyn Localizer> {
+//     Box::from(DefaultLocalizer::new(
+//         &LANGUAGE_LOADER,
+//         embed
+//     ))
+// }
