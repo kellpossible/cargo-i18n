@@ -119,7 +119,7 @@ You can see the [i18n-embed documentation](https://docs.rs/i18n-embed/) for more
 Now you need to send of the `po` files to your translators, or provide them access to edit them. Some desktop tools which can be used for the translation include:
 
 + [poedit](https://poedit.net/)
-+ [Qt Linguist](https://doc.qt.io/qt-5/linguist-translators.html) [Windows build](https://github.com/thurask/Qt-Linguist)
++ [Qt Linguist](https://doc.qt.io/qt-5/linguist-translators.html) ([Windows build](https://github.com/thurask/Qt-Linguist))
 
 Or you could also consider setting up a translation management website for your project to allow translators to edit translations without requiring them to interact with source control or mess around with sending files and installing applications. Some examples:
 
@@ -218,16 +218,16 @@ xtr`.
 
 ## Contributing
 
-Pull-requests are welcome, but for design changes it is preferred that you create a GitHub first to discuss it before implementation. You can also contribute to the localization of this tool via:
+Pull-requests are welcome, but for design changes it is preferred that you create a [GitHub issue](https://github.com/kellpossible/cargo-i18n/issues) first to discuss it before implementation. You can also contribute to the localization of this tool via:
 
 + [POEditor - cargo-i18n](https://poeditor.com/join/project/J7NiRCGpXa)
 + [POEditor - i18n-build](https://poeditor.com/join/project/BCW39cVoco)
 
 Or you can also use your favourite `po` editor directly to help with localizing the files located in [i18n/po](./i18n/po) and [i18n-build/i18n/po](./i18n-build/i18n/po).
 
-To add a new language, you can make a request via a GitHub issue, or submit a pull request adding the new locale to [i18n.toml](https://github.com/kellpossible/cargo-i18n/blob/master/i18n.toml) and generating the associated new po files using `cargo i18n`.
+To add a new language, you can make a request via a GitHub issue, or submit a pull request adding the new locale to [i18n.toml](https://github.com/kellpossible/cargo-i18n/blob/master/i18n.toml) and generating the associated new `po` files using `cargo i18n`.
 
-Translations of this `README.md` file are also welcome, and can be submitted via pull request.
+Translations of this [README.md](./README.md) file are also welcome, and can be submitted via pull request. Just name it `README.md.lang`, where `lang` is the locale code (see [List of ISO 639-1 codes](https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes)).
 
 ## Authors
 
