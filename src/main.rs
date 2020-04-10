@@ -148,6 +148,7 @@ fn main() -> Result<()> {
 
         let li: LanguageIdentifier = language.parse()?;
         language_requester.set_languge_override(Some(li))?;
+        language_requester.poll()?;
 
         let path = i18n_matches
             .value_of("path")
@@ -155,7 +156,11 @@ fn main() -> Result<()> {
             .unwrap_or(Path::new(".").to_path_buf());
 
         let config_file_path = Path::new(config_file_name).to_path_buf();
-        let crt = Crate::from(path, None, config_file_path).unwrap();
+
+        i18n_build::util::check_path_exists(&path)?;
+        i18n_build::util::check_path_exists(path.join(&config_file_path))?;
+
+        let crt = Crate::from(path, None, config_file_path)?;
 
         run(&crt)?;
     }

@@ -36,6 +36,7 @@ impl<'a> Crate<'a> {
         config_file_path: P,
     ) -> Result<Crate<'a>> {
         let path_into = path.into();
+
         let config_file_path_into = config_file_path.into();
 
         let cargo_path = path_into.join("Cargo.toml");

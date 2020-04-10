@@ -16,9 +16,9 @@
 //!     [localize()](#localize()) function via the
 //!     [i18n-embed](https://crates.io/crates/i18n-embed) crate
 
-mod error;
+pub mod error;
 pub mod gettext_impl;
-mod util;
+pub mod util;
 pub mod watch;
 
 use anyhow::Result;

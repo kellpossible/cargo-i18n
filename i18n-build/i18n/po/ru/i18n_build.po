@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: i18n-build\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-04-10 12:07+0000\n"
+"POT-Creation-Date: 2020-04-10 12:18+0000\n"
 "Language: ru\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -15,8 +15,8 @@ msgid "The path (\"{0}\") for {1} {2} does not have valid a utf-8 encoding."
 msgstr "Путь (\"{0}\") для {1} {2} не имеeт допустимой кодировки utf-8."
 
 #: i18n-build/src/error.rs:142
-msgid "The path {0} does not exist on the filesystem."
-msgstr "Путь {0} не существует в файловой системе."
+msgid "The path \"{0}\" does not exist on the filesystem."
+msgstr "Путь \"{0}\" не существует в файловой системе."
 
 #. {0} can be either "file", or "directory", or "symlink"
 #. {1} is a file path

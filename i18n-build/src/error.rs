@@ -139,7 +139,7 @@ impl Display for PathError {
                 )
             }
             PathErrorKind::DoesNotExist => tr!(
-                "The path {0} does not exist on the filesystem.",
+                "The path \"{0}\" does not exist on the filesystem.",
                 self.path.to_string_lossy()
             ),
             PathErrorKind::CannotCreate(path_type, source) => tr!(
