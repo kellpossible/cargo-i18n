@@ -1,12 +1,16 @@
-use anyhow::{Context, Result};
+use anyhow::Result;
 use clap::{crate_authors, crate_version, App, Arg, SubCommand};
 use i18n_build::run;
 use i18n_config::Crate;
-use i18n_embed::{DefaultLocalizer, DesktopLanguageRequester, I18nEmbed, I18nEmbedDyn, LanguageLoader, Localizer, LanguageRequester, const_localizer};
+use i18n_embed::{
+    DefaultLocalizer, DesktopLanguageRequester, I18nEmbed, I18nEmbedDyn, LanguageLoader,
+    LanguageRequester, Localizer,
+};
 use rust_embed::RustEmbed;
 use std::path::Path;
 use std::rc::Rc;
 use tr::tr;
+use unic_langid::LanguageIdentifier;
 
 #[derive(RustEmbed, I18nEmbed)]
 #[folder = "i18n/mo"]
@@ -25,7 +29,8 @@ fn short_about() -> String {
 }
 
 fn available_languages<'a>(localizer: &Rc<Box<dyn Localizer<'a>>>) -> Result<Vec<String>> {
-    Ok(localizer.available_languages()?
+    Ok(localizer
+        .available_languages()?
         .iter()
         .map(|li| li.to_string())
         .collect())
@@ -63,27 +68,24 @@ You can enable debug logging using \"RUST_LOG=debug cargo i18n\".",
     )
 }
 
-
 fn main() -> Result<()> {
     env_logger::init();
     let mut language_requester = DesktopLanguageRequester::new();
 
-    let cargo_i18n_localizer = DefaultLocalizer::new(
-         &LANGUAGE_LOADER,
-         &TRANSLATIONS as &dyn I18nEmbedDyn,
-    );
+    let cargo_i18n_localizer =
+        DefaultLocalizer::new(&LANGUAGE_LOADER, &TRANSLATIONS as &dyn I18nEmbedDyn);
 
     let cargo_i18n_localizer_rc: Rc<Box<dyn Localizer>> = Rc::new(Box::from(cargo_i18n_localizer));
+    let i18n_build_localizer = Rc::new(i18n_build::localizer());
 
-    let i18n_build_localizer = Rc::new(i18n_build::localizer(&TRANSLATIONS));
-    
     language_requester.add_listener(&cargo_i18n_localizer_rc);
     language_requester.add_listener(&i18n_build_localizer);
     language_requester.poll()?;
 
     let src_locale = LANGUAGE_LOADER.src_locale().to_string();
     let available_languages = available_languages(&cargo_i18n_localizer_rc)?;
-    let available_languages_slice: Vec<&str> = available_languages.iter().map(|l| l.as_str()).collect();
+    let available_languages_slice: Vec<&str> =
+        available_languages.iter().map(|l| l.as_str()).collect();
 
     let matches = App::new("cargo-i18n")
         .bin_name("cargo")
@@ -140,14 +142,19 @@ fn main() -> Result<()> {
             .value_of("config file name")
             .expect("expected a default config file name to be present");
 
-        let language = i18n_matches.value_of("language").expect("expected a default language to be present");
+        let language = i18n_matches
+            .value_of("language")
+            .expect("expected a default language to be present");
 
-        //TODO: add a method to override the selected language
-        // Translations::select_override(...)
-        
-        // TODO: set this from the command line argument
-        let path: Box<Path> = Box::from(Path::new("."));
-        let config_file_path: Box<Path> = Box::from(Path::new(config_file_name));
+        let li: LanguageIdentifier = language.parse()?;
+        language_requester.set_languge_override(Some(li))?;
+
+        let path = i18n_matches
+            .value_of("path")
+            .map(|path_str| Path::new(path_str).to_path_buf())
+            .unwrap_or(Path::new(".").to_path_buf());
+
+        let config_file_path = Path::new(config_file_name).to_path_buf();
         let crt = Crate::from(path, None, config_file_path).unwrap();
 
         run(&crt)?;

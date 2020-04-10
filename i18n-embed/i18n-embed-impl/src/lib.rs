@@ -6,10 +6,6 @@ use std::path::PathBuf;
 use i18n_config::I18nConfig;
 use quote::quote;
 use syn;
-use syn::punctuated::Punctuated;
-use syn::token::Comma;
-
-use syn::parse_macro_input::ParseMacroInput;
 
 /// A procedural macro to implement the `I18nEmbed` trait on a struct.
 #[proc_macro_derive(I18nEmbed)]

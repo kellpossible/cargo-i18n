@@ -24,5 +24,6 @@ gettext = "0.4"
 tr = { version = "0.1", default-features = false, features = ["gettext"] }
 clap = "2.33.0"
 rust-embed = "5"
+unic-langid = "0.8"
 env_logger = "0.7.1"
 log = "0.4"
