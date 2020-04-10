@@ -126,11 +126,12 @@
 //! you can follow this code pattern in the library itself:
 //!
 //! ```
-//! # use std::rc::Rc;
-//! # use i18n_embed::{
-//! #    I18nEmbed, LanguageLoader, DesktopLanguageRequester,
-//! #    LanguageRequester, DefaultLocalizer, Localizer};
-//! # use rust_embed::RustEmbed;
+//! use std::rc::Rc;
+//! use i18n_embed::{
+//!    I18nEmbed, LanguageLoader, DesktopLanguageRequester,
+//!    LanguageRequester, DefaultLocalizer, Localizer};
+//! use rust_embed::RustEmbed;
+//! 
 //! #[derive(RustEmbed, I18nEmbed)]
 //! #[folder = "i18n/mo"] // path to the compiled localization resources
 //! struct Translations;
@@ -164,11 +165,11 @@
 //! for the library:
 //!
 //! ```
-//! # use std::rc::Rc;
-//! # use i18n_embed::{
-//! #    I18nEmbed, LanguageLoader, DesktopLanguageRequester,
-//! #    LanguageRequester, DefaultLocalizer, Localizer};
-//! # use rust_embed::RustEmbed;
+//! use std::rc::Rc;
+//! use i18n_embed::{
+//!    I18nEmbed, LanguageLoader, DesktopLanguageRequester,
+//!    LanguageRequester, DefaultLocalizer, Localizer};
+//! use rust_embed::RustEmbed;
 //! use i18n_embed::I18nEmbedDyn;
 //!
 //! #[derive(RustEmbed, I18nEmbed)]
