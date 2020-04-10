@@ -112,7 +112,7 @@ fn main() {
 }
 ```
 
-You can see the [i18n-embed documentation](https://docs.rs/i18n-embed/) for more detailed examples of how this library can be used, including having translations live updated based on system preferences, and how to embed translations within libraries that can be consumed.
+You can see the [i18n-embed documentation](https://docs.rs/i18n-embed/) for more detailed examples of how this library can be used, including having translations live updated based on system preferences **(currently incomplete)**, and how to embed translations within libraries that can be consumed.
 
 ### Distributing to Translators
 
