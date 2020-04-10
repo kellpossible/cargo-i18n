@@ -22,6 +22,7 @@ pub mod util;
 pub mod watch;
 
 use anyhow::Result;
+use i18n_config;
 
 #[cfg(feature = "localize")]
 use i18n_embed::{DefaultLocalizer, I18nEmbed, LanguageLoader, Localizer};
@@ -29,16 +30,18 @@ use i18n_embed::{DefaultLocalizer, I18nEmbed, LanguageLoader, Localizer};
 #[cfg(feature = "localize")]
 use rust_embed::RustEmbed;
 
-use i18n_config;
-
+#[cfg(feature = "localize")]
 #[derive(RustEmbed, I18nEmbed)]
 #[folder = "i18n/mo"]
 struct Translations;
 
+#[cfg(feature = "localize")]
 #[derive(LanguageLoader)]
 struct I18nBuildLanguageLoader;
 
+#[cfg(feature = "localize")]
 const LANGUAGE_LOADER: I18nBuildLanguageLoader = I18nBuildLanguageLoader {};
+#[cfg(feature = "localize")]
 const TRANSLATIONS: Translations = Translations {};
 
 /// Run the i18n build process for the provided crate, which must
@@ -55,8 +58,7 @@ pub fn run(crt: &i18n_config::Crate) -> Result<()> {
     Ok(())
 }
 
-/// Localize this library, and select the language using the provided
-/// [LanguageRequester](LanguageRequester).
+/// Obtain a [Localizer](Localizer) for localizing this library.
 #[cfg(feature = "localize")]
 pub fn localizer() -> Box<dyn Localizer<'static>> {
     Box::from(DefaultLocalizer::new(&LANGUAGE_LOADER, &TRANSLATIONS))
