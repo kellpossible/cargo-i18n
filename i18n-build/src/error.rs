@@ -1,3 +1,5 @@
+//! Error types for use with the `i18n_build` library.
+
 use std::fmt::Display;
 use std::io;
 use std::path::PathBuf;
@@ -22,6 +24,7 @@ impl Display for PathType {
     }
 }
 
+/// The kinds of errors which can be expressed in a [PathError](PathError)
 #[derive(Debug)]
 pub enum PathErrorKind {
     NotValidUTF8 {
@@ -40,7 +43,9 @@ pub enum PathErrorKind {
 /// translated easily.
 #[derive(Error, Debug)]
 pub struct PathError {
+    /// The path associated with this error
     pub path: PathBuf,
+    /// What specific kind of error this is
     pub kind: PathErrorKind,
 }
 

@@ -1,3 +1,5 @@
+//! Utility functions for use with the `i18n_build` library.
+
 use log::debug;
 use std::fs::{create_dir_all, remove_file, rename};
 use std::path::Path;
@@ -51,6 +53,7 @@ pub fn create_dir_all_if_not_exists<P: AsRef<Path>>(path: P) -> Result<(), PathE
     Ok(())
 }
 
+/// Remove a file if it exists, otherwise return a [PathError#CannotDelete](PathError#CannotDelete).
 pub fn remove_file_if_exists<P: AsRef<Path>>(file_path: P) -> Result<(), PathError> {
     if file_path.as_ref().exists() {
         remove_file(file_path.as_ref().clone())
@@ -60,11 +63,13 @@ pub fn remove_file_if_exists<P: AsRef<Path>>(file_path: P) -> Result<(), PathErr
     Ok(())
 }
 
+/// Remove a file, or return a [PathError#CannotDelete](PathError#CannotDelete) if unable to.
 pub fn remove_file_or_error<P: AsRef<Path>>(file_path: P) -> Result<(), PathError> {
     remove_file(file_path.as_ref().clone())
         .map_err(|e| PathError::cannot_delete_file(file_path.as_ref(), e))
 }
 
+/// Rename a file, or return a [PathError#CannotRename](PathError#CannotRename) if unable to.
 pub fn rename_file<P1: AsRef<Path>, P2: AsRef<Path>>(from: P1, to: P2) -> Result<(), PathError> {
     let from_ref = from.as_ref();
     let to_ref = to.as_ref();

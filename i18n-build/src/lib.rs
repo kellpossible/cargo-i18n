@@ -59,6 +59,8 @@ pub fn run(crt: &i18n_config::Crate) -> Result<()> {
 }
 
 /// Obtain a [Localizer](Localizer) for localizing this library.
+/// 
+/// ⚠️ *This API requires the following crate features to be activated: `localize`.*
 #[cfg(feature = "localize")]
 pub fn localizer() -> Box<dyn Localizer<'static>> {
     Box::from(DefaultLocalizer::new(&LANGUAGE_LOADER, &TRANSLATIONS))
