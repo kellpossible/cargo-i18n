@@ -3,7 +3,7 @@
 
 use crate::error::{PathError, PathType};
 use crate::util;
-use i18n_config::{Crate, GettextConfig, I18nConfig};
+use i18n_config::{Crate, GettextConfig, I18nConfig, I18nConfigError};
 
 use std::ffi::OsStr;
 use std::fs::{create_dir_all, File};
@@ -398,9 +398,11 @@ pub fn run<'a>(crt: &'a Crate) -> Result<()> {
         "Localizing crate \"{0}\" using the gettext system",
         crt.path.to_string_lossy()
     );
-    let (config_crate, i18n_config) = crt
-        .active_config()
-        .expect("expected that there would be an active config");
+    let (config_crate, i18n_config) = crt.active_config()?.expect(&format!(
+        "expected that there would be an active config for the crate: \"{0}\" at \"{1}\"",
+        crt.name,
+        crt.path.to_string_lossy()
+    ));
 
     let gettext_config = config_crate
         .gettext_config_or_err()
@@ -415,32 +417,29 @@ pub fn run<'a>(crt: &'a Crate) -> Result<()> {
     // parent crate )to get the subcrates, because this would result
     // in an infinite loop.
     let subcrates: Vec<Crate> = match &crt.i18n_config {
-        Some(config) => match &config.subcrates {
-            Some(subcrate_paths) => {
-                let subcrates: Result<Vec<Crate>, anyhow::Error> = subcrate_paths
+        Some(config) => {
+            let subcrates: Result<Vec<Crate>, I18nConfigError> = config.subcrates
+                .iter()
+                .map(|subcrate_path| {
+                    Crate::from(
+                        subcrate_path.clone(),
+                        Some(crt),
+                        crt.config_file_path.clone(),
+                    )
+                })
+                .collect();
+
+            subcrates.with_context(|| {
+                let subcrate_path_strings: Vec<String> = config.subcrates
                     .iter()
-                    .map(|subcrate_path| {
-                        Crate::from(
-                            subcrate_path.clone(),
-                            Some(crt),
-                            crt.config_file_path.clone(),
-                        )
-                    })
+                    .map(|path| path.to_string_lossy().to_string())
                     .collect();
 
-                subcrates.with_context(|| {
-                    let subcrate_path_strings: Vec<String> = subcrate_paths
-                        .iter()
-                        .map(|path| path.to_string_lossy().to_string())
-                        .collect();
-
-                    tr!(
-                        "There was a problem parsing one of the subcrates: \"{0}\".",
-                        subcrate_path_strings.join(", ")
-                    )
-                })?
-            }
-            None => vec![],
+                tr!(
+                    "There was a problem parsing one of the subcrates: \"{0}\".",
+                    subcrate_path_strings.join(", ")
+                )
+            })?
         },
         None => vec![],
     };

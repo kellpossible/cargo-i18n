@@ -8,7 +8,7 @@ license = "MIT"
 name = "i18n-build"
 readme = "README.md"
 repository = "https://github.com/kellpossible/cargo-i18n/tree/master/i18n-build"
-version = "0.1.1"
+version = "0.2.0"
 
 [package.metadata.docs.rs]
 all-features = true
@@ -25,7 +25,7 @@ thiserror = "1"
 tr = { version = "0.1", default-features = false, features = ["gettext"] }
 walkdir = "2"
 i18n-embed = { version = "0.3", path = "../i18n-embed", features = ["desktop-requester"], optional = true }
-i18n-config = { version = "0.1", path = "../i18n-config" }
+i18n-config = { version = "0.2", path = "../i18n-config" }
 gettext = { version = "0.4", optional = true }
 log = "0.4"
 rust-embed = "5"

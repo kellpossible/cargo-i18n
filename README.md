@@ -10,6 +10,8 @@ The [i18n-build](https://crates.io/crates/i18n-build) library contains most of t
 
 Currently this tool only supports localizing via `gettext` with the [tr](https://crates.io/crates/tr) library and using the [xtr](https://crates.io/crates/xtr) tool for string extraction. It has been designed to be tool agnostic, with plans to add support for [fluent](https://github.com/projectfluent/fluent-rs), and any other workable system that becomes available for the Rust ecosystem.
 
+**[Changelog](https://github.com/kellpossible/cargo-i18n/releases)**
+
 ## Usage
 
 Firstly, ensure you have the required utilities installed on your system. See [System Requirements](#System-Requirements) and install the necessary utilities and commands for the localization system you will be using. This example is using the `gettext` system.

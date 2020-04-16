@@ -160,9 +160,8 @@ fn main() -> Result<()> {
         i18n_build::util::check_path_exists(&path)?;
         i18n_build::util::check_path_exists(path.join(&config_file_path))?;
 
-        let crt = Crate::from(path, None, config_file_path)?;
-
-        run(&crt)?;
+        let crt: Crate = Crate::from(path, None, config_file_path)?;
+        run(crt)?;
     }
 
     Ok(())
