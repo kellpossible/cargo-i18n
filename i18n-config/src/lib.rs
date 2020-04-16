@@ -257,15 +257,15 @@ impl<'a> Crate<'a> {
                     match err {
                         I18nConfigError::NotACrate(path) => {
                             debug!("The parent of {0} at path {1:?} is not a valid crate with a Cargo.toml", self, path);
-                        },
+                        }
                         _ => {
                             error!(
                                 "Error occurred while attempting to resolve parent of {0}: {1}",
                                 self, err
                             );
-                        },
+                        }
                     }
-                    
+
                     None
                 }
             },
