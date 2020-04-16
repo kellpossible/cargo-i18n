@@ -22,7 +22,7 @@ pub mod util;
 pub mod watch;
 
 use anyhow::Result;
-use i18n_config;
+use i18n_config::Crate;
 
 #[cfg(feature = "localize")]
 use i18n_embed::{DefaultLocalizer, I18nEmbed, LanguageLoader, Localizer};
@@ -46,11 +46,42 @@ const TRANSLATIONS: Translations = Translations {};
 
 /// Run the i18n build process for the provided crate, which must
 /// contain an i18n config.
-pub fn run(crt: &i18n_config::Crate) -> Result<()> {
-    let i18n_config = crt.config_or_err()?;
+pub fn run(crt: Crate) -> Result<()> {
+    let mut crates: Vec<Crate> = Vec::new();
+
+    let mut parent = crt.find_parent();
+
+    crates.push(crt);
+
+    while parent.is_some() {
+        crates.push(parent.unwrap());
+        parent = crates.last().unwrap().find_parent();
+    }
+
+    crates.reverse();
+
+    let mut crates_iter = crates.iter_mut();
+
+    let mut parent = crates_iter
+        .next()
+        .expect("expected there to be at least one crate");
+
+    loop {
+        let child: &mut Crate = match crates_iter.next() {
+            Some(crt) => crt,
+            None => break,
+        };
+
+        child.parent = Some(parent);
+        parent = child;
+    }
+
+    let last_child_crt = parent;
+
+    let i18n_config = last_child_crt.config_or_err()?;
     match i18n_config.gettext {
         Some(_) => {
-            gettext_impl::run(crt)?;
+            gettext_impl::run(last_child_crt)?;
         }
         None => {}
     }
@@ -59,7 +90,7 @@ pub fn run(crt: &i18n_config::Crate) -> Result<()> {
 }
 
 /// Obtain a [Localizer](Localizer) for localizing this library.
-/// 
+///
 /// ⚠️ *This API requires the following crate features to be activated: `localize`.*
 #[cfg(feature = "localize")]
 pub fn localizer() -> Box<dyn Localizer<'static>> {
