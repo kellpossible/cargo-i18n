@@ -2,7 +2,7 @@
 
 A library for use within the [cargo-i18n](https://crates.io/crates/cargo_i18n) tool for localizing crates. It has been published to allow its direct use within project build scripts if required.
 
-**[Changelog](./CHANGELOG.md)**
+**[Changelog](https://github.com/kellpossible/cargo-i18n/blob/master/i18n-build/CHANGELOG.md)**
 
 ## Optional Features
 

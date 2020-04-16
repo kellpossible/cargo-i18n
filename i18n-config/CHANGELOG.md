@@ -1,5 +1,9 @@
 # Changelog for `i18n-config`
 
+## v0.2.1
+
++ Updated link to this changelog in the crate README.
+
 ## v0.2.0
 
 + A bunch of changes to help with solving [issue 13](https://github.com/kellpossible/cargo-i18n/issues/13).

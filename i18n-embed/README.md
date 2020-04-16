@@ -4,7 +4,7 @@ This library contains traits and macros to conveniently embed the output of [car
 
 Currently this library depends on [rust-embed](https://crates.io/crates/rust-embed) to perform the actual embedding of the language files. This may change in the future to make the library more convenient to use.
 
-**[Changelog](./CHANGELOG.md)**
+**[Changelog](https://github.com/kellpossible/cargo-i18n/blob/master/i18n-embed/CHANGELOG.md)**
 
 ## Optional Features
 

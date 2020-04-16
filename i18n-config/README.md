@@ -2,4 +2,4 @@
 
 This library contains the configuration structs (along with their parsing functions) for the [cargo-i18n](https://crates.io/crates/cargo_i18n) tool/system.
 
-**[Changelog](./CHANGELOG.md)**
+**[Changelog](https://github.com/kellpossible/cargo-i18n/blob/master/i18n-config/CHANGELOG.md)**

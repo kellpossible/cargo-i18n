@@ -1,5 +1,9 @@
 # Changelog for `i18n-build`
 
+## v0.2.1
+
++ Updated link to this changelog in the crate README.
+
 ## v0.2.0
 
 + Bump `i18n-config` version to `0.2`.
