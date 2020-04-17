@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: i18n-build\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-04-10 12:18+0000\n"
+"POT-Creation-Date: 2020-04-17 08:38+0000\n"
 "Language: ru\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -10,11 +10,11 @@ msgstr ""
 "X-Generator: POEditor.com\n"
 
 #. {0} is the file path, {1} is the item which it is for, {2} is the type of item (file, directory, etc)
-#: i18n-build/src/error.rs:135
+#: i18n-build/src/error.rs:140
 msgid "The path (\"{0}\") for {1} {2} does not have valid a utf-8 encoding."
 msgstr "Путь (\"{0}\") для {1} {2} не имеeт допустимой кодировки utf-8."
 
-#: i18n-build/src/error.rs:142
+#: i18n-build/src/error.rs:147
 msgid "The path \"{0}\" does not exist on the filesystem."
 msgstr "Путь \"{0}\" не существует в файловой системе."
 
@@ -22,7 +22,7 @@ msgstr "Путь \"{0}\" не существует в файловой сист�
 #. {1} is a file path
 #. {2} is more detailed information about the error
 #. Example: Cannot create the file "i18n/ru/something.pot" because "some error occurred"
-#: i18n-build/src/error.rs:150
+#: i18n-build/src/error.rs:155
 msgid "Cannot create the {0} \"{1}\" because: \"{2}\"."
 msgstr "Не удалось создать {0} \"{1}\" так как: \"{2}\"."
 
@@ -30,7 +30,7 @@ msgstr "Не удалось создать {0} \"{1}\" так как: \"{2}\"."
 #. {1} is a file path
 #. {2} is more detailed information about the error
 #. Example: Cannot delete the file "i18n/ru/something.pot" because "some error occurred"
-#: i18n-build/src/error.rs:160
+#: i18n-build/src/error.rs:165
 msgid "Cannot delete the {0} \"{1}\" because: \"{2}\"."
 msgstr "Не удалось удалить {0} \"{1}\" так как: \"{2}\"."
 
@@ -39,7 +39,7 @@ msgstr "Не удалось удалить {0} \"{1}\" так как: \"{2}\"."
 #. {2} is the new file name
 #. {3} is more detailed information about the error
 #. Example: Cannot rename the file "old.pot" to "new.pot" because "some error occurred"
-#: i18n-build/src/error.rs:171
+#: i18n-build/src/error.rs:176
 msgid "Cannot rename the {0} \"{1}\" to \"{2}\" because {3}."
 msgstr "Не удалось переименовать {0} \"{1}\" в \"{2}\" так как {3}."
 
@@ -47,26 +47,26 @@ msgstr "Не удалось переименовать {0} \"{1}\" в \"{2}\" т
 #. {1} is the name of the parent directory
 #. {2} is the expected parent of the directory in {0}
 #. Example: The path "i18n/src/po" is not inside the "src" directory: "i18n/src"."
-#: i18n-build/src/error.rs:182
+#: i18n-build/src/error.rs:187
 msgid "The path \"{0}\" is not inside the \"{1}\" directory: \"{2}\"."
 msgstr "Путь \"{0}\" не находится \"{1}\" в каталоге: \"{2}\"."
 
-#: i18n-build/src/gettext_impl/mod.rs:213
+#: i18n-build/src/gettext_impl/mod.rs:215
 msgid "There was a problem executing the \"{0}\" command"
 msgstr "Произошла ошибка при выполнении команды \"{0}\"."
 
-#: i18n-build/src/gettext_impl/mod.rs:438
+#: i18n-build/src/gettext_impl/mod.rs:442
 msgid "There was a problem parsing one of the subcrates: \"{0}\"."
 msgstr "При анализе одного из подкрэйтора произошла ошибка: \"{0}\"."
 
-#: i18n-build/src/util.rs:15
+#: i18n-build/src/util.rs:17
 msgid "The \"{0}\" command was unable to start."
 msgstr "Команду \"{0}\" не удалось запустить."
 
-#: i18n-build/src/util.rs:19
+#: i18n-build/src/util.rs:21
 msgid "The \"{0}\" command had a problem waiting for output."
 msgstr "У команды \"{0}\" возникла проблема при ожидании вывода."
 
-#: i18n-build/src/util.rs:27
+#: i18n-build/src/util.rs:29
 msgid "The \"{0}\" command reported that it was unsuccessful."
 msgstr "Команда \"{0}\" сообщила что она не удалась."

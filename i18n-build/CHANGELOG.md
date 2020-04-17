@@ -1,5 +1,11 @@
 # Changelog for `i18n-build`
 
+## v0.3.0
+
++ Add support for `xtr` `add-location` option.
++ Requires `xtr` version `0.1.5`.
++ Suppress progress output for `msgmerge` using `--silent`.
+
 ## v0.2.1
 
 + Updated link to this changelog in the crate README.

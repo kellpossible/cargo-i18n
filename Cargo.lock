@@ -220,7 +220,7 @@ dependencies = [
 
 [[package]]
 name = "i18n-build"
-version = "0.2.1"
+version = "0.3.0"
 dependencies = [
  "anyhow",
  "gettext",
@@ -236,7 +236,7 @@ dependencies = [
 
 [[package]]
 name = "i18n-config"
-version = "0.2.1"
+version = "0.2.2"
 dependencies = [
  "log",
  "serde",

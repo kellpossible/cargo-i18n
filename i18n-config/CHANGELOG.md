@@ -1,5 +1,9 @@
 # Changelog for `i18n-config`
 
+## v0.2.2
+
++ Add support for `xtr` `add-location` option.
+
 ## v0.2.1
 
 + Updated link to this changelog in the crate README.

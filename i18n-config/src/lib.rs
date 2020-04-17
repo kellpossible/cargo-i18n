@@ -359,6 +359,28 @@ impl I18nConfig {
     }
 }
 
+#[derive(Deserialize, Debug, Clone)]
+#[serde(rename_all = "lowercase")]
+pub enum GettextAddLocation {
+    Full,
+    File,
+    Never,
+}
+
+impl GettextAddLocation {
+    pub fn to_str(&self) -> &str {
+        match self {
+            GettextAddLocation::Full => "full",
+            GettextAddLocation::File => "file",
+            GettextAddLocation::Never => "never",
+        }
+    }
+}
+
+impl Default for GettextAddLocation {
+    fn default() -> Self { GettextAddLocation::Full }
+}
+
 /// The data structure representing what is stored (and possible to
 /// store) within the `gettext` subsection of a `i18n.toml` file.
 #[derive(Deserialize, Debug, Clone)]
@@ -389,6 +411,13 @@ pub struct GettextConfig {
     pub msgid_bugs_address: Option<String>,
     /// Whether or not to perform string extraction using the `xtr` command.
     pub xtr: Option<bool>,
+    /// Generate ‘#: filename:line’ lines (default) in the pot files when 
+    /// running the `xtr` command. If the type is ‘full’ (the default), 
+    /// it generates the lines with both file name and line number. 
+    /// If it is ‘file’, the line number part is omitted. If it is ‘never’,
+    ///  nothing is generated. [possible values: full, file, never].
+    #[serde(default)]
+    pub add_location: GettextAddLocation,
     /// Path to where the pot files will be written to by the `xtr`
     /// command, and were they will be read from by `msginit` and
     /// `msgmerge`.

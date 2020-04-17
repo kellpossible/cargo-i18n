@@ -188,6 +188,13 @@ extract_to_parent = false
 # is false.
 collate_extracted_subcrates = false
 
+# (Optional) How much message location information to include in the output.
+# If the type is ‘full’ (the default), it generates the lines with both file
+# name and line number: ‘#: filename:line’. If it is ‘file’, the line number
+# part is omitted: ‘#: filename’. If it is ‘never’, nothing is generated.
+# [possible values: full, file, never].
+add_location = "full"
+
 # (Optional) Whether or not to perform string extraction using the `xtr` tool.
 xtr = true
 

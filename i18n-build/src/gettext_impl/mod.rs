@@ -120,6 +120,8 @@ pub fn run_xtr(
             crt.version.as_str(),
             "--default-domain",
             crt.module_name().as_str(),
+            "--add-location",
+            gettext_config.add_location.to_str(),
             "-o",
             pot_file_path.to_str().ok_or(PathError::not_valid_utf8(
                 pot_file_path.clone(),
@@ -315,6 +317,7 @@ pub fn run_msgmerge(
 
         let mut msgmerge = Command::new(msgmerge_command_name);
         msgmerge.args(&[
+            "--silent",
             "--backup=none",
             "--update",
             po_file_path.to_str().ok_or(PathError::not_valid_utf8(
