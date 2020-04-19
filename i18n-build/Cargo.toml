@@ -8,7 +8,7 @@ license = "MIT"
 name = "i18n-build"
 readme = "README.md"
 repository = "https://github.com/kellpossible/cargo-i18n/tree/master/i18n-build"
-version = "0.3.0"
+version = "0.3.1"
 
 [package.metadata.docs.rs]
 all-features = true
@@ -24,14 +24,15 @@ anyhow = "1"
 thiserror = "1"
 tr = { version = "0.1", default-features = false, features = ["gettext"] }
 walkdir = "2"
-i18n-embed = { version = "0.3", path = "../i18n-embed", features = ["desktop-requester"], optional = true }
+i18n-embed = { version = "0.4", path = "../i18n-embed", features = ["desktop-requester"], optional = true }
 i18n-config = { version = "0.2", path = "../i18n-config" }
 gettext = { version = "0.4", optional = true }
 log = "0.4"
 rust-embed = "5"
+lazy_static = { version = "1.4.0", optional = true }
 
 [features]
 default = []
 
 # A feature to localize this library
-localize = ["i18n-embed", "gettext"]
+localize = ["i18n-embed", "gettext", "lazy_static"]

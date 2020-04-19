@@ -1,5 +1,9 @@
 # Changelog for `i18n-embed`
 
+## v0.3.4
+
++ Made `WebLanguageRequester::requested_languages()` public.
+
 ## v0.3.3
 
 + Updated link to this changelog in the crate README.
