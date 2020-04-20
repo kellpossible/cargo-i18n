@@ -120,6 +120,10 @@
 //! The above example makes use of the
 //! [DefaultLocalizer](DefaultLocalizer), but you can also implement
 //! the [Localizer](Localizer) trait yourself for a custom solution.
+//! It also makes use of
+//! [lazy_static](https://crates.io/crates/lazy_static) to allow the
+//! [LanguageLoader](LanguageLoader) implementation to be stored
+//! statically, because its constructor is not `const`.
 //!
 //! ## Localizing Libraries
 //!
@@ -139,7 +143,7 @@
 //! #[folder = "i18n/mo"] // path to the compiled localization resources
 //! struct Translations;
 //! const TRANSLATIONS: Translations = Translations {};
-//! 
+//!
 //! language_loader!(MyLanguageLoader);
 //!
 //! lazy_static! {
@@ -181,7 +185,7 @@
 //! #[derive(RustEmbed, I18nEmbed)]
 //! #[folder = "i18n/mo"] // path to the compiled localization resources
 //! struct Translations;
-//! 
+//!
 //! const TRANSLATIONS: Translations = Translations {};
 //!
 //! language_loader!(MyLanguageLoader);
@@ -189,7 +193,7 @@
 //! lazy_static! {
 //!     static ref LANGUAGE_LOADER: MyLanguageLoader = MyLanguageLoader::new();
 //! }
-//! 
+//!
 //! pub fn localizer(embed: &'static dyn I18nEmbedDyn) -> Box<dyn Localizer<'static>> {
 //!     Box::from(DefaultLocalizer::new(
 //!         &*LANGUAGE_LOADER,
