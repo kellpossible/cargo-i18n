@@ -23,6 +23,15 @@ pub fn i18n_embed_derive(input: TokenStream) -> TokenStream {
 }
 
 /// A procedural macro to create a struct and implement the `LanguageLoader` trait on it.
+/// 
+/// ## Example
+/// 
+/// ```ignore
+/// use i18n_embed::language_loader;
+/// 
+/// language_loader!(MyLanguageLoader);
+/// let my_language_loader = MyLanguageLoader::new();
+/// ```
 #[proc_macro]
 #[cfg(feature = "gettext-system")]
 pub fn language_loader(input: TokenStream) -> TokenStream {
