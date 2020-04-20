@@ -61,7 +61,7 @@ checksum = "08c48aae112d48ed9f069b33538ea9e3e90aa263cfa3d1c24309612b1f7472de"
 
 [[package]]
 name = "cargo-i18n"
-version = "0.1.5"
+version = "0.1.6"
 dependencies = [
  "anyhow",
  "clap",
@@ -71,6 +71,7 @@ dependencies = [
  "i18n-build",
  "i18n-config",
  "i18n-embed",
+ "lazy_static",
  "log",
  "rust-embed",
  "tr",
@@ -220,12 +221,13 @@ dependencies = [
 
 [[package]]
 name = "i18n-build"
-version = "0.3.0"
+version = "0.3.1"
 dependencies = [
  "anyhow",
  "gettext",
  "i18n-config",
  "i18n-embed",
+ "lazy_static",
  "log",
  "rust-embed",
  "subprocess",
@@ -247,12 +249,13 @@ dependencies = [
 
 [[package]]
 name = "i18n-embed"
-version = "0.3.3"
+version = "0.4.0"
 dependencies = [
  "doc-comment",
  "fluent-langneg",
  "gettext",
  "i18n-embed-impl",
+ "lazy_static",
  "locale_config",
  "log",
  "rust-embed",
@@ -264,7 +267,7 @@ dependencies = [
 
 [[package]]
 name = "i18n-embed-impl"
-version = "0.3.1"
+version = "0.4.0"
 dependencies = [
  "i18n-config",
  "proc-macro2",

@@ -1,5 +1,9 @@
 # Changelog for `i18n-build`
 
+## v0.3.1
+
++ Update to `i18n-embed` version `0.4.0`.
+
 ## v0.3.0
 
 + Add support for `xtr` `add-location` option.

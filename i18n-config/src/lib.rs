@@ -378,7 +378,9 @@ impl GettextAddLocation {
 }
 
 impl Default for GettextAddLocation {
-    fn default() -> Self { GettextAddLocation::Full }
+    fn default() -> Self {
+        GettextAddLocation::Full
+    }
 }
 
 /// The data structure representing what is stored (and possible to
@@ -411,9 +413,9 @@ pub struct GettextConfig {
     pub msgid_bugs_address: Option<String>,
     /// Whether or not to perform string extraction using the `xtr` command.
     pub xtr: Option<bool>,
-    /// Generate ‘#: filename:line’ lines (default) in the pot files when 
-    /// running the `xtr` command. If the type is ‘full’ (the default), 
-    /// it generates the lines with both file name and line number. 
+    /// Generate ‘#: filename:line’ lines (default) in the pot files when
+    /// running the `xtr` command. If the type is ‘full’ (the default),
+    /// it generates the lines with both file name and line number.
     /// If it is ‘file’, the line number part is omitted. If it is ‘never’,
     ///  nothing is generated. [possible values: full, file, never].
     #[serde(default)]

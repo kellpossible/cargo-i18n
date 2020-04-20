@@ -25,7 +25,10 @@ use anyhow::Result;
 use i18n_config::Crate;
 
 #[cfg(feature = "localize")]
-use i18n_embed::{DefaultLocalizer, I18nEmbed, LanguageLoader, Localizer};
+use lazy_static::lazy_static;
+
+#[cfg(feature = "localize")]
+use i18n_embed::{language_loader, DefaultLocalizer, I18nEmbed, Localizer};
 
 #[cfg(feature = "localize")]
 use rust_embed::RustEmbed;
@@ -36,13 +39,15 @@ use rust_embed::RustEmbed;
 struct Translations;
 
 #[cfg(feature = "localize")]
-#[derive(LanguageLoader)]
-struct I18nBuildLanguageLoader;
+language_loader!(I18nBuildLanguageLoader);
 
 #[cfg(feature = "localize")]
-const LANGUAGE_LOADER: I18nBuildLanguageLoader = I18nBuildLanguageLoader {};
+lazy_static! {
+    static ref LANGUAGE_LOADER: I18nBuildLanguageLoader = I18nBuildLanguageLoader::new();
+}
+
 #[cfg(feature = "localize")]
-const TRANSLATIONS: Translations = Translations {};
+static TRANSLATIONS: Translations = Translations {};
 
 /// Run the i18n build process for the provided crate, which must
 /// contain an i18n config.
@@ -94,5 +99,6 @@ pub fn run(crt: Crate) -> Result<()> {
 /// ⚠️ *This API requires the following crate features to be activated: `localize`.*
 #[cfg(feature = "localize")]
 pub fn localizer() -> Box<dyn Localizer<'static>> {
-    Box::from(DefaultLocalizer::new(&LANGUAGE_LOADER, &TRANSLATIONS))
+    let localizer = DefaultLocalizer::new(&*LANGUAGE_LOADER, &TRANSLATIONS);
+    Box::from(localizer)
 }

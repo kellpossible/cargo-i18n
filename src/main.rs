@@ -3,9 +3,10 @@ use clap::{crate_authors, crate_version, App, Arg, SubCommand};
 use i18n_build::run;
 use i18n_config::Crate;
 use i18n_embed::{
-    DefaultLocalizer, DesktopLanguageRequester, I18nEmbed, I18nEmbedDyn, LanguageLoader,
-    LanguageRequester, Localizer,
+    language_loader, DefaultLocalizer, DesktopLanguageRequester, I18nEmbed, I18nEmbedDyn,
+    LanguageLoader, LanguageRequester, Localizer,
 };
+use lazy_static::lazy_static;
 use rust_embed::RustEmbed;
 use std::path::Path;
 use std::rc::Rc;
@@ -16,11 +17,13 @@ use unic_langid::LanguageIdentifier;
 #[folder = "i18n/mo"]
 struct Translations;
 
-#[derive(LanguageLoader)]
-struct CargoI18nLanguageLoader;
+language_loader!(CargoI18nLanguageLoader);
 
-const LANGUAGE_LOADER: CargoI18nLanguageLoader = CargoI18nLanguageLoader {};
-const TRANSLATIONS: Translations = Translations {};
+lazy_static! {
+    static ref LANGUAGE_LOADER: CargoI18nLanguageLoader = CargoI18nLanguageLoader::new();
+}
+
+static TRANSLATIONS: Translations = Translations {};
 
 /// Produce the message to be displayed when running `cargo i18n -h`.
 fn short_about() -> String {
@@ -73,7 +76,7 @@ fn main() -> Result<()> {
     let mut language_requester = DesktopLanguageRequester::new();
 
     let cargo_i18n_localizer =
-        DefaultLocalizer::new(&LANGUAGE_LOADER, &TRANSLATIONS as &dyn I18nEmbedDyn);
+        DefaultLocalizer::new(&*LANGUAGE_LOADER, &TRANSLATIONS as &dyn I18nEmbedDyn);
 
     let cargo_i18n_localizer_rc: Rc<Box<dyn Localizer>> = Rc::new(Box::from(cargo_i18n_localizer));
     let i18n_build_localizer = Rc::new(i18n_build::localizer());
