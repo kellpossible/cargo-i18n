@@ -2,9 +2,9 @@ extern crate proc_macro;
 
 use crate::proc_macro::TokenStream;
 
-use std::path::PathBuf;
 use i18n_config::I18nConfig;
 use quote::quote;
+use std::path::PathBuf;
 use syn;
 
 /// A procedural macro to implement the `I18nEmbed` trait on a struct.
@@ -58,12 +58,18 @@ pub fn language_loader(input: TokenStream) -> TokenStream {
         }
 
         impl i18n_embed::LanguageLoader for #struct_name {
-            fn load_language_file(&self, language: i18n_embed::unic_langid::LanguageIdentifier, file: std::borrow::Cow<[u8]>) {
+            fn load_language_file(&self, language_id: i18n_embed::unic_langid::LanguageIdentifier, file: std::borrow::Cow<[u8]>) {
                 let catalog = i18n_embed::gettext::Catalog::parse(&*file).expect("could not parse the catalog");
                 i18n_embed::tr::set_translator!(catalog);
-                *(self.current_language.write().unwrap()) = language;
+                *(self.current_language.write().unwrap()) = language_id;
             }
-        
+
+            fn load_src_locale(&self) {
+                let catalog = i18n_embed::gettext::Catalog::empty();
+                i18n_embed::tr::set_translator!(catalog);
+                *(self.current_language.write().unwrap()) = self.src_locale();
+            }
+
             fn domain(&self) -> &'static str {
                 i18n_embed::domain_from_module(module_path!())
             }

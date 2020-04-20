@@ -3,15 +3,15 @@ use clap::{crate_authors, crate_version, App, Arg, SubCommand};
 use i18n_build::run;
 use i18n_config::Crate;
 use i18n_embed::{
-    DefaultLocalizer, DesktopLanguageRequester, I18nEmbed, I18nEmbedDyn, language_loader, LanguageLoader,
-    LanguageRequester, Localizer,
+    language_loader, DefaultLocalizer, DesktopLanguageRequester, I18nEmbed, I18nEmbedDyn,
+    LanguageLoader, LanguageRequester, Localizer,
 };
+use lazy_static::lazy_static;
 use rust_embed::RustEmbed;
 use std::path::Path;
 use std::rc::Rc;
 use tr::tr;
 use unic_langid::LanguageIdentifier;
-use lazy_static::lazy_static;
 
 #[derive(RustEmbed, I18nEmbed)]
 #[folder = "i18n/mo"]

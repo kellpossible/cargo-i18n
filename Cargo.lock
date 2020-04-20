@@ -255,6 +255,7 @@ dependencies = [
  "fluent-langneg",
  "gettext",
  "i18n-embed-impl",
+ "lazy_static",
  "locale_config",
  "log",
  "rust-embed",

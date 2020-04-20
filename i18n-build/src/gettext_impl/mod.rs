@@ -421,7 +421,8 @@ pub fn run<'a>(crt: &'a Crate) -> Result<()> {
     // in an infinite loop.
     let subcrates: Vec<Crate> = match &crt.i18n_config {
         Some(config) => {
-            let subcrates: Result<Vec<Crate>, I18nConfigError> = config.subcrates
+            let subcrates: Result<Vec<Crate>, I18nConfigError> = config
+                .subcrates
                 .iter()
                 .map(|subcrate_path| {
                     Crate::from(
@@ -433,7 +434,8 @@ pub fn run<'a>(crt: &'a Crate) -> Result<()> {
                 .collect();
 
             subcrates.with_context(|| {
-                let subcrate_path_strings: Vec<String> = config.subcrates
+                let subcrate_path_strings: Vec<String> = config
+                    .subcrates
                     .iter()
                     .map(|path| path.to_string_lossy().to_string())
                     .collect();
@@ -443,7 +445,7 @@ pub fn run<'a>(crt: &'a Crate) -> Result<()> {
                     subcrate_path_strings.join(", ")
                 )
             })?
-        },
+        }
         None => vec![],
     };
 

@@ -28,7 +28,7 @@ use i18n_config::Crate;
 use lazy_static::lazy_static;
 
 #[cfg(feature = "localize")]
-use i18n_embed::{DefaultLocalizer, I18nEmbed, language_loader, Localizer};
+use i18n_embed::{language_loader, DefaultLocalizer, I18nEmbed, Localizer};
 
 #[cfg(feature = "localize")]
 use rust_embed::RustEmbed;
@@ -46,6 +46,7 @@ lazy_static! {
     static ref LANGUAGE_LOADER: I18nBuildLanguageLoader = I18nBuildLanguageLoader::new();
 }
 
+#[cfg(feature = "localize")]
 static TRANSLATIONS: Translations = Translations {};
 
 /// Run the i18n build process for the provided crate, which must
