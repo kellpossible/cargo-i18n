@@ -150,8 +150,7 @@
 //!     static ref LANGUAGE_LOADER: MyLanguageLoader = MyLanguageLoader::new();
 //! }
 //!
-//! /// Localize this library, and select the language using the provided
-//! /// [LanguageRequester](LanguageRequester).
+//! // Get the `Localizer` to be used for localizing this library.
 //! #[cfg(feature = "localize")]
 //! pub fn localizer() -> Box<dyn Localizer<'static>> {
 //!     Box::from(DefaultLocalizer::new(
@@ -194,6 +193,8 @@
 //!     static ref LANGUAGE_LOADER: MyLanguageLoader = MyLanguageLoader::new();
 //! }
 //!
+//! // Get the `Localizer` to be used for localizing this library,
+//! // using the provided embeddes source of language files `embed`.
 //! pub fn localizer(embed: &'static dyn I18nEmbedDyn) -> Box<dyn Localizer<'static>> {
 //!     Box::from(DefaultLocalizer::new(
 //!         &*LANGUAGE_LOADER,

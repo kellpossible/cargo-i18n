@@ -83,7 +83,7 @@ Now that you have compiled your translations, you can embed them within your app
 Add the following to your `Cargo.toml` dependencies:
 
 ```toml
-i18n-embed = "0.3.1"
+i18n-embed = "0.4"
 ```
 
 A minimal example for how to embed the compiled translations into your application could be:
