@@ -1,5 +1,9 @@
 # Changelog for `i18n-embed`
 
+## v0.4.1
+
++ Fix incorrect comment in code example [#18](https://github.com/kellpossible/cargo-i18n/issues/18).
+
 ## v0.4.0
 
 Mostly a refactor of `LanguageLoader` and `I18nEmbed` to solve [issue #15](https://github.com/kellpossible/cargo-i18n/issues/15).

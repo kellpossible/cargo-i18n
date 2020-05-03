@@ -8,7 +8,7 @@ license = "MIT"
 name = "cargo-i18n"
 readme = "README.md"
 repository = "https://github.com/kellpossible/cargo-i18n"
-version = "0.1.6"
+version = "0.1.7"
 
 [badges]
 maintenance = { status = "actively-developed" }
