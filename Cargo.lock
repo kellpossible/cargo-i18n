@@ -61,7 +61,7 @@ checksum = "08c48aae112d48ed9f069b33538ea9e3e90aa263cfa3d1c24309612b1f7472de"
 
 [[package]]
 name = "cargo-i18n"
-version = "0.1.7"
+version = "0.1.8"
 dependencies = [
  "anyhow",
  "clap",
@@ -184,9 +184,9 @@ dependencies = [
 
 [[package]]
 name = "fluent-langneg"
-version = "0.12.1"
+version = "0.13.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fe5815efd5542e40841cd34ef9003822352b04c67a70c595c6758597c72e1f56"
+checksum = "2c4ad0989667548f06ccd0e306ed56b61bd4d35458d54df5ec7587c0e8ed5e94"
 dependencies = [
  "unic-langid",
 ]
@@ -249,7 +249,7 @@ dependencies = [
 
 [[package]]
 name = "i18n-embed"
-version = "0.4.1"
+version = "0.4.2"
 dependencies = [
  "doc-comment",
  "fluent-langneg",
@@ -449,18 +449,18 @@ dependencies = [
 
 [[package]]
 name = "serde"
-version = "1.0.106"
+version = "1.0.110"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "36df6ac6412072f67cf767ebbde4133a5b2e88e76dc6187fa7104cd16f783399"
+checksum = "99e7b308464d16b56eba9964e4972a3eee817760ab60d88c3f86e1fecb08204c"
 dependencies = [
  "serde_derive",
 ]
 
 [[package]]
 name = "serde_derive"
-version = "1.0.106"
+version = "1.0.110"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9e549e3abf4fb8621bd1609f11dfc9f5e50320802273b12f3811a67e6716ea6c"
+checksum = "818fbf6bfa9a42d3bfcaca148547aa00c7b915bec71d1757aa2d44ca68771984"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -485,9 +485,9 @@ dependencies = [
 
 [[package]]
 name = "syn"
-version = "1.0.18"
+version = "1.0.19"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "410a7488c0a728c7ceb4ad59b9567eb4053d02e8cc7f5c0e0eeeb39518369213"
+checksum = "e8e5aa70697bb26ee62214ae3288465ecec0000f05182f039b477001f08f5ae7"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -568,18 +568,18 @@ dependencies = [
 
 [[package]]
 name = "unic-langid"
-version = "0.8.0"
+version = "0.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "24d81136159f779c35b10655f45210c71cd5ca5a45aadfe9840a61c7071735ed"
+checksum = "73328fcd730a030bdb19ddf23e192187a6b01cd98be6d3140622a89129459ce5"
 dependencies = [
  "unic-langid-impl",
 ]
 
 [[package]]
 name = "unic-langid-impl"
-version = "0.8.0"
+version = "0.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c43c61e94492eb67f20facc7b025778a904de83d953d8fcb60dd9adfd6e2d0ea"
+checksum = "1a4a8eeaf0494862c1404c95ec2f4c33a2acff5076f64314b465e3ddae1b934d"
 dependencies = [
  "tinystr",
 ]
@@ -598,9 +598,9 @@ checksum = "826e7639553986605ec5979c7dd957c7895e93eabed50ab2ffa7f6128a75097c"
 
 [[package]]
 name = "vec_map"
-version = "0.8.1"
+version = "0.8.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "05c78687fb1a80548ae3250346c3db86a80a7cdd77bda190189f2d0a0987c81a"
+checksum = "f1bddf1187be692e79c5ffeab891132dfb0f236ed36a43c7ed39f1165ee20191"
 
 [[package]]
 name = "walkdir"

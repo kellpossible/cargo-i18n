@@ -1,5 +1,10 @@
 # Changelog for `i18n-embed`
 
+## v0.4.2
+
++ Update `fluent-langneg` dependency to version `0.13`.
++ Update `unic-langid` dependency to version `0.9`.
+
 ## v0.4.1
 
 + Fix incorrect comment in code example [#18](https://github.com/kellpossible/cargo-i18n/issues/18).

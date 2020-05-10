@@ -9,7 +9,7 @@ license = "MIT"
 name = "i18n-embed"
 readme = "README.md"
 repository = "https://github.com/kellpossible/cargo-i18n/tree/master/i18n-embed"
-version = "0.4.1"
+version = "0.4.2"
 
 [package.metadata.docs.rs]
 all-features = true
@@ -21,9 +21,9 @@ maintenance = { status = "actively-developed" }
 
 [dependencies]
 i18n-embed-impl = { version = "0.4", path = "./i18n-embed-impl" }
-unic-langid = "0.8"
+unic-langid = "0.9"
 locale_config = { version = "0.3", optional = true }
-fluent-langneg = "0.12"
+fluent-langneg = "0.13"
 web-sys = { version = "0.3", features = ["Window", "Navigator"], optional = true }
 rust-embed = "5"
 gettext = { version = "0.4", optional = true }
