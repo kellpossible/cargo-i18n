@@ -56,7 +56,7 @@ pub fn create_dir_all_if_not_exists<P: AsRef<Path>>(path: P) -> Result<(), PathE
 /// Remove a file if it exists, otherwise return a [PathError#CannotDelete](PathError#CannotDelete).
 pub fn remove_file_if_exists<P: AsRef<Path>>(file_path: P) -> Result<(), PathError> {
     if file_path.as_ref().exists() {
-        remove_file(file_path.as_ref().clone())
+        remove_file(file_path.as_ref())
             .map_err(|e| PathError::cannot_delete_file(file_path.as_ref(), e))?;
     }
 
@@ -65,7 +65,7 @@ pub fn remove_file_if_exists<P: AsRef<Path>>(file_path: P) -> Result<(), PathErr
 
 /// Remove a file, or return a [PathError#CannotDelete](PathError#CannotDelete) if unable to.
 pub fn remove_file_or_error<P: AsRef<Path>>(file_path: P) -> Result<(), PathError> {
-    remove_file(file_path.as_ref().clone())
+    remove_file(file_path.as_ref())
         .map_err(|e| PathError::cannot_delete_file(file_path.as_ref(), e))
 }
 

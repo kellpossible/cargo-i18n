@@ -28,7 +28,7 @@ use i18n_config::Crate;
 use lazy_static::lazy_static;
 
 #[cfg(feature = "localize")]
-use i18n_embed::{language_loader, DefaultLocalizer, I18nEmbed, Localizer};
+use i18n_embed::{language_loader, DefaultLocalizer, I18nEmbed};
 
 #[cfg(feature = "localize")]
 use rust_embed::RustEmbed;
@@ -71,12 +71,7 @@ pub fn run(crt: Crate) -> Result<()> {
         .next()
         .expect("expected there to be at least one crate");
 
-    loop {
-        let child: &mut Crate = match crates_iter.next() {
-            Some(crt) => crt,
-            None => break,
-        };
-
+    for child in crates_iter {
         child.parent = Some(parent);
         parent = child;
     }
@@ -84,11 +79,8 @@ pub fn run(crt: Crate) -> Result<()> {
     let last_child_crt = parent;
 
     let i18n_config = last_child_crt.config_or_err()?;
-    match i18n_config.gettext {
-        Some(_) => {
-            gettext_impl::run(last_child_crt)?;
-        }
-        None => {}
+    if i18n_config.gettext.is_some() {
+        gettext_impl::run(last_child_crt)?;
     }
 
     Ok(())
@@ -98,7 +90,6 @@ pub fn run(crt: Crate) -> Result<()> {
 ///
 /// ⚠️ *This API requires the following crate features to be activated: `localize`.*
 #[cfg(feature = "localize")]
-pub fn localizer() -> Box<dyn Localizer<'static>> {
-    let localizer = DefaultLocalizer::new(&*LANGUAGE_LOADER, &TRANSLATIONS);
-    Box::from(localizer)
+pub fn localizer() -> DefaultLocalizer<'static> {
+    DefaultLocalizer::new(&*LANGUAGE_LOADER, &TRANSLATIONS)
 }

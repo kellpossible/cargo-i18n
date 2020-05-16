@@ -61,7 +61,7 @@ checksum = "08c48aae112d48ed9f069b33538ea9e3e90aa263cfa3d1c24309612b1f7472de"
 
 [[package]]
 name = "cargo-i18n"
-version = "0.1.8"
+version = "0.1.9"
 dependencies = [
  "anyhow",
  "clap",
@@ -221,7 +221,7 @@ dependencies = [
 
 [[package]]
 name = "i18n-build"
-version = "0.3.1"
+version = "0.4.0"
 dependencies = [
  "anyhow",
  "gettext",
@@ -249,7 +249,7 @@ dependencies = [
 
 [[package]]
 name = "i18n-embed"
-version = "0.4.2"
+version = "0.5.0"
 dependencies = [
  "doc-comment",
  "fluent-langneg",

@@ -1,5 +1,10 @@
 # Changelog for `i18n-build`
 
+## v0.4.0
+
++ Update to `i18n-embed` version `0.5.0`.
++ Change `localizer()` method to return `DefaultLocalizer` instead of the boxed trait `Box<dyn Localizer<'static>>`.
+
 ## v0.3.1
 
 + Update to `i18n-embed` version `0.4.0`.

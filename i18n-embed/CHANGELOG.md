@@ -1,12 +1,16 @@
 # Changelog for `i18n-embed`
 
+## v0.5.0
+
++ Refactored `I18nEmbedError::Multiple(Box<Vec<I18nEmbedError>>)` to `I18nEmbedError::Multiple(Vec<I18nEmbedError>)`, removing the useless box (and complaining Clippy lint).
++ Refactored `select()` method to use slice argument instead of `&Vec<LanguageIdentifier>`.
++ Changed `LanguageRequester::add_listener(&mut self, localizer: &Rc<Box<dyn Localizer<'a>>>)` to `add_listener(&mut self, localizer: &Rc<dyn Localizer<'a>>)` removing the unnecessary `Box`.
++ Added `Default` implementation for `DesktopLanguageRequester`.
+
 ## v0.4.2
 
 + Update `fluent-langneg` dependency to version `0.13`.
 + Update `unic-langid` dependency to version `0.9`.
-
-## v0.4.1
-
 + Fix incorrect comment in code example [#18](https://github.com/kellpossible/cargo-i18n/issues/18).
 
 ## v0.4.0

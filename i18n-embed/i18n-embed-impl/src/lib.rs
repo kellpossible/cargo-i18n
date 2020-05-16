@@ -5,7 +5,6 @@ use crate::proc_macro::TokenStream;
 use i18n_config::I18nConfig;
 use quote::quote;
 use std::path::PathBuf;
-use syn;
 
 /// A procedural macro to implement the `I18nEmbed` trait on a struct.
 #[proc_macro_derive(I18nEmbed)]
@@ -23,12 +22,12 @@ pub fn i18n_embed_derive(input: TokenStream) -> TokenStream {
 }
 
 /// A procedural macro to create a struct and implement the `LanguageLoader` trait on it.
-/// 
+///
 /// ## Example
-/// 
+///
 /// ```ignore
 /// use i18n_embed::language_loader;
-/// 
+///
 /// language_loader!(MyLanguageLoader);
 /// let my_language_loader = MyLanguageLoader::new();
 /// ```
@@ -47,10 +46,12 @@ pub fn language_loader(input: TokenStream) -> TokenStream {
         ));
     }
 
-    let config = I18nConfig::from_file(&config_file_path).expect(&format!(
-        "language_loader!() had a problem reading config file '{0}'",
-        config_file_path.to_string_lossy()
-    ));
+    let config = I18nConfig::from_file(&config_file_path).unwrap_or_else(|_| {
+        panic!(
+            "language_loader!() had a problem reading config file '{0}'",
+            config_file_path.to_string_lossy()
+        )
+    });
     let src_locale = &config.src_locale;
 
     let gen = quote! {

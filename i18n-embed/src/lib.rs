@@ -1,3 +1,4 @@
+#![allow(clippy::needless_doctest_main)]
 //! Traits and macros to conveniently embed the output of
 //! [cargo-i18n](https://crates.io/crates/cargo_i18n) into your
 //! application binary in order to localize it at runtime.
@@ -103,7 +104,7 @@
 //!         &TRANSLATIONS,
 //!     );
 //!
-//!     let localizer_rc: Rc<Box<dyn Localizer>> = Rc::new(Box::from(localizer));
+//!     let localizer_rc: Rc<dyn Localizer> = Rc::new(localizer);
 //!
 //!     let mut language_requester = DesktopLanguageRequester::new();
 //!     language_requester.add_listener(&localizer_rc);
@@ -257,10 +258,10 @@ pub enum I18nEmbedError {
     #[error("The requested language \"{0}\" is not available.")]
     LanguageNotAvailable(String),
     #[error("There are multiple errors: {}", error_vec_to_string(.0))]
-    Multiple(Box<Vec<I18nEmbedError>>),
+    Multiple(Vec<I18nEmbedError>),
 }
 
-fn error_vec_to_string(errors: &Box<Vec<I18nEmbedError>>) -> String {
+fn error_vec_to_string(errors: &[I18nEmbedError]) -> String {
     let strings: Vec<String> = errors.iter().map(|e| format!("{}", e)).collect();
     strings.join(", ")
 }
@@ -282,7 +283,7 @@ pub trait Localizer<'a> {
     /// it using the provided [LanguageLoader](LanguageLoader).
     fn select(
         &self,
-        requested_languages: &Vec<unic_langid::LanguageIdentifier>,
+        requested_languages: &[unic_langid::LanguageIdentifier],
     ) -> Result<Option<unic_langid::LanguageIdentifier>, I18nEmbedError> {
         select(
             self.language_loader(),
@@ -323,7 +324,7 @@ impl<'a> DefaultLocalizer<'a> {
 /// Provide the functionality for overrides and listeners for a
 /// [LanguageRequester](LanguageReqeuster) implementation.
 struct LanguageRequesterImpl<'a> {
-    listeners: Vec<Weak<Box<dyn Localizer<'a>>>>,
+    listeners: Vec<Weak<dyn Localizer<'a>>>,
     language_override: Option<unic_langid::LanguageIdentifier>,
 }
 
@@ -347,7 +348,7 @@ impl<'a> LanguageRequesterImpl<'a> {
         Ok(())
     }
 
-    fn add_listener(&mut self, localizer: &Rc<Box<dyn Localizer<'a>>>) {
+    fn add_listener(&mut self, localizer: &Rc<dyn Localizer<'a>>) {
         self.listeners.push(Rc::downgrade(localizer));
     }
 
@@ -374,12 +375,12 @@ impl<'a> LanguageRequesterImpl<'a> {
             None => false,
         });
 
-        if errors.len() == 0 {
+        if errors.is_empty() {
             Ok(())
         } else if errors.len() == 1 {
             Err(errors.into_iter().next().unwrap())
         } else {
-            Err(I18nEmbedError::Multiple(Box::new(errors)))
+            Err(I18nEmbedError::Multiple(errors))
         }
     }
 
@@ -415,7 +416,7 @@ pub trait LanguageRequester<'a> {
     /// If you haven't already selected a language for the localizer
     /// you are adding here, you may want to manually call
     /// [#poll()](#poll()) after adding the listener/s.
-    fn add_listener(&mut self, localizer: &Rc<Box<dyn Localizer<'a>>>);
+    fn add_listener(&mut self, localizer: &Rc<dyn Localizer<'a>>);
     /// Poll the system's currently selected language, and call
     /// [Localizer#select()](Localizer#select()) on each of the
     /// listeners.
@@ -451,7 +452,7 @@ pub trait LanguageRequester<'a> {
 pub fn select(
     language_loader: &dyn LanguageLoader,
     i18n_embed: &dyn I18nEmbedDyn,
-    requested_languages: &Vec<unic_langid::LanguageIdentifier>,
+    requested_languages: &[unic_langid::LanguageIdentifier],
 ) -> Result<Option<unic_langid::LanguageIdentifier>, I18nEmbedError> {
     info!(
         "Selecting translations for domain \"{0}\"",
@@ -575,8 +576,8 @@ impl<T: I18nEmbed + ?Sized> I18nEmbedDyn for T {
 pub trait I18nEmbed: RustEmbed {
     /// Calculate the embedded languages available to be selected for
     /// the module requested by the provided [LanguageLoader](LanguageLoader).
-    fn available_languages<'a>(
-        language_loader: &'a dyn LanguageLoader,
+    fn available_languages(
+        language_loader: &'_ dyn LanguageLoader,
     ) -> Result<Vec<unic_langid::LanguageIdentifier>, I18nEmbedError> {
         use std::path::{Component, Path};
 
@@ -654,7 +655,7 @@ impl<'a> LanguageRequester<'a> for DesktopLanguageRequester<'a> {
         Self::requested_languages()
     }
 
-    fn add_listener(&mut self, localizer: &Rc<Box<dyn Localizer<'a>>>) {
+    fn add_listener(&mut self, localizer: &Rc<dyn Localizer<'a>>) {
         self.implementation.add_listener(localizer)
     }
 
@@ -667,6 +668,12 @@ impl<'a> LanguageRequester<'a> for DesktopLanguageRequester<'a> {
 
     fn poll(&mut self) -> Result<(), I18nEmbedError> {
         self.implementation.poll(self.requested_languages())
+    }
+}
+
+impl<'a> Default for DesktopLanguageRequester<'a> {
+    fn default() -> Self {
+        DesktopLanguageRequester::new()
     }
 }
 
@@ -739,7 +746,7 @@ impl<'a> LanguageRequester<'a> for WebLanguageRequester<'a> {
         Self::requested_languages()
     }
 
-    fn add_listener(&mut self, localizer: &Rc<Box<dyn Localizer<'a>>>) {
+    fn add_listener(&mut self, localizer: &Rc<dyn Localizer<'a>>) {
         self.implementation.add_listener(localizer)
     }
 
