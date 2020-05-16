@@ -1,4 +1,4 @@
-# i18n-build [![crates.io badge](https://img.shields.io/crates/v/i18n-build.svg)](https://crates.io/crates/i18n-build) [![license badge](https://img.shields.io/github/license/kellpossible/cargo-i18n)](https://github.com/kellpossible/cargo-i18n/blob/master/i18n-build/LICENSE.txt) [![docs.rs badge](https://docs.rs/i18n-build/badge.svg)](https://docs.rs/i18n-build/)
+# i18n-build [![crates.io badge](https://img.shields.io/crates/v/i18n-build.svg)](https://crates.io/crates/i18n-build) [![license badge](https://img.shields.io/github/license/kellpossible/cargo-i18n)](https://github.com/kellpossible/cargo-i18n/blob/master/i18n-build/LICENSE.txt) [![docs.rs badge](https://docs.rs/i18n-build/badge.svg)](https://docs.rs/i18n-build/) [![github actions badge](https://github.com/kellpossible/cargo-i18n/workflows/Rust/badge.svg)](https://github.com/kellpossible/cargo-i18n/actions?query=workflow%3ARust)
 
 A library for use within the [cargo-i18n](https://crates.io/crates/cargo_i18n) tool for localizing crates. It has been published to allow its direct use within project build scripts if required.
 
