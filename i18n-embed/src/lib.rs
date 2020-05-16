@@ -671,7 +671,7 @@ impl<'a> LanguageRequester<'a> for DesktopLanguageRequester<'a> {
     }
 }
 
-impl <'a> Default for DesktopLanguageRequester<'a> {
+impl<'a> Default for DesktopLanguageRequester<'a> {
     fn default() -> Self {
         DesktopLanguageRequester::new()
     }

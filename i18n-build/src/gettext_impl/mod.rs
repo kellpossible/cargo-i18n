@@ -120,16 +120,12 @@ pub fn run_xtr(
             "--add-location",
             gettext_config.add_location.to_str(),
             "-o",
-            pot_file_path.to_str().ok_or_else(|| PathError::not_valid_utf8(
-                pot_file_path.clone(),
-                "pot",
-                PathType::File,
-            ))?,
-            rs_file_path.to_str().ok_or_else(|| PathError::not_valid_utf8(
-                rs_file_path.clone(),
-                "rs",
-                PathType::File,
-            ))?,
+            pot_file_path.to_str().ok_or_else(|| {
+                PathError::not_valid_utf8(pot_file_path.clone(), "pot", PathType::File)
+            })?,
+            rs_file_path.to_str().ok_or_else(|| {
+                PathError::not_valid_utf8(rs_file_path.clone(), "rs", PathType::File)
+            })?,
         ]);
 
         util::run_command_and_check_success(xtr_command_name, xtr)?;
@@ -258,11 +254,13 @@ pub fn run_msginit(
             msginit.args(&[
                 format!(
                     "--input={}",
-                    pot_file_path.to_str().ok_or_else(|| PathError::not_valid_utf8(
-                        pot_file_path.clone(),
-                        "pot",
-                        PathType::File,
-                    ))?
+                    pot_file_path
+                        .to_str()
+                        .ok_or_else(|| PathError::not_valid_utf8(
+                            pot_file_path.clone(),
+                            "pot",
+                            PathType::File,
+                        ))?
                 ),
                 format!("--locale={}.UTF-8", locale),
                 format!(
@@ -317,16 +315,12 @@ pub fn run_msgmerge(
             "--silent",
             "--backup=none",
             "--update",
-            po_file_path.to_str().ok_or_else(|| PathError::not_valid_utf8(
-                po_file_path.clone(),
-                "pot",
-                PathType::File,
-            ))?,
-            pot_file_path.to_str().ok_or_else(|| PathError::not_valid_utf8(
-                pot_file_path.clone(),
-                "pot",
-                PathType::File,
-            ))?,
+            po_file_path.to_str().ok_or_else(|| {
+                PathError::not_valid_utf8(po_file_path.clone(), "pot", PathType::File)
+            })?,
+            pot_file_path.to_str().ok_or_else(|| {
+                PathError::not_valid_utf8(pot_file_path.clone(), "pot", PathType::File)
+            })?,
         ]);
 
         util::run_command_and_check_success(msgmerge_command_name, msgmerge)?;
@@ -398,11 +392,13 @@ pub fn run<'a>(crt: &'a Crate) -> Result<()> {
         "Localizing crate \"{0}\" using the gettext system",
         crt.path.to_string_lossy()
     );
-    let (config_crate, i18n_config) = crt.active_config()?.unwrap_or_else(|| panic!(
-        "expected that there would be an active config for the crate: \"{0}\" at \"{1}\"",
-        crt.name,
-        crt.path.to_string_lossy()
-    ));
+    let (config_crate, i18n_config) = crt.active_config()?.unwrap_or_else(|| {
+        panic!(
+            "expected that there would be an active config for the crate: \"{0}\" at \"{1}\"",
+            crt.name,
+            crt.path.to_string_lossy()
+        )
+    });
 
     let gettext_config = config_crate
         .gettext_config_or_err()
