@@ -13,7 +13,7 @@ use walkdir::WalkDir;
 pub fn cargo_rerun_if_changed(path: &Path) -> Result<(), PathError> {
     println!(
         "cargo:rerun-if-changed={}",
-        path.to_str().ok_or(PathError::not_valid_utf8(
+        path.to_str().ok_or_else(|| PathError::not_valid_utf8(
             path,
             "rerun build script if file changed",
             PathType::Directory,

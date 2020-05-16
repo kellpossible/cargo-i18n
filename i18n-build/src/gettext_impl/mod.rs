@@ -44,15 +44,12 @@ pub fn run_xtr(
     for result in WalkDir::new(src_dir) {
         match result {
             Ok(entry) => {
-                let path = entry.path().clone();
+                let path = entry.path();
 
-                match path.extension() {
-                    Some(extension) => {
-                        if extension.to_str() == Some("rs") {
-                            rs_files.push(Box::from(path))
-                        }
+                if let Some(extension) = path.extension() {
+                    if extension.to_str() == Some("rs") {
+                        rs_files.push(Box::from(path))
                     }
-                    None => {}
                 }
             }
             Err(err) => return Err(anyhow!("error walking directory {}/src: {}", crt.name, err)),
@@ -123,12 +120,12 @@ pub fn run_xtr(
             "--add-location",
             gettext_config.add_location.to_str(),
             "-o",
-            pot_file_path.to_str().ok_or(PathError::not_valid_utf8(
+            pot_file_path.to_str().ok_or_else(|| PathError::not_valid_utf8(
                 pot_file_path.clone(),
                 "pot",
                 PathType::File,
             ))?,
-            rs_file_path.to_str().ok_or(PathError::not_valid_utf8(
+            rs_file_path.to_str().ok_or_else(|| PathError::not_valid_utf8(
                 rs_file_path.clone(),
                 "rs",
                 PathType::File,
@@ -261,7 +258,7 @@ pub fn run_msginit(
             msginit.args(&[
                 format!(
                     "--input={}",
-                    pot_file_path.to_str().ok_or(PathError::not_valid_utf8(
+                    pot_file_path.to_str().ok_or_else(|| PathError::not_valid_utf8(
                         pot_file_path.clone(),
                         "pot",
                         PathType::File,
@@ -270,7 +267,7 @@ pub fn run_msginit(
                 format!("--locale={}.UTF-8", locale),
                 format!(
                     "--output={}",
-                    po_path.to_str().ok_or(PathError::not_valid_utf8(
+                    po_path.to_str().ok_or_else(|| PathError::not_valid_utf8(
                         po_path.clone(),
                         "po",
                         PathType::File,
@@ -320,12 +317,12 @@ pub fn run_msgmerge(
             "--silent",
             "--backup=none",
             "--update",
-            po_file_path.to_str().ok_or(PathError::not_valid_utf8(
+            po_file_path.to_str().ok_or_else(|| PathError::not_valid_utf8(
                 po_file_path.clone(),
                 "pot",
                 PathType::File,
             ))?,
-            pot_file_path.to_str().ok_or(PathError::not_valid_utf8(
+            pot_file_path.to_str().ok_or_else(|| PathError::not_valid_utf8(
                 pot_file_path.clone(),
                 "pot",
                 PathType::File,
@@ -401,7 +398,7 @@ pub fn run<'a>(crt: &'a Crate) -> Result<()> {
         "Localizing crate \"{0}\" using the gettext system",
         crt.path.to_string_lossy()
     );
-    let (config_crate, i18n_config) = crt.active_config()?.expect(&format!(
+    let (config_crate, i18n_config) = crt.active_config()?.unwrap_or_else(|| panic!(
         "expected that there would be an active config for the crate: \"{0}\" at \"{1}\"",
         crt.name,
         crt.path.to_string_lossy()
@@ -478,8 +475,8 @@ pub fn run<'a>(crt: &'a Crate) -> Result<()> {
     }
 
     // Perform the concatination (if there are any required)
-    if concatinate_crates.len() > 0 {
-        assert!(crt.gettext_config_or_err()?.collate_extracted_subcrates == true);
+    if !concatinate_crates.is_empty() {
+        assert!(crt.gettext_config_or_err()?.collate_extracted_subcrates);
         concatinate_crates.insert(0, crt);
 
         let concatinate_crate_paths_result: Result<Vec<PathBuf>, _> = concatinate_crates
@@ -507,5 +504,5 @@ pub fn run<'a>(crt: &'a Crate) -> Result<()> {
         run_msgfmt(crt, i18n_config, po_dir.as_path(), mo_dir.as_path())?;
     }
 
-    return Ok(());
+    Ok(())
 }

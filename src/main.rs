@@ -31,7 +31,7 @@ fn short_about() -> String {
     tr!("A Cargo sub-command to extract and build localization resources.")
 }
 
-fn available_languages<'a>(localizer: &Rc<Box<dyn Localizer<'a>>>) -> Result<Vec<String>> {
+fn available_languages<'a>(localizer: &Rc<dyn Localizer<'a>>) -> Result<Vec<String>> {
     Ok(localizer
         .available_languages()?
         .iter()
@@ -78,11 +78,11 @@ fn main() -> Result<()> {
     let cargo_i18n_localizer =
         DefaultLocalizer::new(&*LANGUAGE_LOADER, &TRANSLATIONS as &dyn I18nEmbedDyn);
 
-    let cargo_i18n_localizer_rc: Rc<Box<dyn Localizer>> = Rc::new(Box::from(cargo_i18n_localizer));
-    let i18n_build_localizer = Rc::new(i18n_build::localizer());
+    let cargo_i18n_localizer_rc: Rc<dyn Localizer> = Rc::new(cargo_i18n_localizer);
+    let i18n_build_localizer_rc = Rc::new(i18n_build::localizer()) as Rc<dyn Localizer<'static>>;
 
     language_requester.add_listener(&cargo_i18n_localizer_rc);
-    language_requester.add_listener(&i18n_build_localizer);
+    language_requester.add_listener(&i18n_build_localizer_rc);
     language_requester.poll()?;
 
     let src_locale = LANGUAGE_LOADER.src_locale().to_string();
@@ -156,7 +156,7 @@ fn main() -> Result<()> {
         let path = i18n_matches
             .value_of("path")
             .map(|path_str| Path::new(path_str).to_path_buf())
-            .unwrap_or(Path::new(".").to_path_buf());
+            .unwrap_or_else(|| Path::new(".").to_path_buf());
 
         let config_file_path = Path::new(config_file_name).to_path_buf();
 

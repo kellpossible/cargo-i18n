@@ -12,7 +12,6 @@ use std::{
 use log::{debug, error};
 use serde_derive::Deserialize;
 use thiserror::Error;
-use toml;
 
 /// An error type for use with the `i18n-config` crate.
 #[derive(Debug, Error)]
@@ -82,35 +81,35 @@ impl<'a> Crate<'a> {
 
         let package = cargo_toml
             .as_table()
-            .ok_or(I18nConfigError::CannotParseCargoToml(cargo_path.clone(), "Cargo.toml needs have sections (such as the \"gettext\" section when using gettext.".to_string()))?
+            .ok_or_else(|| I18nConfigError::CannotParseCargoToml(cargo_path.clone(), "Cargo.toml needs have sections (such as the \"gettext\" section when using gettext.".to_string()))?
             .get("package")
-            .ok_or(I18nConfigError::CannotParseCargoToml(cargo_path.clone(), "Cargo.toml needs to have a \"package\" section.".to_string()))?
+            .ok_or_else(|| I18nConfigError::CannotParseCargoToml(cargo_path.clone(), "Cargo.toml needs to have a \"package\" section.".to_string()))?
             .as_table()
-            .ok_or(I18nConfigError::CannotParseCargoToml(cargo_path.clone(),
+            .ok_or_else(|| I18nConfigError::CannotParseCargoToml(cargo_path.clone(),
                 "Cargo.toml's \"package\" section needs to contain values.".to_string()
             ))?;
 
         let name = package
             .get("name")
-            .ok_or(I18nConfigError::CannotParseCargoToml(
+            .ok_or_else(|| I18nConfigError::CannotParseCargoToml(
                 cargo_path.clone(),
                 "Cargo.toml needs to specify a package name.".to_string(),
             ))?
             .as_str()
-            .ok_or(I18nConfigError::CannotParseCargoToml(
+            .ok_or_else(|| I18nConfigError::CannotParseCargoToml(
                 cargo_path.clone(),
                 "Cargo.toml's package name needs to be a string.".to_string(),
             ))?;
 
         let version = package
             .get("version")
-            .ok_or(I18nConfigError::CannotParseCargoToml(
+            .ok_or_else(|| I18nConfigError::CannotParseCargoToml(
                 cargo_path.clone(),
                 "Cargo.toml needs to specify a package version.".to_string(),
             ))?
             .as_str()
-            .ok_or(I18nConfigError::CannotParseCargoToml(
-                cargo_path.clone(),
+            .ok_or_else(|| I18nConfigError::CannotParseCargoToml(
+                cargo_path,
                 "Cargo.toml's package version needs to be a string.".to_string(),
             ))?;
 
@@ -161,7 +160,7 @@ impl<'a> Crate<'a> {
                         if gettext_config.extract_to_parent {
                             debug!("Resolving active config for {0}, extract_to_parent is true, so attempting to obtain parent config.", self);
 
-                            if !self.parent.is_some() {
+                            if self.parent.is_none() {
                                 return Err(I18nConfigError::NoParentCrate(
                                     self.to_string(),
                                     "the gettext extract_to_parent option is active".to_string(),
@@ -179,16 +178,16 @@ impl<'a> Crate<'a> {
                     None => {}
                 }
 
-                return Ok(Some((self, &config)));
+                Ok(Some((self, &config)))
             }
             None => {
                 debug!(
                     "{0} has no i18n config, attempting to obtain parent config instead.",
                     self
                 );
-                return self.parent_active_config();
+                self.parent_active_config()
             }
-        };
+        }
     }
 
     /// Get the [I18nConfig](I18nConfig) in this crate, or return an
@@ -235,7 +234,7 @@ impl<'a> Crate<'a> {
             .map(|gettext_config| gettext_config.extract_to_parent)
             .unwrap_or(false);
 
-        return parent_extract_to_subcrate && extract_to_parent;
+        parent_extract_to_subcrate && extract_to_parent
     }
 
     /// Attempt to resolve the parents of this crate which have this
@@ -275,10 +274,10 @@ impl<'a> Crate<'a> {
         match parent_crt {
             Some(crt) => match &crt.i18n_config {
                 Some(config) => {
-                    if config
+                    let this_is_subcrate = config
                         .subcrates
                         .iter()
-                        .find(|subcrate_path| {
+                        .any(|subcrate_path| {
                             let subcrate_path_canon = match crt.path.join(subcrate_path).canonicalize() {
                                 Ok(canon) => canon,
                                 Err(err) => {
@@ -296,8 +295,9 @@ impl<'a> Crate<'a> {
                             };
 
                             subcrate_path_canon == self_path_canon
-                        })
-                        .is_some()
+                        });
+                    
+                    if this_is_subcrate
                     {
                         Some(crt)
                     } else {
@@ -447,7 +447,7 @@ impl GettextConfig {
         //         panic!("panic");
         //     },
         // }
-        self.pot_dir.clone().unwrap_or(self.output_dir.join("pot"))
+        self.pot_dir.clone().unwrap_or_else(|| self.output_dir.join("pot"))
     }
 
     /// Path to where the po files will be stored/edited with the
@@ -456,7 +456,7 @@ impl GettextConfig {
     ///
     /// By default this is **[output_dir](GettextConfig::output_dir)/po**.
     pub fn po_dir(&self) -> PathBuf {
-        self.po_dir.clone().unwrap_or(self.output_dir.join("po"))
+        self.po_dir.clone().unwrap_or_else(|| self.output_dir.join("po"))
     }
 
     /// Path to where the mo files will be written to by the `msgfmt` command.
@@ -464,6 +464,6 @@ impl GettextConfig {
     /// By default this is
     /// **[output_dir](GettextConfig::output_dir)/mo**.
     pub fn mo_dir(&self) -> PathBuf {
-        self.mo_dir.clone().unwrap_or(self.output_dir.join("mo"))
+        self.mo_dir.clone().unwrap_or_else(|| self.output_dir.join("mo"))
     }
 }
