@@ -671,6 +671,7 @@ impl<'a> LanguageRequester<'a> for DesktopLanguageRequester<'a> {
     }
 }
 
+#[cfg(feature = "desktop-requester")]
 impl<'a> Default for DesktopLanguageRequester<'a> {
     fn default() -> Self {
         DesktopLanguageRequester::new()
