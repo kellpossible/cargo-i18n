@@ -81,8 +81,8 @@ fn main() -> Result<()> {
     let cargo_i18n_localizer_rc: Rc<dyn Localizer> = Rc::new(cargo_i18n_localizer);
     let i18n_build_localizer_rc = Rc::new(i18n_build::localizer()) as Rc<dyn Localizer<'static>>;
 
-    language_requester.add_listener(&cargo_i18n_localizer_rc);
-    language_requester.add_listener(&i18n_build_localizer_rc);
+    language_requester.add_listener(Rc::downgrade(&cargo_i18n_localizer_rc));
+    language_requester.add_listener(Rc::downgrade(&i18n_build_localizer_rc));
     language_requester.poll()?;
 
     let src_locale = LANGUAGE_LOADER.src_locale().to_string();
@@ -150,7 +150,7 @@ fn main() -> Result<()> {
             .expect("expected a default language to be present");
 
         let li: LanguageIdentifier = language.parse()?;
-        language_requester.set_languge_override(Some(li))?;
+        language_requester.set_language_override(Some(li))?;
         language_requester.poll()?;
 
         let path = i18n_matches

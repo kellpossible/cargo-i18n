@@ -107,7 +107,7 @@
 //!     let localizer_rc: Rc<dyn Localizer> = Rc::new(localizer);
 //!
 //!     let mut language_requester = DesktopLanguageRequester::new();
-//!     language_requester.add_listener(&localizer_rc);
+//!     language_requester.add_listener(Rc::downgrade(&localizer_rc));
 //!
 //!     // Manually check the currently requested system language,
 //!     // and update the listeners. When the system language changes,
@@ -239,7 +239,10 @@ extern crate i18n_embed_impl;
 pub use i18n_embed_impl::*;
 
 use std::borrow::Cow;
-use std::rc::{Rc, Weak};
+use std::{
+    collections::{HashMap, HashSet},
+    rc::Weak,
+};
 
 use fluent_langneg::{negotiate_languages, NegotiationStrategy};
 use log::{debug, error, info};
@@ -340,7 +343,7 @@ impl<'a> LanguageRequesterImpl<'a> {
     /// Set an override for the requested language which is used when the
     /// [LanguageRequesterImpl#poll()](LanguageRequester#poll()) method
     /// is called. If `None`, then no override is used.
-    fn set_languge_override(
+    fn set_language_override(
         &mut self,
         language_override: Option<unic_langid::LanguageIdentifier>,
     ) -> Result<(), I18nEmbedError> {
@@ -348,8 +351,8 @@ impl<'a> LanguageRequesterImpl<'a> {
         Ok(())
     }
 
-    fn add_listener(&mut self, localizer: &Rc<dyn Localizer<'a>>) {
-        self.listeners.push(Rc::downgrade(localizer));
+    fn add_listener(&mut self, localizer: Weak<dyn Localizer<'a>>) {
+        self.listeners.push(localizer);
     }
 
     /// With the provided `requested_languages` call
@@ -387,7 +390,7 @@ impl<'a> LanguageRequesterImpl<'a> {
     /// With the provided `requested_languages` call
     /// [Localizer#select()](Localizer#select()) on each of the
     /// listeners. The `requested_languages` may be ignored if
-    /// [#set_languge_override()](#set_languge_override()) has been
+    /// [#set_language_override()](#set_language_override()) has been
     /// set.
     pub fn poll(
         &mut self,
@@ -403,6 +406,36 @@ impl<'a> LanguageRequesterImpl<'a> {
 
         self.poll_without_override(languages)
     }
+
+    /// The languages reported to be available in the
+    /// listener [Localizer](Localizer)s.
+    fn available_languages(&self) -> Result<Vec<unic_langid::LanguageIdentifier>, I18nEmbedError> {
+        let mut available_languages = HashSet::new();
+        for weak_listener in &self.listeners {
+            if let Some(localizer) = weak_listener.upgrade() {
+                localizer
+                    .available_languages()?
+                    .iter()
+                    .for_each(|language| {
+                        available_languages.insert(language.clone());
+                    })
+            }
+        }
+
+        Ok(available_languages.into_iter().collect())
+    }
+
+    fn current_languages(&self) -> HashMap<&'static str, unic_langid::LanguageIdentifier> {
+        let mut current_languages = HashMap::new();
+        for weak_listener in &self.listeners {
+            if let Some(localizer) = weak_listener.upgrade() {
+                let loader = localizer.language_loader();
+                current_languages.insert(loader.domain(), loader.current_language());
+            }
+        }
+
+        current_languages
+    }
 }
 
 /// A trait used by [I18nEmbed](I18nEmbed) to ascertain which
@@ -416,31 +449,25 @@ pub trait LanguageRequester<'a> {
     /// If you haven't already selected a language for the localizer
     /// you are adding here, you may want to manually call
     /// [#poll()](#poll()) after adding the listener/s.
-    fn add_listener(&mut self, localizer: &Rc<dyn Localizer<'a>>);
+    fn add_listener(&mut self, localizer: Weak<dyn Localizer<'a>>);
     /// Poll the system's currently selected language, and call
     /// [Localizer#select()](Localizer#select()) on each of the
     /// listeners.
     fn poll(&mut self) -> Result<(), I18nEmbedError>;
     /// Override the languages fed to the [Localizer](Localizer) listeners during
     /// a [#poll()](#poll()). Set this as `None` to disable the override.
-    fn set_languge_override(
+    fn set_language_override(
         &mut self,
         language_override: Option<unic_langid::LanguageIdentifier>,
     ) -> Result<(), I18nEmbedError>;
-    /// Get the language last selected for the [LanguageLoader](LanguageLoader)
-    /// by this [LanguageRequester](LanguageRequester).
-    // fn currently_selected_language(&self, language_loader: &'a dyn LanguageLoader) -> &Option<unic_langid::LanguageIdentifier>;
-    // fn override_request(&self, language_id: unic_langid::LanguageIdentifier);
-    // fn reset_override_request(&self);
-    // /// Attach a listener to the system this requester is mediating
-    // /// for, to listen for changes, and trigger a language update if
-    // /// required.
-    // fn attach_system_listener(&self) -> Result<(), Box<dyn std::error::Error>>;
-    // /// Detach the listener which was attached using
-    // /// [attach_change_listener()](#attach_change_lister()).
-    // fn detatch_system_listener(&self) -> Result<(), Box<dyn std::error::Error>>;
     /// The currently requested languages.
     fn requested_languages(&self) -> Vec<unic_langid::LanguageIdentifier>;
+    /// The languages reported to be available in the
+    /// listener [Localizer](Localizer)s.
+    fn available_languages(&self) -> Result<Vec<unic_langid::LanguageIdentifier>, I18nEmbedError>;
+    /// The languages currently loaded, keyed by the
+    /// [LanguageLoader::domain()](LanguageLoader::domain()).
+    fn current_languages(&self) -> HashMap<&'static str, unic_langid::LanguageIdentifier>;
 }
 
 /// Select the most suitable language currently requested by the
@@ -655,19 +682,27 @@ impl<'a> LanguageRequester<'a> for DesktopLanguageRequester<'a> {
         Self::requested_languages()
     }
 
-    fn add_listener(&mut self, localizer: &Rc<dyn Localizer<'a>>) {
+    fn add_listener(&mut self, localizer: Weak<dyn Localizer<'a>>) {
         self.implementation.add_listener(localizer)
     }
 
-    fn set_languge_override(
+    fn set_language_override(
         &mut self,
         language_override: Option<unic_langid::LanguageIdentifier>,
     ) -> Result<(), I18nEmbedError> {
-        self.implementation.set_languge_override(language_override)
+        self.implementation.set_language_override(language_override)
     }
 
     fn poll(&mut self) -> Result<(), I18nEmbedError> {
         self.implementation.poll(self.requested_languages())
+    }
+
+    fn available_languages(&self) -> Result<Vec<unic_langid::LanguageIdentifier>, I18nEmbedError> {
+        self.implementation.available_languages()
+    }
+
+    fn current_languages(&self) -> HashMap<&'static str, unic_langid::LanguageIdentifier> {
+        self.implementation.current_languages()
     }
 }
 
@@ -747,7 +782,7 @@ impl<'a> LanguageRequester<'a> for WebLanguageRequester<'a> {
         Self::requested_languages()
     }
 
-    fn add_listener(&mut self, localizer: &Rc<dyn Localizer<'a>>) {
+    fn add_listener(&mut self, localizer: Weak<dyn Localizer<'a>>) {
         self.implementation.add_listener(localizer)
     }
 
@@ -755,11 +790,19 @@ impl<'a> LanguageRequester<'a> for WebLanguageRequester<'a> {
         self.implementation.poll(self.requested_languages())
     }
 
-    fn set_languge_override(
+    fn set_language_override(
         &mut self,
         language_override: Option<unic_langid::LanguageIdentifier>,
     ) -> Result<(), I18nEmbedError> {
-        self.implementation.set_languge_override(language_override)
+        self.implementation.set_language_override(language_override)
+    }
+
+    fn available_languages(&self) -> Result<Vec<unic_langid::LanguageIdentifier>, I18nEmbedError> {
+        self.implementation.available_languages()
+    }
+
+    fn current_languages(&self) -> HashMap<&'static str, unic_langid::LanguageIdentifier> {
+        self.implementation.current_languages()
     }
 }
 

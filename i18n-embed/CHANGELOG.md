@@ -1,5 +1,10 @@
 # Changelog for `i18n-embed`
 
+## v0.6.0
+
++ Changed the argument for `LanguageRequester::add_listener()` to use a `std::rc::Weak` instead of `std::rc::Rc` to make it more obvious that it is the caller's responsibility to hold on to the `Rc` in order to maintain the reference.
++ Fixed typo in `LanguageRequester::set_language_override()`.
+
 ## v0.5.0
 
 + Refactored `I18nEmbedError::Multiple(Box<Vec<I18nEmbedError>>)` to `I18nEmbedError::Multiple(Vec<I18nEmbedError>)`, removing the useless box (and complaining Clippy lint).
