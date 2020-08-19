@@ -86,7 +86,7 @@ pub fn run(crt: Crate) -> Result<()> {
     Ok(())
 }
 
-/// Obtain a [Localizer](Localizer) for localizing this library.
+/// Obtain a [Localizer](i18n_embed::Localizer) for localizing this library.
 ///
 /// ⚠️ *This API requires the following crate features to be activated: `localize`.*
 #[cfg(feature = "localize")]

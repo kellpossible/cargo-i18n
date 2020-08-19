@@ -1,5 +1,11 @@
 # Changelog for `i18n-embed`
 
+## v0.6.1
+
+### Bug Fixes
+
++ Only re-export optional dependencies when they're actually enabled in the crate features ([#26](https://github.com/kellpossible/cargo-i18n/pull/26) thanks to @jplatte.)
+
 ## v0.6.0
 
 + Changed the argument for `LanguageRequester::add_listener()` to use a `std::rc::Weak` instead of `std::rc::Rc` to make it more obvious that it is the caller's responsibility to hold on to the `Rc` in order to maintain the reference.
