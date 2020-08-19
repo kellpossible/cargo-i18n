@@ -249,8 +249,9 @@ use log::{debug, error, info};
 use rust_embed::RustEmbed;
 use thiserror::Error;
 
-pub use gettext;
-pub use tr;
+#[cfg(feature = "gettext-system")]
+pub use ::{gettext, tr};
+
 pub use unic_langid;
 
 /// An error that occurs in this library.
