@@ -239,10 +239,7 @@ extern crate i18n_embed_impl;
 pub use i18n_embed_impl::*;
 
 use std::borrow::Cow;
-use std::{
-    collections::{HashMap, HashSet},
-    rc::Weak,
-};
+use std::{collections::HashMap, rc::Weak};
 
 use fluent_langneg::{negotiate_languages, NegotiationStrategy};
 use log::{debug, error, info};
@@ -326,12 +323,14 @@ impl<'a> DefaultLocalizer<'a> {
 }
 
 /// Provide the functionality for overrides and listeners for a
-/// [LanguageRequester](LanguageReqeuster) implementation.
+/// [LanguageRequester](LanguageRequester) implementation.
+#[cfg(any(feature = "desktop-requester", feature = "web-sys-requester"))]
 struct LanguageRequesterImpl<'a> {
     listeners: Vec<Weak<dyn Localizer<'a>>>,
     language_override: Option<unic_langid::LanguageIdentifier>,
 }
 
+#[cfg(any(feature = "desktop-requester", feature = "web-sys-requester"))]
 impl<'a> LanguageRequesterImpl<'a> {
     /// Create a new [LanguageRequesterImpl](LanguageRequesterImpl).
     pub fn new() -> LanguageRequesterImpl<'a> {
@@ -411,7 +410,7 @@ impl<'a> LanguageRequesterImpl<'a> {
     /// The languages reported to be available in the
     /// listener [Localizer](Localizer)s.
     fn available_languages(&self) -> Result<Vec<unic_langid::LanguageIdentifier>, I18nEmbedError> {
-        let mut available_languages = HashSet::new();
+        let mut available_languages = std::collections::HashSet::new();
         for weak_listener in &self.listeners {
             if let Some(localizer) = weak_listener.upgrade() {
                 localizer
