@@ -1,5 +1,13 @@
 # Changelog for `i18n-embed`
 
+## v0.7.0
+
+Changes for the support of the `fluent` localization system.
+
+### Breaking Changes
+
++ Update to `i18n-config` version `0.3.0`, contains breaking changes to `i18n.toml` configuration file format. See the [i18n changelog](https://github.com/kellpossible/cargo-i18n/blob/master/i18n-config/CHANGELOG.md#v030) for more details.
+
 ## v0.6.1
 
 ### Bug Fixes

@@ -1,6 +1,12 @@
 # This is included only to allow the code examples in this crate to
 # compile.
 
-src_locale = "en"
+# (Required) The locale identifier of the language used in the source
+# code for gettext system, and the primary fallback locale (for which
+# all strings must be present) when using the fluent system.
+fallback_locale = "en"
 
+# (Optional) Use the gettext localization system.
+[gettext]
+# (Required) The locales that the software will be translated into.
 target_locales = ["es", "ru", "fr"]

@@ -1,5 +1,18 @@
 # Changelog for `i18n-config`
 
+## v0.3.0
+
+Changes for the support of the `fluent` localization system.
+
+### New Features
+
++ New `FluentConfig` for using the `fluent` localization system.
+
+### Breaking Changes
+
++ Renamed `src_locale` to `fallback_locale`.
++ Moved `target_locales` to within the `gettext` subsection.
+
 ## v0.2.2
 
 + Add support for `xtr` `add-location` option.

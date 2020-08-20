@@ -85,7 +85,7 @@ fn main() -> Result<()> {
     language_requester.add_listener(Rc::downgrade(&i18n_build_localizer_rc));
     language_requester.poll()?;
 
-    let src_locale = LANGUAGE_LOADER.src_locale().to_string();
+    let fallback_locale = LANGUAGE_LOADER.fallback_locale().to_string();
     let available_languages = available_languages(&cargo_i18n_localizer_rc)?;
     let available_languages_slice: Vec<&str> =
         available_languages.iter().map(|l| l.as_str()).collect();
@@ -134,7 +134,7 @@ fn main() -> Result<()> {
                 .long("--language")
                 .short("-l")
                 .takes_value(true)
-                .default_value(&src_locale)
+                .default_value(&fallback_locale)
                 .possible_values(&available_languages_slice)
             )
         )

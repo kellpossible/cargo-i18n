@@ -52,7 +52,7 @@ pub fn language_loader(input: TokenStream) -> TokenStream {
             config_file_path.to_string_lossy()
         )
     });
-    let src_locale = &config.src_locale;
+    let fallback_locale = &config.fallback_locale;
 
     let gen = quote! {
         struct #struct_name {
@@ -62,7 +62,7 @@ pub fn language_loader(input: TokenStream) -> TokenStream {
         impl #struct_name {
             pub fn new() -> #struct_name {
                 #struct_name {
-                    current_language: std::sync::RwLock::new(#src_locale.parse().unwrap()),
+                    current_language: std::sync::RwLock::new(#fallback_locale.parse().unwrap()),
                 }
             }
         }
@@ -74,18 +74,18 @@ pub fn language_loader(input: TokenStream) -> TokenStream {
                 *(self.current_language.write().unwrap()) = language_id;
             }
 
-            fn load_src_locale(&self) {
+            fn load_fallback_locale(&self) {
                 let catalog = i18n_embed::gettext::Catalog::empty();
                 i18n_embed::tr::set_translator!(catalog);
-                *(self.current_language.write().unwrap()) = self.src_locale();
+                *(self.current_language.write().unwrap()) = self.fallback_locale();
             }
 
             fn domain(&self) -> &'static str {
                 i18n_embed::domain_from_module(module_path!())
             }
 
-            fn src_locale(&self) -> i18n_embed::unic_langid::LanguageIdentifier {
-                #src_locale.parse().unwrap()
+            fn fallback_locale(&self) -> i18n_embed::unic_langid::LanguageIdentifier {
+                #fallback_locale.parse().unwrap()
             }
 
             fn language_file_name(&self) -> String {
