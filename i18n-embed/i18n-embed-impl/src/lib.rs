@@ -68,12 +68,33 @@ pub fn language_loader(input: TokenStream) -> TokenStream {
         }
 
         impl i18n_embed::LanguageLoader for #struct_name {
-            fn load_language_file(&self, language_id: i18n_embed::unic_langid::LanguageIdentifier, file: std::borrow::Cow<[u8]>) {
-                let catalog = i18n_embed::gettext::Catalog::parse(&*file).expect("could not parse the catalog");
-                i18n_embed::tr::set_translator!(catalog);
-                *(self.current_language.write().unwrap()) = language_id;
-            }
+            /// Set the current language to the language corresponding with the specified `language_id`,
+            /// using the resources packaged in the `i18n_embed`.
+            fn load_language(
+                &self,
+                language_id: &i18n_embed::unic_langid::LanguageIdentifier,
+                i18n_embed: &dyn i18n_embed::I18nEmbedDyn,
+            ) -> Result<(), i18n_embed::I18nEmbedError> {
+                if language_id == &self.fallback_locale() {
+                    self.load_fallback_locale();
+                    return Ok(());
+                }
 
+                let language_id_string = language_id.to_string();
+
+                let file_path = format!("{}/{}", language_id_string, self.language_file_name());
+
+                let f = i18n_embed
+                    .get_dyn(file_path.as_ref())
+                    .ok_or(i18n_embed::I18nEmbedError::LanguageNotAvailable(language_id_string))?;
+
+                let catalog = i18n_embed::gettext::Catalog::parse(&*f).expect("could not parse the catalog");
+                i18n_embed::tr::set_translator!(catalog);
+                *(self.current_language.write().unwrap()) = language_id.clone();
+
+                Ok(())
+            }
+            
             fn load_fallback_locale(&self) {
                 let catalog = i18n_embed::gettext::Catalog::empty();
                 i18n_embed::tr::set_translator!(catalog);

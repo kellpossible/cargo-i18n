@@ -268,6 +268,9 @@ pub enum I18nEmbedError {
     LanguageNotAvailable(String),
     #[error("There are multiple errors: {}", error_vec_to_string(.0))]
     Multiple(Vec<I18nEmbedError>),
+    #[cfg(feature = "gettext-system")]
+    #[error(transparent)]
+    Gettext(#[from] gettext::Error),
 }
 
 fn error_vec_to_string(errors: &[I18nEmbedError]) -> String {
@@ -383,6 +386,11 @@ pub fn select_single(
     Ok(())
 }
 
+pub struct LanguageResource<'a> {
+    pub locale: unic_langid::LanguageIdentifier,
+    pub file: Cow<'a, [u8]>,
+}
+
 /// A trait used by [I18nEmbed](I18nEmbed) to load a language file for
 /// a specific rust module using a specific localization system. The
 /// trait is designed such that the loader could be swapped during
@@ -393,42 +401,19 @@ pub trait LanguageLoader {
     fn fallback_locale(&self) -> unic_langid::LanguageIdentifier;
     /// The domain for the translation that this loader is associated with.
     fn domain(&self) -> &'static str;
-    /// Load the language corresponding the specified `language_id`.
+    /// Load the language associated with [fallback_locale()](LanguageLoader#fallback_locale()).
+    fn load_fallback_locale(&self);
+    /// The language file name to use for this loader's domain.
+    fn language_file_name(&self) -> String;
+    /// Get the language which is currently loaded for this loader.
+    fn current_language(&self) -> unic_langid::LanguageIdentifier;
+    /// Set the current language to the language corresponding with the specified `language_id`,
+    /// using the resources packaged in the `i18n_embed`.
     fn load_language(
         &self,
         language_id: &unic_langid::LanguageIdentifier,
         i18n_embed: &dyn I18nEmbedDyn,
-    ) -> Result<(), I18nEmbedError> {
-        if language_id == &self.fallback_locale() {
-            self.load_fallback_locale();
-            return Ok(());
-        }
-        let language_id_string = language_id.to_string();
-
-        let file_path = format!("{}/{}", language_id_string, self.language_file_name());
-
-        let f = i18n_embed
-            .get_dyn(file_path.as_ref())
-            .ok_or(I18nEmbedError::LanguageNotAvailable(language_id_string))?;
-        info!(
-            "Loading language \"{0}\" from file \"{1}\"",
-            language_id.to_string(),
-            file_path
-        );
-        self.load_language_file(language_id.clone(), f);
-
-        Ok(())
-    }
-    /// Load the language `file` which is associated with the specified `language_id` and
-    /// set the current language, which can be retrieved via
-    /// [current_language()](LanguageLoader#current_language()).
-    fn load_language_file(&self, language_id: unic_langid::LanguageIdentifier, file: Cow<[u8]>);
-    /// Load the language associated with [fallback_locale()](LanguageLoader#fallback_locale()).
-    fn load_fallback_locale(&self);
-    /// The language file name to use for this loader.
-    fn language_file_name(&self) -> String;
-    /// Get the language which is currently loaded for this loader.
-    fn current_language(&self) -> unic_langid::LanguageIdentifier;
+    ) -> Result<(), I18nEmbedError>;
 }
 
 /// A dynamic reference to a static [I18nEmbed](I18nEmbed) implementation.
