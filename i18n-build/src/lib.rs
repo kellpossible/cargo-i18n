@@ -22,13 +22,15 @@ pub mod util;
 pub mod watch;
 
 use anyhow::Result;
-use i18n_config::{SystemConfig, Crate};
+use i18n_config::{Crate, SystemConfig};
 
 #[cfg(feature = "localize")]
 use lazy_static::lazy_static;
 
 #[cfg(feature = "localize")]
-use i18n_embed::{gettext_language_loader, DefaultLocalizer, I18nEmbed, gettext::GettextLanguageLoader};
+use i18n_embed::{
+    gettext::GettextLanguageLoader, gettext_language_loader, DefaultLocalizer, I18nEmbed,
+};
 
 #[cfg(feature = "localize")]
 use rust_embed::RustEmbed;
@@ -37,7 +39,6 @@ use rust_embed::RustEmbed;
 #[derive(RustEmbed, I18nEmbed)]
 #[folder = "i18n/mo"]
 struct Translations;
-
 
 #[cfg(feature = "localize")]
 lazy_static! {

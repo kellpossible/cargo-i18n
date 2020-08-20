@@ -224,11 +224,7 @@ pub fn run_msgcat<P: AsRef<Path>, I: IntoIterator<Item = P>>(
 ///
 /// `po_dir` is the directory where the output `po` files will be
 /// stored.
-pub fn run_msginit(
-    crt: &Crate,
-    pot_dir: &Path,
-    po_dir: &Path,
-) -> Result<()> {
+pub fn run_msginit(crt: &Crate, pot_dir: &Path, po_dir: &Path) -> Result<()> {
     info!(
         "Initializing new po files with `msginit` for crate \"{0}\"",
         crt.path.to_string_lossy()
@@ -288,11 +284,7 @@ pub fn run_msginit(
 /// `pot_dir` is the directory where the input `pot` files are stored.
 ///
 /// `po_dir` is the directory where the `po` files are stored.
-pub fn run_msgmerge(
-    crt: &Crate,
-    pot_dir: &Path,
-    po_dir: &Path,
-) -> Result<()> {
+pub fn run_msgmerge(crt: &Crate, pot_dir: &Path, po_dir: &Path) -> Result<()> {
     info!(
         "Merging message changes in pot files to po files with `msgmerge` for crate \"{0}\"",
         crt.path.to_string_lossy()
@@ -339,11 +331,7 @@ pub fn run_msgmerge(
 /// `po_dir` is the directory where the input `po` files are stored.
 ///
 /// `mo_dir` is the directory where the output `mo` files will be stored.
-pub fn run_msgfmt(
-    crt: &Crate,
-    po_dir: &Path,
-    mo_dir: &Path,
-) -> Result<()> {
+pub fn run_msgfmt(crt: &Crate, po_dir: &Path, mo_dir: &Path) -> Result<()> {
     info!(
         "Compiling po files to mo files with `msgfmt` for crate \"{0}\"",
         crt.path.to_string_lossy()

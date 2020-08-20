@@ -1,5 +1,5 @@
-use std::{rc::Weak, collections::HashMap};
-use crate::{Localizer, I18nEmbedError};
+use crate::{I18nEmbedError, Localizer};
+use std::{collections::HashMap, rc::Weak};
 
 /// A trait used by [I18nEmbed](I18nEmbed) to ascertain which
 /// languages are being requested.

@@ -226,7 +226,7 @@
 //! collate_extracted_subcrates = true
 //! ```
 
-mod requester; 
+mod requester;
 mod util;
 
 #[cfg(feature = "fluent-system")]

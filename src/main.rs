@@ -3,8 +3,9 @@ use clap::{crate_authors, crate_version, App, Arg, SubCommand};
 use i18n_build::run;
 use i18n_config::Crate;
 use i18n_embed::{
-    gettext_language_loader, DefaultLocalizer, DesktopLanguageRequester, I18nEmbed, I18nEmbedDyn,
-    LanguageLoader, LanguageRequester, Localizer, gettext::GettextLanguageLoader,
+    gettext::GettextLanguageLoader, gettext_language_loader, DefaultLocalizer,
+    DesktopLanguageRequester, I18nEmbed, I18nEmbedDyn, LanguageLoader, LanguageRequester,
+    Localizer,
 };
 use lazy_static::lazy_static;
 use rust_embed::RustEmbed;

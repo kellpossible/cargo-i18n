@@ -2,11 +2,11 @@
 //! parsing functions) for the
 //! [cargo-i18n](https://crates.io/crates/cargo_i18n) tool/system.
 
-mod gettext;
 mod fluent;
+mod gettext;
 
-pub use gettext::GettextConfig;
 pub use fluent::FluentConfig;
+pub use gettext::GettextConfig;
 
 use std::fs::read_to_string;
 use std::io;
@@ -169,27 +169,24 @@ impl<'a> Crate<'a> {
         debug!("Resolving active config for {0}", self);
         match &self.i18n_config {
             Some(config) => {
-                match &config.system {
-                    SystemConfig::Gettext(gettext_config) => {
-                        if gettext_config.extract_to_parent {
-                            debug!("Resolving active config for {0}, extract_to_parent is true, so attempting to obtain parent config.", self);
+                if let SystemConfig::Gettext(gettext_config) = &config.system {
+                    if gettext_config.extract_to_parent {
+                        debug!("Resolving active config for {0}, extract_to_parent is true, so attempting to obtain parent config.", self);
 
-                            if self.parent.is_none() {
-                                return Err(I18nConfigError::NoParentCrate(
-                                    self.to_string(),
-                                    "the gettext extract_to_parent option is active".to_string(),
-                                ));
-                            }
-
-                            return Ok(Some(self.parent_active_config()?.ok_or_else(|| {
-                                I18nConfigError::NoParentI18nConfig(
-                                    self.to_string(),
-                                    "the gettext extract_to_parent option is active".to_string(),
-                                )
-                            })?));
+                        if self.parent.is_none() {
+                            return Err(I18nConfigError::NoParentCrate(
+                                self.to_string(),
+                                "the gettext extract_to_parent option is active".to_string(),
+                            ));
                         }
+
+                        return Ok(Some(self.parent_active_config()?.ok_or_else(|| {
+                            I18nConfigError::NoParentI18nConfig(
+                                self.to_string(),
+                                "the gettext extract_to_parent option is active".to_string(),
+                            )
+                        })?));
                     }
-                    _ => {}
                 }
 
                 Ok(Some((self, &config)))

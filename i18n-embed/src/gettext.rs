@@ -1,7 +1,7 @@
+use crate::{domain_from_module, I18nEmbedDyn, I18nEmbedError, LanguageLoader};
 use std::sync::RwLock;
-use unic_langid::LanguageIdentifier;
-use crate::{I18nEmbedDyn, LanguageLoader, I18nEmbedError, domain_from_module};
 use tr;
+use unic_langid::LanguageIdentifier;
 
 pub use gettext;
 
@@ -48,7 +48,7 @@ impl LanguageLoader for GettextLanguageLoader {
 
         Ok(())
     }
-    
+
     fn load_fallback_locale(&self) {
         let catalog = gettext::Catalog::empty();
         tr::set_translator!(catalog);

@@ -1,5 +1,5 @@
-use std::path::PathBuf;
 use serde::Deserialize;
+use std::path::PathBuf;
 
 /// The data structure representing what is stored (and possible to
 /// store) within the `gettext` subsection of a `i18n.toml` file.

@@ -1,7 +1,7 @@
-use unic_langid::LanguageIdentifier;
 use crate::{domain_from_module, LanguageLoader};
 use fluent::FluentValue;
-use std::{sync::RwLock, collections::HashMap};
+use std::{collections::HashMap, sync::RwLock};
+use unic_langid::LanguageIdentifier;
 
 lazy_static::lazy_static! {
     static ref CURRENT_LANGUAGE: RwLock<LanguageIdentifier> = {
@@ -24,7 +24,11 @@ impl FluentLanguageLoader {
         }
     }
 
-    pub fn get_locale(locale: &LanguageIdentifier, key: &'static str, args: HashMap<String, FluentValue>) -> String {
+    pub fn get_locale(
+        locale: &LanguageIdentifier,
+        key: &'static str,
+        args: HashMap<String, FluentValue>,
+    ) -> String {
         todo!()
     }
 
@@ -32,7 +36,6 @@ impl FluentLanguageLoader {
         Self::get_locale(&self.current_language(), key, args)
     }
 }
-
 
 impl LanguageLoader for FluentLanguageLoader {
     /// The fallback locale for the module this loader is responsible
@@ -46,7 +49,10 @@ impl LanguageLoader for FluentLanguageLoader {
     }
     /// Load the language associated with [fallback_locale()](LanguageLoader#fallback_locale()).
     fn load_fallback_locale(&self) {
-        *(self.current_language.write().expect("Unable to write to current_language")) = self.fallback_locale().clone();
+        *(self
+            .current_language
+            .write()
+            .expect("Unable to write to current_language")) = self.fallback_locale().clone();
     }
     /// The language file name to use for this loader.
     fn language_file_name(&self) -> String {
