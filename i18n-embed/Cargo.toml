@@ -20,7 +20,7 @@ all-features = true
 maintenance = { status = "actively-developed" }
 
 [dependencies]
-i18n-embed-impl = { version = "0.4", path = "./i18n-embed-impl" }
+i18n-embed-impl = { version = "0.4", default-features = false, path = "./i18n-embed-impl" }
 unic-langid = "0.9"
 locale_config = { version = "0.3", optional = true }
 fluent-langneg = "0.13"
@@ -38,7 +38,7 @@ lazy_static = "1.4.0"
 [features]
 default = ["gettext-system"]
 
-gettext-system = ["tr", "tr/gettext", "gettext"]
+gettext-system = ["tr", "tr/gettext", "gettext", "i18n-embed-impl/gettext-system"]
 
 desktop-requester = ["locale_config"]
 web-sys-requester = ["web-sys"]
