@@ -17,9 +17,9 @@ pub enum PathType {
 impl Display for PathType {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            PathType::File => write!(f, "file"),
-            PathType::Directory => write!(f, "directory"),
-            PathType::Symlink => write!(f, "symbolic link"),
+            PathType::File => write!(f, "{}", tr!("file")),
+            PathType::Directory => write!(f, "{}", tr!("directory")),
+            PathType::Symlink => write!(f, "{}", tr!("symbolic link")),
         }
     }
 }

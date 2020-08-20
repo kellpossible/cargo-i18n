@@ -12,6 +12,7 @@ Changes for the support of the `fluent` localization system.
 
 + Renamed `src_locale` to `fallback_locale`.
 + Moved `target_locales` to within the `gettext` subsection.
++ Refactored `I18nConfig` to use a new `SystemConfig` enum instead of separate `gettext` field.
 
 ## v0.2.2
 

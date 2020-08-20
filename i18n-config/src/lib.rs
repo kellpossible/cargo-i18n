@@ -169,8 +169,8 @@ impl<'a> Crate<'a> {
         debug!("Resolving active config for {0}", self);
         match &self.i18n_config {
             Some(config) => {
-                match &config.gettext {
-                    Some(gettext_config) => {
+                match &config.system {
+                    SystemConfig::Gettext(gettext_config) => {
                         if gettext_config.extract_to_parent {
                             debug!("Resolving active config for {0}, extract_to_parent is true, so attempting to obtain parent config.", self);
 
@@ -189,7 +189,7 @@ impl<'a> Crate<'a> {
                             })?));
                         }
                     }
-                    None => {}
+                    _ => {}
                 }
 
                 Ok(Some((self, &config)))
@@ -216,9 +216,9 @@ impl<'a> Crate<'a> {
     /// Get the [GettextConfig](GettextConfig) in this crate, or
     /// return an error if there is none present.
     pub fn gettext_config_or_err(&self) -> Result<&GettextConfig, I18nConfigError> {
-        match &self.config_or_err()?.gettext {
-            Some(gettext_config) => Ok(gettext_config),
-            None => Err(I18nConfigError::OptionMissingInI18nConfig(
+        match &self.config_or_err()?.system {
+            SystemConfig::Gettext(gettext_config) => Ok(gettext_config),
+            _ => Err(I18nConfigError::OptionMissingInI18nConfig(
                 "gettext section".to_string(),
                 self.config_file_path.clone(),
             )),
@@ -342,6 +342,17 @@ impl<'a> Display for Crate<'a> {
     }
 }
 
+/// Which localization system is in use.
+#[derive(Deserialize, Debug, Clone)]
+pub enum SystemConfig {
+    /// The subcomponent of the config relating to gettext
+    #[serde(rename = "gettext")]
+    Gettext(GettextConfig),
+    /// The subcomponent of the config relating to fluent
+    #[serde(rename = "fluent")]
+    Fluent(FluentConfig),
+}
+
 /// The data structure representing what is stored (and possible to
 /// store) within a `i18n.toml` file.
 #[derive(Deserialize, Debug, Clone)]
@@ -352,12 +363,8 @@ pub struct I18nConfig {
     /// subcrate needs to have its own `i18n.toml`.
     #[serde(default)]
     pub subcrates: Vec<PathBuf>,
-    /// The subcomponent of this config relating to gettext, only
-    /// present if the gettext localization system will be used.
-    pub gettext: Option<GettextConfig>,
-    /// The subcomponent of this config relating to fluent, only 
-    /// present if the fluent localization system will be used.
-    pub fluent: Option<FluentConfig>,
+    #[serde(flatten)]
+    pub system: SystemConfig,
 }
 
 impl I18nConfig {
@@ -369,6 +376,7 @@ impl I18nConfig {
         let config: I18nConfig = toml::from_str(toml_str.as_ref()).map_err(|err| {
             I18nConfigError::CannotDeserializeToml(toml_path_final.to_path_buf(), err)
         })?;
+
         Ok(config)
     }
 }

@@ -232,6 +232,9 @@ mod util;
 #[cfg(feature = "fluent-system")]
 pub mod fluent;
 
+#[cfg(feature = "gettext-system")]
+pub mod gettext;
+
 pub use requester::*;
 pub use util::*;
 
@@ -254,9 +257,6 @@ use log::{debug, error, info};
 use rust_embed::RustEmbed;
 use thiserror::Error;
 
-#[cfg(feature = "gettext-system")]
-pub use ::{gettext, tr};
-
 pub use unic_langid;
 
 /// An error that occurs in this library.
@@ -270,7 +270,7 @@ pub enum I18nEmbedError {
     Multiple(Vec<I18nEmbedError>),
     #[cfg(feature = "gettext-system")]
     #[error(transparent)]
-    Gettext(#[from] gettext::Error),
+    Gettext(#[from] gettext::gettext::Error),
 }
 
 fn error_vec_to_string(errors: &[I18nEmbedError]) -> String {
@@ -351,12 +351,12 @@ pub fn select(
 
     let available_languages: Vec<unic_langid::LanguageIdentifier> =
         i18n_embed.available_languages_dyn(language_loader)?;
-    let default_language: unic_langid::LanguageIdentifier = language_loader.fallback_locale();
+    let default_language: &unic_langid::LanguageIdentifier = language_loader.fallback_locale();
 
     let supported_languages = negotiate_languages(
         &requested_languages,
         &available_languages,
-        Some(&default_language),
+        Some(default_language),
         NegotiationStrategy::Filtering,
     );
 
@@ -398,7 +398,7 @@ pub struct LanguageResource<'a> {
 pub trait LanguageLoader {
     /// The fallback locale for the module this loader is responsible
     /// for.
-    fn fallback_locale(&self) -> unic_langid::LanguageIdentifier;
+    fn fallback_locale(&self) -> &unic_langid::LanguageIdentifier;
     /// The domain for the translation that this loader is associated with.
     fn domain(&self) -> &'static str;
     /// Load the language associated with [fallback_locale()](LanguageLoader#fallback_locale()).

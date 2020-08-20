@@ -3,8 +3,8 @@ use clap::{crate_authors, crate_version, App, Arg, SubCommand};
 use i18n_build::run;
 use i18n_config::Crate;
 use i18n_embed::{
-    language_loader, DefaultLocalizer, DesktopLanguageRequester, I18nEmbed, I18nEmbedDyn,
-    LanguageLoader, LanguageRequester, Localizer,
+    gettext_language_loader, DefaultLocalizer, DesktopLanguageRequester, I18nEmbed, I18nEmbedDyn,
+    LanguageLoader, LanguageRequester, Localizer, gettext::GettextLanguageLoader,
 };
 use lazy_static::lazy_static;
 use rust_embed::RustEmbed;
@@ -17,10 +17,8 @@ use unic_langid::LanguageIdentifier;
 #[folder = "i18n/mo"]
 struct Translations;
 
-language_loader!(CargoI18nLanguageLoader);
-
 lazy_static! {
-    static ref LANGUAGE_LOADER: CargoI18nLanguageLoader = CargoI18nLanguageLoader::new();
+    static ref LANGUAGE_LOADER: GettextLanguageLoader = gettext_language_loader!();
 }
 
 static TRANSLATIONS: Translations = Translations {};

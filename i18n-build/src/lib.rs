@@ -22,13 +22,13 @@ pub mod util;
 pub mod watch;
 
 use anyhow::Result;
-use i18n_config::Crate;
+use i18n_config::{SystemConfig, Crate};
 
 #[cfg(feature = "localize")]
 use lazy_static::lazy_static;
 
 #[cfg(feature = "localize")]
-use i18n_embed::{language_loader, DefaultLocalizer, I18nEmbed};
+use i18n_embed::{gettext_language_loader, DefaultLocalizer, I18nEmbed, gettext::GettextLanguageLoader};
 
 #[cfg(feature = "localize")]
 use rust_embed::RustEmbed;
@@ -38,12 +38,10 @@ use rust_embed::RustEmbed;
 #[folder = "i18n/mo"]
 struct Translations;
 
-#[cfg(feature = "localize")]
-language_loader!(I18nBuildLanguageLoader);
 
 #[cfg(feature = "localize")]
 lazy_static! {
-    static ref LANGUAGE_LOADER: I18nBuildLanguageLoader = I18nBuildLanguageLoader::new();
+    static ref LANGUAGE_LOADER: GettextLanguageLoader = gettext_language_loader!();
 }
 
 #[cfg(feature = "localize")]
@@ -79,7 +77,7 @@ pub fn run(crt: Crate) -> Result<()> {
     let last_child_crt = parent;
 
     let i18n_config = last_child_crt.config_or_err()?;
-    if i18n_config.gettext.is_some() {
+    if let SystemConfig::Gettext(_) = i18n_config.system {
         gettext_impl::run(last_child_crt)?;
     }
 

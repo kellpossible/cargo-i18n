@@ -1,5 +1,5 @@
 use unic_langid::LanguageIdentifier;
-use crate::LanguageLoader;
+use crate::{domain_from_module, LanguageLoader};
 use fluent::FluentValue;
 use std::{sync::RwLock, collections::HashMap};
 
@@ -9,38 +9,48 @@ lazy_static::lazy_static! {
         RwLock::new(language)
     };
 }
+pub struct FluentLanguageLoader {
+    current_language: RwLock<LanguageIdentifier>,
+    module: &'static str,
+    fallback_locale: unic_langid::LanguageIdentifier,
+}
 
+impl FluentLanguageLoader {
+    pub fn new(domain: &'static str, fallback_locale: unic_langid::LanguageIdentifier) -> Self {
+        Self {
+            current_language: RwLock::new(fallback_locale.clone()),
+            module: domain,
+            fallback_locale,
+        }
+    }
 
-pub trait FluentLanguageLoader: LanguageLoader {
-    fn get_locale(locale: &LanguageIdentifier, key: &'static str, args: HashMap<String, FluentValue>) -> String {
+    pub fn get_locale(locale: &LanguageIdentifier, key: &'static str, args: HashMap<String, FluentValue>) -> String {
         todo!()
     }
-    fn get(&self, key: &'static str, args: HashMap<String, FluentValue>) -> String {
+
+    pub fn get(&self, key: &'static str, args: HashMap<String, FluentValue>) -> String {
         Self::get_locale(&self.current_language(), key, args)
     }
 }
 
-pub struct MyLanguageLoader {
-    current_language: RwLock<LanguageIdentifier>,
-}
 
-impl LanguageLoader for MyLanguageLoader {
+impl LanguageLoader for FluentLanguageLoader {
     /// The fallback locale for the module this loader is responsible
     /// for.
-    fn fallback_locale(&self) -> unic_langid::LanguageIdentifier {
-        "en-US".parse().unwrap()
+    fn fallback_locale(&self) -> &unic_langid::LanguageIdentifier {
+        &self.fallback_locale
     }
     /// The domain for the translation that this loader is associated with.
     fn domain(&self) -> &'static str {
-        "test"
+        domain_from_module(self.module)
     }
     /// Load the language associated with [fallback_locale()](LanguageLoader#fallback_locale()).
     fn load_fallback_locale(&self) {
-        *(self.current_language.write().expect("Unable to write to current_language")) = self.fallback_locale();
+        *(self.current_language.write().expect("Unable to write to current_language")) = self.fallback_locale().clone();
     }
     /// The language file name to use for this loader.
     fn language_file_name(&self) -> String {
-        todo!();
+        format!("{}.ftl", self.domain())
     }
     /// Get the language which is currently loaded for this loader.
     fn current_language(&self) -> unic_langid::LanguageIdentifier {
@@ -54,9 +64,4 @@ impl LanguageLoader for MyLanguageLoader {
     ) -> Result<(), crate::I18nEmbedError> {
         todo!()
     }
-}
-
-pub struct FluentString {
-    pub key: &'static str,
-    
 }
