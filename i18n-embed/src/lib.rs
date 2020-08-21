@@ -264,6 +264,8 @@ pub use unic_langid;
 pub enum I18nEmbedError {
     #[error("Error parsing a language identifier string \"{0}\"")]
     ErrorParsingLocale(String, #[source] unic_langid::LanguageIdentifierError),
+    #[error("The slice of requested languages cannot be empty.")]
+    RequestedLanguagesEmpty,
     #[error("The requested language \"{0}\" is not available.")]
     LanguageNotAvailable(String),
     #[error("There are multiple errors: {}", error_vec_to_string(.0))]
@@ -296,7 +298,7 @@ pub trait Localizer<'a> {
     fn select(
         &self,
         requested_languages: &[unic_langid::LanguageIdentifier],
-    ) -> Result<Option<unic_langid::LanguageIdentifier>, I18nEmbedError> {
+    ) -> Result<Vec<unic_langid::LanguageIdentifier>, I18nEmbedError> {
         select(
             self.language_loader(),
             self.i18n_embed(),
@@ -337,13 +339,13 @@ impl<'a> DefaultLocalizer<'a> {
 /// system by the the [LanguageRequester](LanguageRequester), and load
 /// it using the provided [LanguageLoader](LanguageLoader) from the
 /// languages embedded in [I18nEmbed](I18nEmbed) via
-/// [I18nEmbedDyn](I18nEmbedDyn). Returns the language that was
-/// negotiated to be selected.
+/// [I18nEmbedDyn](I18nEmbedDyn). Returns the available languages that
+/// were negotiated to be selected in order of preference.
 pub fn select(
     language_loader: &dyn LanguageLoader,
     i18n_embed: &dyn I18nEmbedDyn,
     requested_languages: &[unic_langid::LanguageIdentifier],
-) -> Result<Option<unic_langid::LanguageIdentifier>, I18nEmbedError> {
+) -> Result<Vec<unic_langid::LanguageIdentifier>, I18nEmbedError> {
     info!(
         "Selecting translations for domain \"{0}\"",
         language_loader.domain()
@@ -364,26 +366,11 @@ pub fn select(
     info!("Available Languages: {:?}", available_languages);
     info!("Supported Languages: {:?}", supported_languages);
 
-    match supported_languages.get(0) {
-        Some(language_id) => {
-            select_single(language_loader, i18n_embed, language_id)?;
-            Ok(Some((*language_id).clone()))
-        }
-        None => Ok(None),
+    if supported_languages.len() > 0 {
+        language_loader.load_languages(supported_languages.as_slice(), i18n_embed)?;
     }
-}
 
-/// Load a language with `language_id` using the provided
-/// [LanguageLoader](LanguageLoader) from the languages embedded in
-/// [I18nEmbed](I18nEmbed) via [I18nEmbedDyn](I18nEmbedDyn).
-pub fn select_single(
-    language_loader: &dyn LanguageLoader,
-    i18n_embed: &dyn I18nEmbedDyn,
-    language_id: &unic_langid::LanguageIdentifier,
-) -> Result<(), I18nEmbedError> {
-    language_loader.load_language(language_id, i18n_embed)?;
-    info!("Selected languge \"{0}\"", language_id.to_string());
-    Ok(())
+    Ok(supported_languages.into_iter().map(|l| l.clone()).collect())
 }
 
 pub struct LanguageResource<'a> {
@@ -401,17 +388,17 @@ pub trait LanguageLoader {
     fn fallback_locale(&self) -> &unic_langid::LanguageIdentifier;
     /// The domain for the translation that this loader is associated with.
     fn domain(&self) -> &'static str;
-    /// Load the language associated with [fallback_locale()](LanguageLoader#fallback_locale()).
-    fn load_fallback_locale(&self);
     /// The language file name to use for this loader's domain.
     fn language_file_name(&self) -> String;
     /// Get the language which is currently loaded for this loader.
     fn current_language(&self) -> unic_langid::LanguageIdentifier;
-    /// Set the current language to the language corresponding with the specified `language_id`,
-    /// using the resources packaged in the `i18n_embed`.
-    fn load_language(
+    /// Load the languages `language_ids` using the resources packaged
+    /// in the `i18n_embed` in order of fallback preference. This also
+    /// sets the `current_language()` to the first in the
+    /// `language_ids` slice.
+    fn load_languages(
         &self,
-        language_id: &unic_langid::LanguageIdentifier,
+        language_ids: &[&unic_langid::LanguageIdentifier],
         i18n_embed: &dyn I18nEmbedDyn,
     ) -> Result<(), I18nEmbedError>;
 }
@@ -497,7 +484,15 @@ pub trait I18nEmbed: RustEmbed {
             })
             .collect();
 
-        language_strings.insert(0, language_loader.fallback_locale().to_string());
+        let fallback_locale = language_loader.fallback_locale().to_string();
+
+        // For systems such as gettext which have a locale in the
+        // source code, this language will not be found in the
+        // localization assets, and should be the fallback_locale, so
+        // it needs to be added manually here.
+        if language_strings.iter().find(|language| language == &&fallback_locale).is_some() {
+            language_strings.insert(0, fallback_locale);
+        }
 
         language_strings
             .into_iter()

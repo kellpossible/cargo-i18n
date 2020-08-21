@@ -13,6 +13,10 @@ Changes for the support of the `fluent` localization system.
 + Renamed `src_locale` to `fallback_locale`.
 + Moved `target_locales` to within the `gettext` subsection.
 
+### Internal Changes
+
++ Now using `parking_lot::RwLock` for the language loaders, instead of the `RwLock` in the standard library.
+
 ## v0.2.2
 
 + Add support for `xtr` `add-location` option.

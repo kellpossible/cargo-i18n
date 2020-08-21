@@ -1,4 +1,4 @@
-use crate::{domain_from_module, LanguageLoader};
+use crate::{domain_from_module, LanguageLoader, I18nEmbedDyn, I18nEmbedError};
 use fluent::FluentValue;
 use std::collections::HashMap;
 use unic_langid::LanguageIdentifier;
@@ -48,26 +48,38 @@ impl LanguageLoader for FluentLanguageLoader {
     fn domain(&self) -> &'static str {
         domain_from_module(self.module)
     }
-    /// Load the language associated with [fallback_locale()](LanguageLoader#fallback_locale()).
-    fn load_fallback_locale(&self) {
-        *(self
-            .current_language
-            .write()) = self.fallback_locale().clone();
-    }
+
     /// The language file name to use for this loader.
     fn language_file_name(&self) -> String {
         format!("{}.ftl", self.domain())
     }
+
     /// Get the language which is currently loaded for this loader.
     fn current_language(&self) -> unic_langid::LanguageIdentifier {
         self.current_language.read().clone()
     }
 
-    fn load_language(
+    /// Load the languages `language_ids` using the resources packaged
+    /// in the `i18n_embed` in order of fallback preference. This also
+    /// sets the `current_language()` to the first in the
+    /// `language_ids` slice.
+    fn load_languages(
         &self,
-        language_id: &LanguageIdentifier,
-        i18n_embed: &dyn crate::I18nEmbedDyn,
-    ) -> Result<(), crate::I18nEmbedError> {
+        language_ids: &[&unic_langid::LanguageIdentifier],
+        i18n_embed: &dyn I18nEmbedDyn,
+    ) -> Result<(), I18nEmbedError> {
+        let language_id = *language_ids.get(0).ok_or(I18nEmbedError::RequestedLanguagesEmpty)?;
+
+        let language_id_string = language_id.to_string();
+
+        let file_path = format!("{}/{}", language_id_string, self.language_file_name());
+
+        log::debug!("Loading language file: {}", file_path);
+
+        let f = i18n_embed
+            .get_dyn(file_path.as_ref())
+            .ok_or(I18nEmbedError::LanguageNotAvailable(language_id_string))?;
+
         todo!()
     }
 }
