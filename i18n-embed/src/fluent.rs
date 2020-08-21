@@ -1,7 +1,8 @@
 use crate::{domain_from_module, LanguageLoader};
 use fluent::FluentValue;
-use std::{collections::HashMap, sync::RwLock};
+use std::collections::HashMap;
 use unic_langid::LanguageIdentifier;
+use parking_lot::RwLock;
 
 lazy_static::lazy_static! {
     static ref CURRENT_LANGUAGE: RwLock<LanguageIdentifier> = {
@@ -51,8 +52,7 @@ impl LanguageLoader for FluentLanguageLoader {
     fn load_fallback_locale(&self) {
         *(self
             .current_language
-            .write()
-            .expect("Unable to write to current_language")) = self.fallback_locale().clone();
+            .write()) = self.fallback_locale().clone();
     }
     /// The language file name to use for this loader.
     fn language_file_name(&self) -> String {
@@ -60,7 +60,7 @@ impl LanguageLoader for FluentLanguageLoader {
     }
     /// Get the language which is currently loaded for this loader.
     fn current_language(&self) -> unic_langid::LanguageIdentifier {
-        self.current_language.read().unwrap().clone()
+        self.current_language.read().clone()
     }
 
     fn load_language(

@@ -1,7 +1,7 @@
 use crate::{domain_from_module, I18nEmbedDyn, I18nEmbedError, LanguageLoader};
-use std::sync::RwLock;
 use tr;
 use unic_langid::LanguageIdentifier;
+use parking_lot::RwLock;
 
 pub use gettext;
 
@@ -44,7 +44,7 @@ impl LanguageLoader for GettextLanguageLoader {
 
         let catalog = gettext::Catalog::parse(&*f).expect("could not parse the catalog");
         tr::internal::set_translator(self.module, catalog);
-        *(self.current_language.write().unwrap()) = language_id.clone();
+        *(self.current_language.write()) = language_id.clone();
 
         Ok(())
     }
@@ -52,7 +52,7 @@ impl LanguageLoader for GettextLanguageLoader {
     fn load_fallback_locale(&self) {
         let catalog = gettext::Catalog::empty();
         tr::set_translator!(catalog);
-        *(self.current_language.write().unwrap()) = self.fallback_locale().clone();
+        *(self.current_language.write()) = self.fallback_locale().clone();
     }
 
     fn domain(&self) -> &'static str {
@@ -69,6 +69,6 @@ impl LanguageLoader for GettextLanguageLoader {
 
     /// Get the language which is currently loaded for this loader.
     fn current_language(&self) -> LanguageIdentifier {
-        self.current_language.read().unwrap().clone()
+        self.current_language.read().clone()
     }
 }
