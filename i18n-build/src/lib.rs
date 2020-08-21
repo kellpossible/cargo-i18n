@@ -22,7 +22,7 @@ pub mod util;
 pub mod watch;
 
 use anyhow::Result;
-use i18n_config::{Crate, SystemConfig};
+use i18n_config::Crate;
 
 #[cfg(feature = "localize")]
 use lazy_static::lazy_static;
@@ -78,7 +78,7 @@ pub fn run(crt: Crate) -> Result<()> {
     let last_child_crt = parent;
 
     let i18n_config = last_child_crt.config_or_err()?;
-    if let SystemConfig::Gettext(_) = i18n_config.system {
+    if i18n_config.gettext.is_some() {
         gettext_impl::run(last_child_crt)?;
     }
 
