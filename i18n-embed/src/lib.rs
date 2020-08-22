@@ -250,7 +250,7 @@ doctest!("../README.md");
 extern crate i18n_embed_impl;
 pub use i18n_embed_impl::*;
 
-use std::borrow::Cow;
+use std::{borrow::Cow, string::FromUtf8Error};
 
 use fluent_langneg::{negotiate_languages, NegotiationStrategy};
 use log::{debug, error, info};
@@ -264,10 +264,12 @@ pub use unic_langid;
 pub enum I18nEmbedError {
     #[error("Error parsing a language identifier string \"{0}\"")]
     ErrorParsingLocale(String, #[source] unic_langid::LanguageIdentifierError),
+    #[error("Error reading language file \"{0}\" as utf8.")]
+    ErrorParsingFileUtf8(String, #[source] FromUtf8Error),
     #[error("The slice of requested languages cannot be empty.")]
     RequestedLanguagesEmpty,
-    #[error("The requested language \"{0}\" is not available.")]
-    LanguageNotAvailable(String),
+    #[error("The language file \"{0}\" for the language \"{1}\" is not available.")]
+    LanguageNotAvailable(String, unic_langid::LanguageIdentifier),
     #[error("There are multiple errors: {}", error_vec_to_string(.0))]
     Multiple(Vec<I18nEmbedError>),
     #[cfg(feature = "gettext-system")]
@@ -366,11 +368,11 @@ pub fn select(
     info!("Available Languages: {:?}", available_languages);
     info!("Supported Languages: {:?}", supported_languages);
 
-    if supported_languages.len() > 0 {
+    if !supported_languages.is_empty() {
         language_loader.load_languages(supported_languages.as_slice(), i18n_embed)?;
     }
 
-    Ok(supported_languages.into_iter().map(|l| l.clone()).collect())
+    Ok(supported_languages.into_iter().cloned().collect())
 }
 
 pub struct LanguageResource<'a> {
@@ -390,12 +392,29 @@ pub trait LanguageLoader {
     fn domain(&self) -> &'static str;
     /// The language file name to use for this loader's domain.
     fn language_file_name(&self) -> String;
+    /// The computed path to the language file, and `Cow` of the file
+    /// itself if it exists.
+    fn language_file(
+        &self,
+        language_id: &unic_langid::LanguageIdentifier,
+        i18n_embed: &dyn I18nEmbedDyn,
+    ) -> (String, Option<Cow<[u8]>>) {
+        let language_id_string = language_id.to_string();
+        let file_path = format!("{}/{}", language_id_string, self.language_file_name());
+
+        log::debug!("Attempting to load language file: \"{}\"", &file_path);
+
+        let file = i18n_embed.get_dyn(file_path.as_ref());
+        (file_path, file)
+    }
     /// Get the language which is currently loaded for this loader.
     fn current_language(&self) -> unic_langid::LanguageIdentifier;
     /// Load the languages `language_ids` using the resources packaged
     /// in the `i18n_embed` in order of fallback preference. This also
-    /// sets the `current_language()` to the first in the
-    /// `language_ids` slice.
+    /// sets the [current_language()] to the first in the
+    /// `language_ids` slice. You can use [select()] to determine
+    /// which fallbacks are actually available for an arbitrary slice
+    /// of preferences.
     fn load_languages(
         &self,
         language_ids: &[&unic_langid::LanguageIdentifier],
@@ -490,7 +509,10 @@ pub trait I18nEmbed: RustEmbed {
         // source code, this language will not be found in the
         // localization assets, and should be the fallback_locale, so
         // it needs to be added manually here.
-        if language_strings.iter().find(|language| language == &&fallback_locale).is_some() {
+        if language_strings
+            .iter()
+            .any(|language| language == &fallback_locale)
+        {
             language_strings.insert(0, fallback_locale);
         }
 

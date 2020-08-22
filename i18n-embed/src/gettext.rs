@@ -1,7 +1,6 @@
 use crate::{domain_from_module, I18nEmbedDyn, I18nEmbedError, LanguageLoader};
-use tr;
-use unic_langid::LanguageIdentifier;
 use parking_lot::RwLock;
+use unic_langid::LanguageIdentifier;
 
 pub use gettext;
 
@@ -51,8 +50,10 @@ impl LanguageLoader for GettextLanguageLoader {
 
     /// Load the languages `language_ids` using the resources packaged
     /// in the `i18n_embed` in order of fallback preference. This also
-    /// sets the `current_language()` to the first in the
-    /// `language_ids` slice.
+    /// sets the [current_language()] to the first in the
+    /// `language_ids` slice. You can use [select()] to determine
+    /// which fallbacks are actually available for an arbitrary slice
+    /// of preferences.
     ///
     /// **Note:** Gettext doesn't support loading multiple languages
     /// as multiple fallbacks. We only load the first of the requested
@@ -62,24 +63,30 @@ impl LanguageLoader for GettextLanguageLoader {
         language_ids: &[&unic_langid::LanguageIdentifier],
         i18n_embed: &dyn I18nEmbedDyn,
     ) -> Result<(), I18nEmbedError> {
-        let language_id = *language_ids.get(0).ok_or(I18nEmbedError::RequestedLanguagesEmpty)?;
+        let language_id = *language_ids
+            .get(0)
+            .ok_or(I18nEmbedError::RequestedLanguagesEmpty)?;
 
         if language_id == self.fallback_locale() {
             self.load_src_locale();
             return Ok(());
         }
 
-        let language_id_string = language_id.to_string();
+        let (_path, file) = match self.language_file(&language_id, i18n_embed) {
+            (path, Some(f)) => (path, f),
+            (path, None) => {
+                let fallback_locale = self.fallback_locale();
+                let file = self
+                    .language_file(fallback_locale, i18n_embed)
+                    .1
+                    .ok_or_else(|| {
+                        I18nEmbedError::LanguageNotAvailable(path.clone(), fallback_locale.clone())
+                    })?;
+                (path, file)
+            }
+        };
 
-        let file_path = format!("{}/{}", language_id_string, self.language_file_name());
-
-        log::debug!("Loading language file: {}", file_path);
-
-        let f = i18n_embed
-            .get_dyn(file_path.as_ref())
-            .ok_or(I18nEmbedError::LanguageNotAvailable(language_id_string))?;
-
-        let catalog = gettext::Catalog::parse(&*f).expect("could not parse the catalog");
+        let catalog = gettext::Catalog::parse(&*file).expect("could not parse the catalog");
         tr::internal::set_translator(self.module, catalog);
         *(self.current_language.write()) = language_id.clone();
 

@@ -31,17 +31,21 @@ tr = { version = "0.1", default-features = false, optional = true }
 log = "0.4"
 thiserror = "1"
 fluent = { version = "0.12", optional = true }
+fluent-syntax = { version = "0.9", optional = true }
 lazy_static = "1.4"
 parking_lot = { version = "0.11", optional = true }
 
 [dev-dependencies]
 doc-comment = "0.3"
+pretty_assertions = "0.6"
+env_logger = "0.7"
+maplit = "1.0"
 
 [features]
 default = ["gettext-system"]
 
 gettext-system = ["tr", "tr/gettext", "gettext", "parking_lot"]
-fluent-system = ["fluent", "parking_lot"]
+fluent-system = ["fluent", "fluent-syntax", "parking_lot"]
 
 desktop-requester = ["locale_config"]
 web-sys-requester = ["web-sys"]
