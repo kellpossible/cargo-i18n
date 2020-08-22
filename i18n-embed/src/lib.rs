@@ -355,7 +355,7 @@ pub fn select(
 
     let available_languages: Vec<unic_langid::LanguageIdentifier> =
         i18n_embed.available_languages_dyn(language_loader)?;
-    let default_language: &unic_langid::LanguageIdentifier = language_loader.fallback_locale();
+    let default_language: &unic_langid::LanguageIdentifier = language_loader.fallback_language();
 
     let supported_languages = negotiate_languages(
         &requested_languages,
@@ -385,9 +385,9 @@ pub struct LanguageResource<'a> {
 /// trait is designed such that the loader could be swapped during
 /// runtime, or contain state if required.
 pub trait LanguageLoader {
-    /// The fallback locale for the module this loader is responsible
+    /// The fallback language for the module this loader is responsible
     /// for.
-    fn fallback_locale(&self) -> &unic_langid::LanguageIdentifier;
+    fn fallback_language(&self) -> &unic_langid::LanguageIdentifier;
     /// The domain for the translation that this loader is associated with.
     fn domain(&self) -> &'static str;
     /// The language file name to use for this loader's domain.
@@ -503,7 +503,7 @@ pub trait I18nEmbed: RustEmbed {
             })
             .collect();
 
-        let fallback_locale = language_loader.fallback_locale().to_string();
+        let fallback_locale = language_loader.fallback_language().to_string();
 
         // For systems such as gettext which have a locale in the
         // source code, this language will not be found in the
@@ -524,5 +524,16 @@ pub trait I18nEmbed: RustEmbed {
                     .map_err(|err| I18nEmbedError::ErrorParsingLocale(language, err))
             })
             .collect()
+    }
+}
+
+/// Populate gettext database with strings for use with tests.
+#[cfg(all(test, feature = "gettext-system"))]
+mod gettext_test_string {
+    fn _test_strings() {
+        tr::tr!("only en");
+        tr::tr!("only ru");
+        tr::tr!("only es");
+        tr::tr!("only fr");
     }
 }

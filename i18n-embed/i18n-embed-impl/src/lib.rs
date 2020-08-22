@@ -47,18 +47,19 @@ pub fn gettext_language_loader(_: TokenStream) -> TokenStream {
         ));
     }
 
-    let config = I18nConfig::from_file(&config_file_path).unwrap_or_else(|_| {
+    let config = I18nConfig::from_file(&config_file_path).unwrap_or_else(|err| {
         panic!(
-            "gettext_language_loader!() had a problem reading config file '{0}'",
-            config_file_path.to_string_lossy()
+            "gettext_language_loader!() had a problem reading config file '{0}': {1}",
+            config_file_path.to_string_lossy(),
+            err
         )
     });
-    let fallback_locale = &config.fallback_locale;
+    let fallback_language = &config.fallback_language;
 
     let gen = quote! {
         i18n_embed::gettext::GettextLanguageLoader::new(
             module_path!(),
-            #fallback_locale.parse().unwrap(),
+            #fallback_language.parse().unwrap(),
         )
     };
 

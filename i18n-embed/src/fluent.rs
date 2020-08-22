@@ -41,20 +41,20 @@ struct LocaleConfig {
 pub struct FluentLanguageLoader {
     locale_config: RwLock<LocaleConfig>,
     module: &'static str,
-    fallback_locale: unic_langid::LanguageIdentifier,
+    fallback_language: unic_langid::LanguageIdentifier,
 }
 
 impl FluentLanguageLoader {
-    pub fn new(domain: &'static str, fallback_locale: unic_langid::LanguageIdentifier) -> Self {
+    pub fn new(domain: &'static str, fallback_language: unic_langid::LanguageIdentifier) -> Self {
         let config = LocaleConfig {
-            current_language: fallback_locale.clone(),
+            current_language: fallback_language.clone(),
             locale_bundles: Vec::new(),
         };
 
         Self {
             locale_config: RwLock::new(config),
             module: domain,
-            fallback_locale,
+            fallback_language,
         }
     }
 
@@ -63,14 +63,14 @@ impl FluentLanguageLoader {
     }
 
     /// A non-generic version of [FluentLanguageLoader::get_args()].
-    pub fn get_args_concrete<'a>(&self, id: &'static str, args: HashMap<&'a str, FluentValue<'a>>) -> String {
+    pub fn get_args_concrete<'a>(
+        &self,
+        id: &'static str,
+        args: HashMap<&'a str, FluentValue<'a>>,
+    ) -> String {
         let config_lock = self.locale_config.read();
 
-        let args = if args.is_empty() {
-            None
-        } else {
-            Some(&args)
-        };
+        let args = if args.is_empty() { None } else { Some(&args) };
 
         config_lock.locale_bundles.iter().filter_map(|locale_bundle| {
             locale_bundle
@@ -135,10 +135,10 @@ impl FluentLanguageLoader {
 }
 
 impl LanguageLoader for FluentLanguageLoader {
-    /// The fallback locale for the module this loader is responsible
+    /// The fallback language for the module this loader is responsible
     /// for.
-    fn fallback_locale(&self) -> &unic_langid::LanguageIdentifier {
-        &self.fallback_locale
+    fn fallback_language(&self) -> &unic_langid::LanguageIdentifier {
+        &self.fallback_language
     }
     /// The domain for the translation that this loader is associated with.
     fn domain(&self) -> &'static str {
@@ -173,8 +173,8 @@ impl LanguageLoader for FluentLanguageLoader {
         // The languages to load
         let mut load_language_ids = language_ids.to_vec();
 
-        if !load_language_ids.contains(&&self.fallback_locale) {
-            load_language_ids.push(&self.fallback_locale);
+        if !load_language_ids.contains(&&self.fallback_language) {
+            load_language_ids.push(&self.fallback_language);
         }
 
         let mut locale_bundles = Vec::with_capacity(language_ids.len());
@@ -205,7 +205,7 @@ impl LanguageLoader for FluentLanguageLoader {
                 locale_bundles.push(locale_bundle);
             } else {
                 log::debug!(target:"i18n_embed::fluent", "Unable to find language file: \"{0}\" for language: \"{1}\"", path, locale);
-                if locale == &self.fallback_locale {
+                if locale == &self.fallback_language {
                     return Err(I18nEmbedError::LanguageNotAvailable(
                         path.clone(),
                         locale.clone(),

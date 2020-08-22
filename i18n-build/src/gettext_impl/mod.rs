@@ -238,7 +238,7 @@ pub fn run_msginit(crt: &Crate, pot_dir: &Path, po_dir: &Path) -> Result<()> {
     let msginit_command_name = "msginit";
 
     let gettext_config = crt.gettext_config_or_err()?;
-    let target_locales = &gettext_config.target_locales;
+    let target_locales = &gettext_config.target_languages;
 
     for locale in target_locales {
         let po_locale_dir = po_dir.join(locale.clone());
@@ -296,7 +296,7 @@ pub fn run_msgmerge(crt: &Crate, pot_dir: &Path, po_dir: &Path) -> Result<()> {
     let msgmerge_command_name = "msgmerge";
 
     let gettext_config = crt.gettext_config_or_err()?;
-    let target_locales = &gettext_config.target_locales;
+    let target_locales = &gettext_config.target_languages;
 
     for locale in target_locales {
         let po_file_path = po_dir
@@ -339,7 +339,7 @@ pub fn run_msgfmt(crt: &Crate, po_dir: &Path, mo_dir: &Path) -> Result<()> {
     let msgfmt_command_name = "msgfmt";
 
     let gettext_config = crt.gettext_config_or_err()?;
-    let target_locales = &gettext_config.target_locales;
+    let target_locales = &gettext_config.target_languages;
 
     for locale in target_locales {
         let po_file_path = po_dir

@@ -10,8 +10,8 @@ Changes for the support of the `fluent` localization system.
 
 ### Breaking Changes
 
-+ Renamed `src_locale` to `fallback_locale`.
-+ Moved `target_locales` to within the `gettext` subsection.
++ Renamed `src_locale` to `fallback_language`.
++ Moved `target_locales` to within the `gettext` subsection, and renamed it to `target_languages`.
 
 ### Internal Changes
 

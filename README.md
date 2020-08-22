@@ -149,10 +149,11 @@ For a complete example usage, including localizing sub-crates as libraries, you 
 Available configuration options for `i18n.toml`:
 
 ```toml
-# (Required) The locale identifier of the language used in the source
-# code for gettext system, and the primary fallback locale (for which
-# all strings must be present) when using the fluent system.
-fallback_locale = "en-US"
+# (Required) The language identifier of the language used in the
+# source code for gettext system, and the primary fallback language
+# (for which all strings must be present) when using the fluent
+# system.
+fallback_language = "en-US"
 
 # (Optional) Specify which subcrates to perform localization within. If the
 # subcrate has its own `i18n.toml` then, it will have its localization
@@ -162,8 +163,8 @@ subcrates = ["subcrate1", "subcrate2"]
 
 # (Optional) Use the gettext localization system.
 [gettext]
-# (Required) The locales that the software will be translated into.
-target_locales = ["es", "ru", "cz"]
+# (Required) The languages that the software will be translated into.
+target_languages = ["es", "ru", "cz"]
 
 # (Required) Path to the output directory, relative to `i18n.toml` of the crate
 # being localized.

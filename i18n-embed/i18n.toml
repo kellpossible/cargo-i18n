@@ -1,12 +1,19 @@
 # This is included only to allow the code examples in this crate to
 # compile.
 
-# (Required) The locale identifier of the language used in the source
-# code for gettext system, and the primary fallback locale (for which
-# all strings must be present) when using the fluent system.
-fallback_locale = "en"
+# (Required) The language identifier of the language used in the
+# source code for gettext system, and the primary fallback language
+# (for which all strings must be present) when using the fluent
+# system.
+fallback_language = "en"
 
 # (Optional) Use the gettext localization system.
 [gettext]
-# (Required) The locales that the software will be translated into.
-target_locales = ["es", "ru", "fr"]
+# (Required) The languages that the software will be translated into.
+target_languages = ["es", "ru", "fr"]
+
+# (Required) Path to the output directory, relative to `i18n.toml` of
+# the crate being localized.
+output_dir = "i18n"
+
+msgid_bugs_address = "l.frisken@gmail.com"

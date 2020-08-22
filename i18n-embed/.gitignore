@@ -2,3 +2,4 @@
 **/*.rs.bk
 .vscode
 Cargo.lock
+i18n/pot

@@ -1,5 +1,10 @@
+fn setup() {
+    let _ = env_logger::try_init();
+}
+
 #[cfg(feature = "fluent-system")]
 mod fluent {
+    use super::setup;
     use i18n_embed::{fluent::FluentLanguageLoader, I18nEmbed, LanguageLoader};
     use rust_embed::RustEmbed;
     use unic_langid::LanguageIdentifier;
@@ -7,10 +12,6 @@ mod fluent {
     #[derive(RustEmbed, I18nEmbed)]
     #[folder = "i18n/ftl"]
     struct Localizations;
-
-    fn setup() {
-        let _ = env_logger::try_init();
-    }
 
     #[test]
     fn hello_world_en_us() {
@@ -62,9 +63,61 @@ mod fluent {
         let args = maplit::hashmap! {
             "userName" => "Tanya"
         };
-        pretty_assertions::assert_eq!("Привет \u{2068}Tanya\u{2069}!", loader.get_args("only-ru-args", args));
+        pretty_assertions::assert_eq!(
+            "Привет \u{2068}Tanya\u{2069}!",
+            loader.get_args("only-ru-args", args)
+        );
     }
 }
 
 #[cfg(feature = "gettext-system")]
-mod gettext {}
+mod gettext {
+    use super::setup;
+    use i18n_embed::{gettext::GettextLanguageLoader, I18nEmbed, LanguageLoader};
+    use rust_embed::RustEmbed;
+    use tr::internal::with_translator;
+    use unic_langid::LanguageIdentifier;
+
+    /// Custom version of the tr! macro function, without the runtime
+    /// formatting, with the module set to `i18n_embed` where the
+    /// strings were originally extracted from.
+    fn tr(msgid: &str) -> String {
+        with_translator("i18n_embed", |t| {
+            t.translate(msgid, None).to_string()
+        })
+            
+    }
+
+    #[derive(RustEmbed, I18nEmbed)]
+    #[folder = "i18n/mo"]
+    struct Localizations;
+
+    lazy_static::lazy_static! {
+        static ref LOADER: GettextLanguageLoader = GettextLanguageLoader::new("i18n_embed", "en".parse().unwrap());
+    }
+
+    #[test]
+    fn only_en() {
+        setup();
+
+        let en: LanguageIdentifier = "en".parse().unwrap();
+
+        LOADER.load_languages(&[&en], &Localizations).unwrap();
+
+        pretty_assertions::assert_eq!("only en", tr("only en"));
+        pretty_assertions::assert_eq!("only ru", tr("only ru"));
+    }
+
+    #[test]
+    fn fallback_ru_to_en() {
+        setup();
+
+        let ru: LanguageIdentifier = "ru".parse().unwrap();
+
+        assert!(Localizations::get("ru/i18n_embed.mo").is_some());
+        LOADER.load_languages(&[&ru], &Localizations).unwrap();
+
+        pretty_assertions::assert_eq!("только ру", tr("only ru"));
+        pretty_assertions::assert_eq!("only en", tr("only en"));
+    }
+}

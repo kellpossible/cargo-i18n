@@ -24,13 +24,13 @@ use thiserror::Error;
 pub enum I18nConfigError {
     #[error("The specified path is not a crate because there is no Cargo.toml present.")]
     NotACrate(PathBuf),
-    #[error("Cannot read file \"{0:?}\" because {1}.")]
+    #[error("Cannot read file {0:?} because {1}.")]
     CannotReadFile(PathBuf, #[source] io::Error),
-    #[error("Cannot parse Cargo configuration file \"{0:?}\" because {1}.")]
+    #[error("Cannot parse Cargo configuration file {0:?} because {1}.")]
     CannotParseCargoToml(PathBuf, String),
-    #[error("Cannot deserialize toml file \"{0:?}\" because {1}.")]
+    #[error("Cannot deserialize toml file {0:?} because {1}.")]
     CannotDeserializeToml(PathBuf, toml::de::Error),
-    #[error("Cannot parse i18n configuration file \"{0:?}\" because {1}.")]
+    #[error("Cannot parse i18n configuration file {0:?} because {1}.")]
     CannotPaseI18nToml(PathBuf, String),
     #[error("There is no i18n configuration file present for the crate {0}.")]
     NoI18nConfig(String),
@@ -343,8 +343,11 @@ impl<'a> Display for Crate<'a> {
 /// store) within a `i18n.toml` file.
 #[derive(Deserialize, Debug, Clone)]
 pub struct I18nConfig {
-    /// The locale/language identifier of the language used in the source code.
-    pub fallback_locale: String,
+    /// The locale identifier of the language used in the source code
+    /// for `gettext` system, and the primary fallback language (for
+    /// which all strings must be present) when using the `fluent`
+    /// system.
+    pub fallback_language: String,
     /// Specify which subcrates to perform localization within. The
     /// subcrate needs to have its own `i18n.toml`.
     #[serde(default)]

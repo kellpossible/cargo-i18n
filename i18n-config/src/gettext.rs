@@ -5,8 +5,8 @@ use std::path::PathBuf;
 /// store) within the `gettext` subsection of a `i18n.toml` file.
 #[derive(Deserialize, Debug, Clone)]
 pub struct GettextConfig {
-    /// The locales that the software will be translated into.
-    pub target_locales: Vec<String>,
+    /// The languages that the software will be translated into.
+    pub target_languages: Vec<String>,
     /// Path to the output directory, relative to `i18n.toml` of the
     /// crate being localized.
     pub output_dir: PathBuf,

@@ -7,30 +7,30 @@ pub use gettext;
 pub struct GettextLanguageLoader {
     current_language: RwLock<LanguageIdentifier>,
     module: &'static str,
-    fallback_locale: LanguageIdentifier,
+    fallback_language: LanguageIdentifier,
 }
 
 impl GettextLanguageLoader {
-    pub fn new(module: &'static str, fallback_locale: unic_langid::LanguageIdentifier) -> Self {
+    pub fn new(module: &'static str, fallback_language: unic_langid::LanguageIdentifier) -> Self {
         Self {
-            current_language: RwLock::new(fallback_locale.clone()),
+            current_language: RwLock::new(fallback_language.clone()),
             module,
-            fallback_locale,
+            fallback_language: fallback_language,
         }
     }
 
-    fn load_src_locale(&self) {
+    fn load_src_language(&self) {
         let catalog = gettext::Catalog::empty();
         tr::set_translator!(catalog);
-        *(self.current_language.write()) = self.fallback_locale().clone();
+        *(self.current_language.write()) = self.fallback_language().clone();
     }
 }
 
 impl LanguageLoader for GettextLanguageLoader {
-    /// The fallback locale for the module this loader is responsible
+    /// The fallback language for the module this loader is responsible
     /// for.
-    fn fallback_locale(&self) -> &LanguageIdentifier {
-        &self.fallback_locale
+    fn fallback_language(&self) -> &LanguageIdentifier {
+        &self.fallback_language
     }
 
     /// The domain for the translation that this loader is associated with.
@@ -67,22 +67,17 @@ impl LanguageLoader for GettextLanguageLoader {
             .get(0)
             .ok_or(I18nEmbedError::RequestedLanguagesEmpty)?;
 
-        if language_id == self.fallback_locale() {
-            self.load_src_locale();
+        if language_id == self.fallback_language() {
+            self.load_src_language();
             return Ok(());
         }
 
         let (_path, file) = match self.language_file(&language_id, i18n_embed) {
             (path, Some(f)) => (path, f),
             (path, None) => {
-                let fallback_locale = self.fallback_locale();
-                let file = self
-                    .language_file(fallback_locale, i18n_embed)
-                    .1
-                    .ok_or_else(|| {
-                        I18nEmbedError::LanguageNotAvailable(path.clone(), fallback_locale.clone())
-                    })?;
-                (path, file)
+                log::error!(target:"i18n_embed::gettext", "{} Setting current_language to fallback locale: \"{}\".", I18nEmbedError::LanguageNotAvailable(path.clone(), language_id.clone()), self.fallback_language);
+                self.load_src_language();
+                return Ok(());
             }
         };
 
