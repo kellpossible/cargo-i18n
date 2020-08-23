@@ -37,7 +37,7 @@
 //! + `desktop-requester`
 //!   + Enables a convenience implementation of
 //!     [LanguageRequester](LanguageRequester) trait called
-//!     `DesktopLanguageRequester for the desktop platform (windows, 
+//!     `DesktopLanguageRequester for the desktop platform (windows,
 //!     mac, linux), which makes use of the
 //!     [locale_config](https://crates.io/crates/locale_config) crate
 //!     for resolving the current system locale.
