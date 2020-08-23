@@ -1,5 +1,11 @@
 # Changelog for `i18n-build`
 
+## v0.5.1
+
+## Bug Fixes
+
++ Fix broken build by enabling `gettext-system` for `i18n-embed` dependency.
+
 ## v0.5.0
 
 Changes for the support of the `fluent` localization system.
