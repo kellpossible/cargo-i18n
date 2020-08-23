@@ -1,5 +1,9 @@
 # Changelog for `i18n-embed`
 
+## v0.7.2
+
++ Fix broken documentation links when compiling with no features.
+
 ## v0.7.1
 
 + Fix broken documentation links.
