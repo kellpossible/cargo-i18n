@@ -23,12 +23,15 @@ serde_derive = "1"
 i18n-config = { version = "0.3", path = "../../i18n-config" }
 proc-macro2 = "1.0"
 
+[dev-dependencies]
+rust-embed = "5.6"
+
 [dependencies.syn]
 version = "1.0"
 default-features = false
 features = ["derive", "proc-macro", "parsing", "printing", "extra-traits",]
 
 [features]
-default = ["gettext-system"]
+default = []
 gettext-system = []
 fluent-system = []

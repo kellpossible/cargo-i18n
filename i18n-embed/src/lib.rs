@@ -24,6 +24,17 @@
 //!
 //! The `i18n-embed` crate has the following optional Cargo features:
 //!
+//! + `fluent-system`
+//!   + Enable support for the
+//!     [fluent](https://www.projectfluent.org/) localization system
+//!     via the [FluentLanguageLoader](fluent::FluentLanguageLoader).
+//! + `gettext-system`
+//!   + Enable support for the
+//!     [gettext](https://www.gnu.org/software/gettext/) localization
+//!     system using the [tr macro](https://docs.rs/tr/0.1.3/tr/) and
+//!     the [gettext crate](https://docs.rs/gettext/0.4.0/gettext/)
+//!     via the
+//!     [GettextLanguageLoader](gettext::GettextLanguageLoader).
 //! + `desktop-requester`
 //!   + Enables a convenience implementation of
 //!     [LanguageRequester](LanguageRequester) trait called
@@ -41,25 +52,151 @@
 //!
 //! # Examples
 //!
-//! ### Simple
+//! ## Fluent Localization System
 //!
-//! The following is an example for how to derive the required traits
-//! on structs, and localize your binary using this library when it
-//! first runs:
+//! The following is a simple example for how to localize your binary
+//! using this library when it first runs, using the `fluent`
+//! localization system, directly instantiating the
+//! `FluentLanguageLoader`.
+//!
+//! First you'll need the following features enabled in your
+//! `Cargo.toml`:
+//!
+//! ```toml
+//! [dependencies]
+//! i18n-embed = { version = "0.7", features = ["fluent-system", "desktop-requester"]}
+//! rust-embed = "5"
+//! unic-langid = "0.9"
+//! ```
+//!
+//! Next, you want to create your localization resources, per language
+//! fluent files. `lang_code` needs to conform to the [Unicode
+//! Language
+//! Identifier](https://unicode.org/reports/tr35/tr35.html#Unicode_language_identifier)
+//! standard, and will be parsed via the [unic_langid
+//! crate](https://docs.rs/unic-langid/0.9.0/unic_langid/):
+//!
+//! ```txt
+//! my_crate/
+//!   Cargo.toml
+//!   i18n.toml
+//!   src/
+//!   i18n/
+//!     lang_code/
+//!       my_crate.ftl
+//! ```
+//!
+//! Then in your Rust code:
 //!
 //! ```
-//! use i18n_embed::{I18nEmbed, language_loader, DesktopLanguageRequester};
+//! use i18n_embed::{I18nEmbed, DesktopLanguageRequester, fluent::{
+//!     FluentLanguageLoader    
+//! }};
 //! use rust_embed::RustEmbed;
+//! use unic_langid::LanguageIdentifier;
 //!
 //! #[derive(RustEmbed, I18nEmbed)]
-//! #[folder = "i18n/mo"] // path to the compiled localization resources
+//! #[folder = "i18n"] // path to the compiled localization resources
 //! struct Translations;
 //!
-//! language_loader!(MyLanguageLoader);
 //!
 //! fn main() {
 //!     let translations = Translations {};
-//!     let language_loader = MyLanguageLoader::new();
+//!
+//!     let fallback_language: LanguageIdentifier = "en".parse().unwrap();
+//!     let language_loader = FluentLanguageLoader::new("my_crate", fallback_language);
+//!
+//!     // Use the language requester for the desktop platform (linux, windows, mac).
+//!     // There is also a requester available for the web-sys WASM platform called
+//!     // WebLanguageRequester, or you can implement your own.
+//!     let requested_languages = DesktopLanguageRequester::requested_languages();
+//!
+//!     i18n_embed::select(&language_loader, &translations, &requested_languages);
+//!
+//!     // continue on with your application
+//! }
+//! ```
+//!
+//! You can also make use of the `i18n.toml` configuration file, and
+//! the [cargo i18n](https://crates.io/crates/cargo-i18n) tool to
+//! integrate with a code-base using `gettext`, and in the future to
+//! perform compile time checks, and use the
+//! [fluent_language_loader!()](fluent::fluent_language_loader) macro
+//! to pull the configuration at compile time to create the
+//! [FluentLanguageLoader](fluent::FluentLanguageLoader).
+//!
+//! ## Gettext Localization System
+//!
+//! The following is a simple example for how to localize your binary
+//! using this library when it first runs, using the `gettext`
+//! localization system. Please note that the `gettext` localization
+//! system is technically inferior to `fluent` [in a number of
+//! ways](https://github.com/projectfluent/fluent/wiki/Fluent-vs-gettext),
+//! however there are always legacy reasons, and the
+//! developer/translator ecosystem around `gettext` is mature.
+//!
+//! The [GettextLanguageLoader](gettext::GettextLanguageLoader) in
+//! this example is instantiated using the
+//! [gettext_language_loader!()](gettext::gettext_language_loader)
+//! macro, which automatically determines the correct module for the
+//! crate, and pulls settings in from the `i18n.toml` configuration
+//! file.
+//!
+//! First you'll need the following features enabled in your
+//! `Cargo.toml`:
+//!
+//! ```toml
+//! [dependencies]
+//! i18n-embed = { version = "0.7", features = ["gettext-system", "desktop-requester"]}
+//! rust-embed = "5"
+//! ```
+//!
+//! Set up a minimal `i18n.toml` in your crate root to use with [cargo
+//! i18n](https://crates.io/crates/cargo-i18n):
+//!
+//! ```toml
+//! # (Required) The language identifier of the language used in the
+//! # source code for gettext system, and the primary fallback language
+//! # (for which all strings must be present) when using the fluent
+//! # system.
+//! fallback_language = "en"
+//!
+//! # Use the gettext localization system.
+//! [gettext]
+//! # (Required) The languages that the software will be translated into.
+//! target_languages = ["es"]
+//!
+//! # (Required) Path to the output directory, relative to `i18n.toml` of
+//! # the crate being localized.
+//! output_dir = "i18n"
+//! ```
+//!
+//! Install and run [cargo i18n](https://crates.io/crates/cargo-i18n)
+//! for your crate to generate the language specific `po` and `mo`
+//! files, ready to be translated. It is recommended to add the
+//! `i18n/pot` folder to your repository gitignore.
+//!
+//! Then in your Rust code:
+//!
+//! ```
+//! use i18n_embed::{I18nEmbed, DesktopLanguageRequester, gettext::{
+//!     gettext_language_loader
+//! }};
+//! use rust_embed::RustEmbed;
+//!
+//! #[derive(RustEmbed, I18nEmbed)]
+//! // path to the compiled localization resources,
+//! // as determined by i18n.toml settings
+//! #[folder = "i18n/mo"]
+//! struct Translations;
+//!
+//!
+//! fn main() {
+//!     let translations = Translations {};
+//!
+//!     // Create the GettextLanguageLoader, pulling in settings from `i18n.toml`
+//!     // at compile time using the macro.
+//!     let language_loader = gettext_language_loader!();
 //!
 //!     // Use the language requester for the desktop platform (linux, windows, mac).
 //!     // There is also a requester available for the web-sys WASM platform called
@@ -82,26 +219,32 @@
 //! ```
 //! use std::rc::Rc;
 //! use i18n_embed::{
-//!     I18nEmbed, language_loader, DesktopLanguageRequester,
-//!     LanguageRequester, DefaultLocalizer, Localizer};
-//! use rust_embed::RustEmbed;
-//! use lazy_static::lazy_static;
+//!     I18nEmbed, DesktopLanguageRequester, LanguageRequester,
+//!     DefaultLocalizer, Localizer, fluent::{
+//!         fluent_language_loader, FluentLanguageLoader     
+//!}};
+//! use rust_embed::RustEmbed; use lazy_static::lazy_static;
+//! use unic_langid::LanguageIdentifier;
 //!
 //! #[derive(RustEmbed, I18nEmbed)]
-//! #[folder = "i18n/mo"] // path to the compiled localization resources
+//! #[folder = "i18n/ftl"] // path to localization resources
 //! struct Translations;
+//!
 //! const TRANSLATIONS: Translations = Translations {};
 //!
-//! language_loader!(MyLanguageLoader);
-//!
 //! lazy_static! {
-//!     static ref LANGUAGE_LOADER: MyLanguageLoader = MyLanguageLoader::new();
+//!     static ref LANGUAGE_LOADER: FluentLanguageLoader = {
+//!         // Usually you could use the fluent_language_loader!() macro
+//!         // to pull values from i18n.toml configuration and current
+//!         // module here at compile time, but instantiating the loader
+//!         // manually here instead so the example compiles.
+//!         let fallback: LanguageIdentifier = "en-US".parse().unwrap();
+//!         FluentLanguageLoader::new("test", fallback)
+//!     };
 //! }
 //!
-//! fn main() {
-//!     let localizer = DefaultLocalizer::new(
-//!         &*LANGUAGE_LOADER,
-//!         &TRANSLATIONS,
+//! fn main() {let localizer =
+//!     DefaultLocalizer::new(&*LANGUAGE_LOADER, &TRANSLATIONS,
 //!     );
 //!
 //!     let localizer_rc: Rc<dyn Localizer> = Rc::new(localizer);
@@ -132,32 +275,27 @@
 //! you can follow this code pattern in the library itself:
 //!
 //! ```
-//! # #![feature(proc_macro_hygiene)]
 //! use std::rc::Rc;
 //! use i18n_embed::{
-//!    I18nEmbed, language_loader, DesktopLanguageRequester,
-//!    LanguageRequester, DefaultLocalizer, Localizer};
-//! use rust_embed::RustEmbed;
-//! use lazy_static::lazy_static;
+//!     I18nEmbed, DesktopLanguageRequester, LanguageRequester,
+//!     DefaultLocalizer, Localizer, gettext::{
+//!         gettext_language_loader, GettextLanguageLoader     
+//!}};
+//! use rust_embed::RustEmbed; use lazy_static::lazy_static;
 //!
 //! #[derive(RustEmbed, I18nEmbed)]
 //! #[folder = "i18n/mo"] // path to the compiled localization resources
 //! struct Translations;
 //! const TRANSLATIONS: Translations = Translations {};
 //!
-//! language_loader!(MyLanguageLoader);
-//!
 //! lazy_static! {
-//!     static ref LANGUAGE_LOADER: MyLanguageLoader = MyLanguageLoader::new();
+//!     static ref LANGUAGE_LOADER: GettextLanguageLoader =
+//!         gettext_language_loader!();
 //! }
 //!
 //! // Get the `Localizer` to be used for localizing this library.
-//! #[cfg(feature = "localize")]
-//! pub fn localizer() -> Box<dyn Localizer<'static>> {
-//!     Box::from(DefaultLocalizer::new(
-//!         &LANGUAGE_LOADER,
-//!         &TRANSLATIONS
-//!     ))
+//! #[cfg(feature = "localize")] pub fn localizer() -> Box<dyn Localizer<'static>> {
+//!     Box::from(DefaultLocalizer::new(&LANGUAGE_LOADER, &TRANSLATIONS))
 //! }
 //! ```
 //!
@@ -173,11 +311,12 @@
 //! for the library:
 //!
 //! ```
-//! # #![feature(proc_macro_hygiene)]
 //! use std::rc::Rc;
 //! use i18n_embed::{
-//!    I18nEmbed, language_loader, DesktopLanguageRequester,
-//!    LanguageRequester, DefaultLocalizer, Localizer};
+//!     I18nEmbed, DesktopLanguageRequester, LanguageRequester,
+//!     DefaultLocalizer, Localizer, gettext::{
+//!         gettext_language_loader, GettextLanguageLoader     
+//!}};
 //! use rust_embed::RustEmbed;
 //! use i18n_embed::I18nEmbedDyn;
 //! use lazy_static::lazy_static;
@@ -185,13 +324,11 @@
 //! #[derive(RustEmbed, I18nEmbed)]
 //! #[folder = "i18n/mo"] // path to the compiled localization resources
 //! struct Translations;
-//!
 //! const TRANSLATIONS: Translations = Translations {};
 //!
-//! language_loader!(MyLanguageLoader);
-//!
 //! lazy_static! {
-//!     static ref LANGUAGE_LOADER: MyLanguageLoader = MyLanguageLoader::new();
+//!     static ref LANGUAGE_LOADER: GettextLanguageLoader =
+//!         gettext_language_loader!();
 //! }
 //!
 //! // Get the `Localizer` to be used for localizing this library,
@@ -248,11 +385,12 @@ doctest!("../README.md");
 #[allow(unused_imports)]
 #[macro_use]
 extern crate i18n_embed_impl;
-pub use i18n_embed_impl::*;
+pub use i18n_embed_impl::I18nEmbed;
 
 use std::{borrow::Cow, string::FromUtf8Error};
 
 use fluent_langneg::{negotiate_languages, NegotiationStrategy};
+use gettext_system;
 use log::{debug, error, info};
 use rust_embed::RustEmbed;
 use thiserror::Error;
@@ -274,7 +412,7 @@ pub enum I18nEmbedError {
     Multiple(Vec<I18nEmbedError>),
     #[cfg(feature = "gettext-system")]
     #[error(transparent)]
-    Gettext(#[from] gettext::gettext::Error),
+    Gettext(#[from] gettext_system::Error),
 }
 
 fn error_vec_to_string(errors: &[I18nEmbedError]) -> String {

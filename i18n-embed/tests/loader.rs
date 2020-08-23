@@ -82,10 +82,7 @@ mod gettext {
     /// formatting, with the module set to `i18n_embed` where the
     /// strings were originally extracted from.
     fn tr(msgid: &str) -> String {
-        with_translator("i18n_embed", |t| {
-            t.translate(msgid, None).to_string()
-        })
-            
+        with_translator("i18n_embed", |t| t.translate(msgid, None).to_string())
     }
 
     #[derive(RustEmbed, I18nEmbed)]
@@ -100,8 +97,12 @@ mod gettext {
     fn only_en() {
         setup();
 
+        let ru: LanguageIdentifier = "ru".parse().unwrap();
         let en: LanguageIdentifier = "en".parse().unwrap();
 
+        LOADER.load_languages(&[&ru], &Localizations).unwrap();
+
+        // It should replace the ru with en
         LOADER.load_languages(&[&en], &Localizations).unwrap();
 
         pretty_assertions::assert_eq!("only en", tr("only en"));

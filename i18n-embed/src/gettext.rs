@@ -1,8 +1,9 @@
 use crate::{domain_from_module, I18nEmbedDyn, I18nEmbedError, LanguageLoader};
+
+pub use i18n_embed_impl::gettext_language_loader;
+
 use parking_lot::RwLock;
 use unic_langid::LanguageIdentifier;
-
-pub use gettext;
 
 pub struct GettextLanguageLoader {
     current_language: RwLock<LanguageIdentifier>,
@@ -15,13 +16,13 @@ impl GettextLanguageLoader {
         Self {
             current_language: RwLock::new(fallback_language.clone()),
             module,
-            fallback_language: fallback_language,
+            fallback_language,
         }
     }
 
     fn load_src_language(&self) {
-        let catalog = gettext::Catalog::empty();
-        tr::set_translator!(catalog);
+        let catalog = gettext_system::Catalog::empty();
+        tr::internal::set_translator(self.module, catalog);
         *(self.current_language.write()) = self.fallback_language().clone();
     }
 }
@@ -81,7 +82,7 @@ impl LanguageLoader for GettextLanguageLoader {
             }
         };
 
-        let catalog = gettext::Catalog::parse(&*file).expect("could not parse the catalog");
+        let catalog = gettext_system::Catalog::parse(&*file).expect("could not parse the catalog");
         tr::internal::set_translator(self.module, catalog);
         *(self.current_language.write()) = language_id.clone();
 

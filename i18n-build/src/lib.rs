@@ -29,7 +29,8 @@ use lazy_static::lazy_static;
 
 #[cfg(feature = "localize")]
 use i18n_embed::{
-    gettext::GettextLanguageLoader, gettext_language_loader, DefaultLocalizer, I18nEmbed,
+    gettext::{gettext_language_loader, GettextLanguageLoader},
+    DefaultLocalizer, I18nEmbed,
 };
 
 #[cfg(feature = "localize")]

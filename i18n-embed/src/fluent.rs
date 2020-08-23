@@ -1,4 +1,7 @@
 use crate::{domain_from_module, I18nEmbedDyn, I18nEmbedError, LanguageLoader};
+
+pub use i18n_embed_impl::fluent_language_loader;
+
 use fluent::{concurrent::FluentBundle, FluentMessage, FluentResource, FluentValue};
 use fluent_syntax::ast::Pattern;
 use parking_lot::RwLock;

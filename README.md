@@ -1,6 +1,15 @@
 # cargo-i18n [![crates.io badge](https://img.shields.io/crates/v/cargo-i18n.svg)](https://crates.io/crates/cargo-i18n) [![license badge](https://img.shields.io/github/license/kellpossible/cargo-i18n)](https://github.com/kellpossible/cargo-i18n/blob/master/LICENSE.txt) [![github actions badge](https://github.com/kellpossible/cargo-i18n/workflows/Rust/badge.svg)](https://github.com/kellpossible/cargo-i18n/actions?query=workflow%3ARust)
 
-This crate is a Cargo sub-command `cargo i18n` which can be used to extract and build localization resources for your crate. The [i18n-embed](https://crates.io/crates/i18n-embed) library has been created to allow you to conveniently embed these localizations into your application or library, and have them selected at runtime.
+This crate is a Cargo sub-command `cargo i18n` which can be used to extract and
+build, and verify localization resources at compile time for your crate. The
+[i18n-embed](https://crates.io/crates/i18n-embed) library has been created to
+allow you to conveniently embed these localizations into your application or
+library, and have them selected at runtime. Different systems can be used simultaneously.
+
+`i18n-embed` supports both the following localization systems:
+
++ [fluent](https://www.projectfluent.org/)
++ [gettext](https://www.gnu.org/software/gettext/)
 
 You can install this tool using the command: `cargo install cargo-i18n`.
 
@@ -8,13 +17,19 @@ The `cargo i18n` command reads the configuration file (by default called `i18n.t
 
 The [i18n-build](https://crates.io/crates/i18n-build) library contains most of the implementation for this tool. It has been published separately to allow its direct use within project build scripts if required.
 
-Currently this tool only supports localizing via `gettext` with the [tr](https://crates.io/crates/tr) library and using the [xtr](https://crates.io/crates/xtr) tool for string extraction. It has been designed to be tool agnostic, with plans to add support for [fluent](https://github.com/projectfluent/fluent-rs), and any other workable system that becomes available for the Rust ecosystem.
-
 **[Changelog](https://github.com/kellpossible/cargo-i18n/releases)**
 
-## Usage
+## Usage with Fluent
 
-Firstly, ensure you have the required utilities installed on your system. See [System Requirements](#System-Requirements) and install the necessary utilities and commands for the localization system you will be using. This example is using the `gettext` system.
+Fluent support is now available in [i18n-embed](./i18n-embed/README.md). See the examples for that crate for how to use it.
+
+Currently there are no validations performed by `cargo-i18n` when using the `fluent` localization system (see tracking issue [#31](https://github.com/kellpossible/cargo-i18n/issues/31)).
+
+## Usage with Gettext
+
+This is an example for how to use the `cargo-i18n` tool, and `i18n-embed` the `gettext` localization tool system. Please note that the `gettext` localization system is technically inferior to `fluent` [in a number of ways](https://github.com/projectfluent/fluent/wiki/Fluent-vs-gettext), however there are always legacy reasons, and the developer/translator ecosystem around `gettext` is mature.
+
+Firstly, ensure you have the required utilities installed on your system. See [Gettext System Requirements](#Gettext-Requirements) and install the necessary utilities and commands for the localization system you will be using.
 
 ### Defining Localized Strings
 
@@ -42,14 +57,16 @@ fn example(file: String) {
 You will need to create an `i18n.toml` configuration in the root directory of your crate. A minimal configuration for a binary crate to be localized to Spanish and Japanese using the `gettext` system would be:
 
 ```toml
-# (Required) The locale/language identifier of the language used in the source
-# code.
-src_locale = "en"
-
-# (Required) The locales that the software will be translated into.
-target_locales = ["es", "ja"]
+# (Required) The language identifier of the language used in the
+# source code for gettext system, and the primary fallback language
+# (for which all strings must be present) when using the fluent
+# system.
+fallback_language = "en"
 
 [gettext]
+# (Required) The languages that the software will be translated into.
+target_languages = ["es", "ja"]
+
 # (Required) Path to the output directory, relative to `i18n.toml` of the crate
 # being localized.
 output_dir = "i18n"
@@ -83,24 +100,24 @@ Now that you have compiled your translations, you can embed them within your app
 Add the following to your `Cargo.toml` dependencies:
 
 ```toml
-i18n-embed = "0.4"
+[dependencies]
+i18n-embed = "0.7"
 ```
 
 A minimal example for how to embed the compiled translations into your application could be:
 
 ```rust
-use i18n_embed::{I18nEmbed, language_loader, DesktopLanguageRequester};
+use i18n_embed::{I18nEmbed, DesktopLanguageRequester,
+    gettext::gettext_language_loader};
 use rust_embed::RustEmbed;
 
 #[derive(RustEmbed, I18nEmbed)]
 #[folder = "i18n/mo"] // path to the compiled localization resources
 struct Translations;
 
-language_loader!(MyLanguageLoader);
-
 fn main() {
     let translations = Translations {};
-    let language_loader = MyLanguageLoader::new();
+    let language_loader = gettext_language_loader!();
 
     // Use the language requester for the desktop platform (linux, windows, mac).
     // There is also a requester available for the web-sys WASM platform called
@@ -113,7 +130,7 @@ fn main() {
 }
 ```
 
-You can see the [i18n-embed documentation](https://docs.rs/i18n-embed/) for more detailed examples of how this library can be used, including having translations live updated based on system preferences **(currently incomplete)**, and how to embed translations within libraries that can be consumed.
+You can see the [i18n-embed documentation](https://docs.rs/i18n-embed/) for more detailed examples of how this library can be used.
 
 ### Distributing to Translators
 
