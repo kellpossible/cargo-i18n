@@ -209,10 +209,7 @@ impl LanguageLoader for FluentLanguageLoader {
             } else {
                 log::debug!(target:"i18n_embed::fluent", "Unable to find language file: \"{0}\" for language: \"{1}\"", path, locale);
                 if locale == &self.fallback_language {
-                    return Err(I18nEmbedError::LanguageNotAvailable(
-                        path.clone(),
-                        locale.clone(),
-                    ));
+                    return Err(I18nEmbedError::LanguageNotAvailable(path, locale.clone()));
                 }
             }
         }

@@ -76,7 +76,11 @@ impl LanguageLoader for GettextLanguageLoader {
         let (_path, file) = match self.language_file(&language_id, i18n_embed) {
             (path, Some(f)) => (path, f),
             (path, None) => {
-                log::error!(target:"i18n_embed::gettext", "{} Setting current_language to fallback locale: \"{}\".", I18nEmbedError::LanguageNotAvailable(path.clone(), language_id.clone()), self.fallback_language);
+                log::error!(
+                    target:"i18n_embed::gettext", 
+                    "{} Setting current_language to fallback locale: \"{}\".", 
+                    I18nEmbedError::LanguageNotAvailable(path, language_id.clone()),
+                    self.fallback_language);
                 self.load_src_language();
                 return Ok(());
             }
