@@ -24,7 +24,7 @@ anyhow = "1"
 thiserror = "1"
 tr = { version = "0.1", default-features = false, features = ["gettext"] }
 walkdir = "2"
-i18n-embed = { version = "0.7", path = "../i18n-embed", features = ["desktop-requester"], optional = true }
+i18n-embed = { version = "0.7", path = "../i18n-embed", features = ["gettext-system", "desktop-requester"], optional = true }
 i18n-config = { version = "0.3", path = "../i18n-config" }
 gettext = { version = "0.4", optional = true }
 log = "0.4"

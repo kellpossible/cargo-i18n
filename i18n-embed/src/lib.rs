@@ -27,26 +27,25 @@
 //! + `fluent-system`
 //!   + Enable support for the
 //!     [fluent](https://www.projectfluent.org/) localization system
-//!     via the [FluentLanguageLoader](fluent::FluentLanguageLoader).
+//!     via the `fluent::FluentLanguageLoader` in this crate.
 //! + `gettext-system`
 //!   + Enable support for the
 //!     [gettext](https://www.gnu.org/software/gettext/) localization
 //!     system using the [tr macro](https://docs.rs/tr/0.1.3/tr/) and
 //!     the [gettext crate](https://docs.rs/gettext/0.4.0/gettext/)
-//!     via the
-//!     [GettextLanguageLoader](gettext::GettextLanguageLoader).
+//!     via the `gettext::GettextLanguageLoader` in this crate.
 //! + `desktop-requester`
 //!   + Enables a convenience implementation of
 //!     [LanguageRequester](LanguageRequester) trait called
-//!     [DesktopLanguageRequester](DesktopLanguageRequester) for the
-//!     desktop platform (windows, mac, linux), which makes use of the
+//!     `DesktopLanguageRequester for the desktop platform (windows, 
+//!     mac, linux), which makes use of the
 //!     [locale_config](https://crates.io/crates/locale_config) crate
 //!     for resolving the current system locale.
 //! + `web-sys-requester`
 //!   + Enables a convenience implementation of
 //!     [LanguageRequester](LanguageRequester) trait called
-//!     [WebLanguageRequester](WebLanguageRequester) which makes use
-//!     of the [web-sys](https://crates.io/crates/web-sys) crate for
+//!     `WebLanguageRequester` which makes use of the
+//!     [web-sys](https://crates.io/crates/web-sys) crate for
 //!     resolving the language being requested by the user's web
 //!     browser in a WASM context.
 //!
@@ -121,9 +120,9 @@
 //! the [cargo i18n](https://crates.io/crates/cargo-i18n) tool to
 //! integrate with a code-base using `gettext`, and in the future to
 //! perform compile time checks, and use the
-//! [fluent_language_loader!()](fluent::fluent_language_loader) macro
-//! to pull the configuration at compile time to create the
-//! [FluentLanguageLoader](fluent::FluentLanguageLoader).
+//! `fluent::fluent_language_loader!()` macro to pull the
+//! configuration at compile time to create the
+//! `fluent::FluentLanguageLoader`.
 //!
 //! ## Gettext Localization System
 //!
@@ -135,9 +134,8 @@
 //! however there are always legacy reasons, and the
 //! developer/translator ecosystem around `gettext` is mature.
 //!
-//! The [GettextLanguageLoader](gettext::GettextLanguageLoader) in
-//! this example is instantiated using the
-//! [gettext_language_loader!()](gettext::gettext_language_loader)
+//! The `gettext::GettextLanguageLoader` in this example is
+//! instantiated using the `gettext::gettext_language_loader!()`
 //! macro, which automatically determines the correct module for the
 //! crate, and pulls settings in from the `i18n.toml` configuration
 //! file.
