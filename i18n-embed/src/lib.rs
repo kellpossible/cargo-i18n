@@ -647,7 +647,7 @@ pub trait I18nEmbed: RustEmbed {
         // source code, this language will not be found in the
         // localization assets, and should be the fallback_locale, so
         // it needs to be added manually here.
-        if language_strings
+        if !language_strings
             .iter()
             .any(|language| language == &fallback_locale)
         {
