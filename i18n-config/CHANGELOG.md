@@ -1,5 +1,22 @@
 # Changelog for `i18n-config`
 
+## v0.3.0
+
+Changes for the support of the `fluent` localization system.
+
+### New Features
+
++ New `FluentConfig` (along with associated `[fluent]` subsection in the configuration file format) for using the `fluent` localization system.
+
+### Breaking Changes
+
++ Renamed `src_locale` to `fallback_language`.
++ Moved `target_locales` to within the `[gettext]` subsection, and renamed it to `target_languages`.
+
+### Internal Changes
+
++ Now using `parking_lot::RwLock` for the language loaders, instead of the `RwLock` in the standard library.
+
 ## v0.2.2
 
 + Add support for `xtr` `add-location` option.

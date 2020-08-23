@@ -7,7 +7,7 @@ license = "MIT"
 name = "i18n-embed-impl"
 readme = "../README.md"
 repository = "https://github.com/kellpossible/cargo-i18n/tree/master/i18n-embed"
-version = "0.4.0"
+version = "0.5.0"
 
 [badges]
 maintenance = { status = "actively-developed" }
@@ -17,17 +17,21 @@ maintenance = { status = "actively-developed" }
 proc-macro = true
 
 [dependencies]
-quote = "1.0.3"
+quote = "1.0"
 serde = { version = "1", features = ["derive"] }
 serde_derive = "1"
-i18n-config = { version = "0.2", path = "../../i18n-config" }
+i18n-config = { version = "0.3", path = "../../i18n-config" }
 proc-macro2 = "1.0"
 
+[dev-dependencies]
+rust-embed = "5.6"
+
 [dependencies.syn]
-version = "1.0.17"
+version = "1.0"
 default-features = false
 features = ["derive", "proc-macro", "parsing", "printing", "extra-traits",]
 
 [features]
-default = ["gettext-system"]
+default = []
 gettext-system = []
+fluent-system = []

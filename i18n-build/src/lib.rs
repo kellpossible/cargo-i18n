@@ -28,7 +28,10 @@ use i18n_config::Crate;
 use lazy_static::lazy_static;
 
 #[cfg(feature = "localize")]
-use i18n_embed::{language_loader, DefaultLocalizer, I18nEmbed};
+use i18n_embed::{
+    gettext::{gettext_language_loader, GettextLanguageLoader},
+    DefaultLocalizer, I18nEmbed,
+};
 
 #[cfg(feature = "localize")]
 use rust_embed::RustEmbed;
@@ -39,11 +42,8 @@ use rust_embed::RustEmbed;
 struct Translations;
 
 #[cfg(feature = "localize")]
-language_loader!(I18nBuildLanguageLoader);
-
-#[cfg(feature = "localize")]
 lazy_static! {
-    static ref LANGUAGE_LOADER: I18nBuildLanguageLoader = I18nBuildLanguageLoader::new();
+    static ref LANGUAGE_LOADER: GettextLanguageLoader = gettext_language_loader!();
 }
 
 #[cfg(feature = "localize")]

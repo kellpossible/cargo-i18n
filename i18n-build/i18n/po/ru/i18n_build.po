@@ -2,12 +2,24 @@ msgid ""
 msgstr ""
 "Project-Id-Version: i18n-build\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-04-17 08:38+0000\n"
+"POT-Creation-Date: 2020-08-21 15:51+0000\n"
 "Language: ru\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "X-Generator: POEditor.com\n"
+
+#: i18n-build/src/error.rs:20
+msgid "file"
+msgstr "файл"
+
+#: i18n-build/src/error.rs:21
+msgid "directory"
+msgstr "каталог"
+
+#: i18n-build/src/error.rs:22
+msgid "symbolic link"
+msgstr "символическая ссылка"
 
 #. {0} is the file path, {1} is the item which it is for, {2} is the type of item (file, directory, etc)
 #: i18n-build/src/error.rs:140
@@ -51,11 +63,11 @@ msgstr "Не удалось переименовать {0} \"{1}\" в \"{2}\" т
 msgid "The path \"{0}\" is not inside the \"{1}\" directory: \"{2}\"."
 msgstr "Путь \"{0}\" не находится \"{1}\" в каталоге: \"{2}\"."
 
-#: i18n-build/src/gettext_impl/mod.rs:215
+#: i18n-build/src/gettext_impl/mod.rs:208
 msgid "There was a problem executing the \"{0}\" command"
 msgstr "Произошла ошибка при выполнении команды \"{0}\"."
 
-#: i18n-build/src/gettext_impl/mod.rs:442
+#: i18n-build/src/gettext_impl/mod.rs:431
 msgid "There was a problem parsing one of the subcrates: \"{0}\"."
 msgstr "При анализе одного из подкрэйтора произошла ошибка: \"{0}\"."
 

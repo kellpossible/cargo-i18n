@@ -3,8 +3,9 @@ use clap::{crate_authors, crate_version, App, Arg, SubCommand};
 use i18n_build::run;
 use i18n_config::Crate;
 use i18n_embed::{
-    language_loader, DefaultLocalizer, DesktopLanguageRequester, I18nEmbed, I18nEmbedDyn,
-    LanguageLoader, LanguageRequester, Localizer,
+    gettext::{gettext_language_loader, GettextLanguageLoader},
+    DefaultLocalizer, DesktopLanguageRequester, I18nEmbed, I18nEmbedDyn, LanguageLoader,
+    LanguageRequester, Localizer,
 };
 use lazy_static::lazy_static;
 use rust_embed::RustEmbed;
@@ -17,10 +18,8 @@ use unic_langid::LanguageIdentifier;
 #[folder = "i18n/mo"]
 struct Translations;
 
-language_loader!(CargoI18nLanguageLoader);
-
 lazy_static! {
-    static ref LANGUAGE_LOADER: CargoI18nLanguageLoader = CargoI18nLanguageLoader::new();
+    static ref LANGUAGE_LOADER: GettextLanguageLoader = gettext_language_loader!();
 }
 
 static TRANSLATIONS: Translations = Translations {};
@@ -85,7 +84,7 @@ fn main() -> Result<()> {
     language_requester.add_listener(Rc::downgrade(&i18n_build_localizer_rc));
     language_requester.poll()?;
 
-    let src_locale = LANGUAGE_LOADER.src_locale().to_string();
+    let fallback_locale = LANGUAGE_LOADER.fallback_language().to_string();
     let available_languages = available_languages(&cargo_i18n_localizer_rc)?;
     let available_languages_slice: Vec<&str> =
         available_languages.iter().map(|l| l.as_str()).collect();
@@ -134,7 +133,7 @@ fn main() -> Result<()> {
                 .long("--language")
                 .short("-l")
                 .takes_value(true)
-                .default_value(&src_locale)
+                .default_value(&fallback_locale)
                 .possible_values(&available_languages_slice)
             )
         )

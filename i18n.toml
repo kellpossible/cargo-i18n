@@ -1,16 +1,18 @@
-# (Required) The locale identifier of the language used in the source
-# code.
-src_locale = "en-US"
-
-# (Required) The locales that the software will be translated into.
-target_locales = ["ru"]
-
 # (Optional) Specify which subcrates to perform localization within,
 # the subcrate needs to have its own `i18n.toml`.
 subcrates = ["i18n-build"]
 
+# (Required) The language identifier of the language used in the
+# source code for gettext system, and the primary fallback language
+# (for which all strings must be present) when using the fluent
+# system.
+fallback_language = "en-US"
+
 # (Optional) Use the gettext localization system.
 [gettext]
+# (Required) The languages that the software will be translated into.
+target_languages = ["ru"]
+
 # (Required) Path to the output directory, relative to `i18n.toml` of
 # the crate being localized.
 output_dir = "i18n"

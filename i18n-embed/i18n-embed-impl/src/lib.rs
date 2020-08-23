@@ -7,6 +7,17 @@ use quote::quote;
 use std::path::PathBuf;
 
 /// A procedural macro to implement the `I18nEmbed` trait on a struct.
+///
+/// ## Example
+///
+/// ```ignore
+/// use rust_embed::RustEmbed;
+/// use i18n_embed::I18nEmbed;
+///
+/// #[derive(RustEmbed, I18nEmbed)]
+/// #[folder = "i18n"]
+/// struct Localizations;
+/// ```
 #[proc_macro_derive(I18nEmbed)]
 pub fn i18n_embed_derive(input: TokenStream) -> TokenStream {
     let ast: syn::DeriveInput = syn::parse(input).unwrap();
@@ -21,21 +32,21 @@ pub fn i18n_embed_derive(input: TokenStream) -> TokenStream {
     gen.into()
 }
 
-/// A procedural macro to create a struct and implement the `LanguageLoader` trait on it.
+/// A procedural macro to create a new `GettextLanguageLoader` using
+/// the current crate's `i18n.toml` configuration, and domain.
+///
+/// ⚠️ *This API requires the following crate features to be
+/// activated: `gettext-system`.*
 ///
 /// ## Example
 ///
 /// ```ignore
-/// use i18n_embed::language_loader;
-///
-/// language_loader!(MyLanguageLoader);
-/// let my_language_loader = MyLanguageLoader::new();
+/// use i18n_embed::gettext::{gettext_language_loader, GettextLanguageLoader};
+/// let my_language_loader: GettextLanguageLoader = gettext_language_loader!();
 /// ```
 #[proc_macro]
 #[cfg(feature = "gettext-system")]
-pub fn language_loader(input: TokenStream) -> TokenStream {
-    let struct_name = syn::parse_macro_input!(input as syn::Ident);
-
+pub fn gettext_language_loader(_: TokenStream) -> TokenStream {
     let config_file_path = PathBuf::from("i18n.toml");
 
     if !config_file_path.exists() {
@@ -46,57 +57,64 @@ pub fn language_loader(input: TokenStream) -> TokenStream {
         ));
     }
 
-    let config = I18nConfig::from_file(&config_file_path).unwrap_or_else(|_| {
+    let config = I18nConfig::from_file(&config_file_path).unwrap_or_else(|err| {
         panic!(
-            "language_loader!() had a problem reading config file '{0}'",
-            config_file_path.to_string_lossy()
+            "gettext_language_loader!() had a problem reading config file '{0}': {1}",
+            config_file_path.to_string_lossy(),
+            err
         )
     });
-    let src_locale = &config.src_locale;
+    let fallback_language = &config.fallback_language;
 
     let gen = quote! {
-        struct #struct_name {
-            current_language: std::sync::RwLock<i18n_embed::unic_langid::LanguageIdentifier>,
-        }
+        i18n_embed::gettext::GettextLanguageLoader::new(
+            module_path!(),
+            #fallback_language.parse().unwrap(),
+        )
+    };
 
-        impl #struct_name {
-            pub fn new() -> #struct_name {
-                #struct_name {
-                    current_language: std::sync::RwLock::new(#src_locale.parse().unwrap()),
-                }
-            }
-        }
+    gen.into()
+}
 
-        impl i18n_embed::LanguageLoader for #struct_name {
-            fn load_language_file(&self, language_id: i18n_embed::unic_langid::LanguageIdentifier, file: std::borrow::Cow<[u8]>) {
-                let catalog = i18n_embed::gettext::Catalog::parse(&*file).expect("could not parse the catalog");
-                i18n_embed::tr::set_translator!(catalog);
-                *(self.current_language.write().unwrap()) = language_id;
-            }
+/// A procedural macro to create a new `FluentLanguageLoader` using
+/// the current crate's `i18n.toml` configuration, and domain.
+///
+/// ⚠️ *This API requires the following crate features to be
+/// activated: `fluent-system`.*
+///
+/// ## Example
+///
+/// ```ignore
+/// use i18n_embed::fluent::{fluent_language_loader, FluentLanguageLoader};
+/// let my_language_loader: FluentLanguageLoader = fluent_language_loader!();
+/// ```
+#[proc_macro]
+#[cfg(feature = "fluent-system")]
+pub fn fluent_language_loader(_: TokenStream) -> TokenStream {
+    let config_file_path = PathBuf::from("i18n.toml");
 
-            fn load_src_locale(&self) {
-                let catalog = i18n_embed::gettext::Catalog::empty();
-                i18n_embed::tr::set_translator!(catalog);
-                *(self.current_language.write().unwrap()) = self.src_locale();
-            }
+    if !config_file_path.exists() {
+        panic!(format!(
+            "The i18n configuration file '{}' does not exist in the current working directory '{}'",
+            config_file_path.to_string_lossy(),
+            std::env::current_dir().unwrap().to_str().unwrap()
+        ));
+    }
 
-            fn domain(&self) -> &'static str {
-                i18n_embed::domain_from_module(module_path!())
-            }
+    let config = I18nConfig::from_file(&config_file_path).unwrap_or_else(|err| {
+        panic!(
+            "fluent_language_loader!() had a problem reading config file '{0}': {1}",
+            config_file_path.to_string_lossy(),
+            err
+        )
+    });
+    let fallback_language = &config.fallback_language;
 
-            fn src_locale(&self) -> i18n_embed::unic_langid::LanguageIdentifier {
-                #src_locale.parse().unwrap()
-            }
-
-            fn language_file_name(&self) -> String {
-                format!("{}.{}", self.domain(), "mo")
-            }
-
-            /// Get the language which is currently loaded for this loader.
-            fn current_language(&self) -> i18n_embed::unic_langid::LanguageIdentifier {
-                self.current_language.read().unwrap().clone()
-            }
-        }
+    let gen = quote! {
+        i18n_embed::fluent::FluentLanguageLoader::new(
+            module_path!(),
+            #fallback_language.parse().unwrap(),
+        )
     };
 
     gen.into()

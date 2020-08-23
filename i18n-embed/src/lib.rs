@@ -24,6 +24,17 @@
 //!
 //! The `i18n-embed` crate has the following optional Cargo features:
 //!
+//! + `fluent-system`
+//!   + Enable support for the
+//!     [fluent](https://www.projectfluent.org/) localization system
+//!     via the [FluentLanguageLoader](fluent::FluentLanguageLoader).
+//! + `gettext-system`
+//!   + Enable support for the
+//!     [gettext](https://www.gnu.org/software/gettext/) localization
+//!     system using the [tr macro](https://docs.rs/tr/0.1.3/tr/) and
+//!     the [gettext crate](https://docs.rs/gettext/0.4.0/gettext/)
+//!     via the
+//!     [GettextLanguageLoader](gettext::GettextLanguageLoader).
 //! + `desktop-requester`
 //!   + Enables a convenience implementation of
 //!     [LanguageRequester](LanguageRequester) trait called
@@ -41,25 +52,151 @@
 //!
 //! # Examples
 //!
-//! ### Simple
+//! ## Fluent Localization System
 //!
-//! The following is an example for how to derive the required traits
-//! on structs, and localize your binary using this library when it
-//! first runs:
+//! The following is a simple example for how to localize your binary
+//! using this library when it first runs, using the `fluent`
+//! localization system, directly instantiating the
+//! `FluentLanguageLoader`.
+//!
+//! First you'll need the following features enabled in your
+//! `Cargo.toml`:
+//!
+//! ```toml
+//! [dependencies]
+//! i18n-embed = { version = "0.7", features = ["fluent-system", "desktop-requester"]}
+//! rust-embed = "5"
+//! unic-langid = "0.9"
+//! ```
+//!
+//! Next, you want to create your localization resources, per language
+//! fluent files. `lang_code` needs to conform to the [Unicode
+//! Language
+//! Identifier](https://unicode.org/reports/tr35/tr35.html#Unicode_language_identifier)
+//! standard, and will be parsed via the [unic_langid
+//! crate](https://docs.rs/unic-langid/0.9.0/unic_langid/):
+//!
+//! ```txt
+//! my_crate/
+//!   Cargo.toml
+//!   i18n.toml
+//!   src/
+//!   i18n/
+//!     lang_code/
+//!       my_crate.ftl
+//! ```
+//!
+//! Then in your Rust code:
 //!
 //! ```
-//! use i18n_embed::{I18nEmbed, language_loader, DesktopLanguageRequester};
+//! use i18n_embed::{I18nEmbed, DesktopLanguageRequester, fluent::{
+//!     FluentLanguageLoader    
+//! }};
 //! use rust_embed::RustEmbed;
+//! use unic_langid::LanguageIdentifier;
 //!
 //! #[derive(RustEmbed, I18nEmbed)]
-//! #[folder = "i18n/mo"] // path to the compiled localization resources
+//! #[folder = "i18n"] // path to the compiled localization resources
 //! struct Translations;
 //!
-//! language_loader!(MyLanguageLoader);
 //!
 //! fn main() {
 //!     let translations = Translations {};
-//!     let language_loader = MyLanguageLoader::new();
+//!
+//!     let fallback_language: LanguageIdentifier = "en".parse().unwrap();
+//!     let language_loader = FluentLanguageLoader::new("my_crate", fallback_language);
+//!
+//!     // Use the language requester for the desktop platform (linux, windows, mac).
+//!     // There is also a requester available for the web-sys WASM platform called
+//!     // WebLanguageRequester, or you can implement your own.
+//!     let requested_languages = DesktopLanguageRequester::requested_languages();
+//!
+//!     i18n_embed::select(&language_loader, &translations, &requested_languages);
+//!
+//!     // continue on with your application
+//! }
+//! ```
+//!
+//! You can also make use of the `i18n.toml` configuration file, and
+//! the [cargo i18n](https://crates.io/crates/cargo-i18n) tool to
+//! integrate with a code-base using `gettext`, and in the future to
+//! perform compile time checks, and use the
+//! [fluent_language_loader!()](fluent::fluent_language_loader) macro
+//! to pull the configuration at compile time to create the
+//! [FluentLanguageLoader](fluent::FluentLanguageLoader).
+//!
+//! ## Gettext Localization System
+//!
+//! The following is a simple example for how to localize your binary
+//! using this library when it first runs, using the `gettext`
+//! localization system. Please note that the `gettext` localization
+//! system is technically inferior to `fluent` [in a number of
+//! ways](https://github.com/projectfluent/fluent/wiki/Fluent-vs-gettext),
+//! however there are always legacy reasons, and the
+//! developer/translator ecosystem around `gettext` is mature.
+//!
+//! The [GettextLanguageLoader](gettext::GettextLanguageLoader) in
+//! this example is instantiated using the
+//! [gettext_language_loader!()](gettext::gettext_language_loader)
+//! macro, which automatically determines the correct module for the
+//! crate, and pulls settings in from the `i18n.toml` configuration
+//! file.
+//!
+//! First you'll need the following features enabled in your
+//! `Cargo.toml`:
+//!
+//! ```toml
+//! [dependencies]
+//! i18n-embed = { version = "0.7", features = ["gettext-system", "desktop-requester"]}
+//! rust-embed = "5"
+//! ```
+//!
+//! Set up a minimal `i18n.toml` in your crate root to use with [cargo
+//! i18n](https://crates.io/crates/cargo-i18n):
+//!
+//! ```toml
+//! # (Required) The language identifier of the language used in the
+//! # source code for gettext system, and the primary fallback language
+//! # (for which all strings must be present) when using the fluent
+//! # system.
+//! fallback_language = "en"
+//!
+//! # Use the gettext localization system.
+//! [gettext]
+//! # (Required) The languages that the software will be translated into.
+//! target_languages = ["es"]
+//!
+//! # (Required) Path to the output directory, relative to `i18n.toml` of
+//! # the crate being localized.
+//! output_dir = "i18n"
+//! ```
+//!
+//! Install and run [cargo i18n](https://crates.io/crates/cargo-i18n)
+//! for your crate to generate the language specific `po` and `mo`
+//! files, ready to be translated. It is recommended to add the
+//! `i18n/pot` folder to your repository gitignore.
+//!
+//! Then in your Rust code:
+//!
+//! ```
+//! use i18n_embed::{I18nEmbed, DesktopLanguageRequester, gettext::{
+//!     gettext_language_loader
+//! }};
+//! use rust_embed::RustEmbed;
+//!
+//! #[derive(RustEmbed, I18nEmbed)]
+//! // path to the compiled localization resources,
+//! // as determined by i18n.toml settings
+//! #[folder = "i18n/mo"]
+//! struct Translations;
+//!
+//!
+//! fn main() {
+//!     let translations = Translations {};
+//!
+//!     // Create the GettextLanguageLoader, pulling in settings from `i18n.toml`
+//!     // at compile time using the macro.
+//!     let language_loader = gettext_language_loader!();
 //!
 //!     // Use the language requester for the desktop platform (linux, windows, mac).
 //!     // There is also a requester available for the web-sys WASM platform called
@@ -82,26 +219,32 @@
 //! ```
 //! use std::rc::Rc;
 //! use i18n_embed::{
-//!     I18nEmbed, language_loader, DesktopLanguageRequester,
-//!     LanguageRequester, DefaultLocalizer, Localizer};
-//! use rust_embed::RustEmbed;
-//! use lazy_static::lazy_static;
+//!     I18nEmbed, DesktopLanguageRequester, LanguageRequester,
+//!     DefaultLocalizer, Localizer, fluent::{
+//!         fluent_language_loader, FluentLanguageLoader     
+//!}};
+//! use rust_embed::RustEmbed; use lazy_static::lazy_static;
+//! use unic_langid::LanguageIdentifier;
 //!
 //! #[derive(RustEmbed, I18nEmbed)]
-//! #[folder = "i18n/mo"] // path to the compiled localization resources
+//! #[folder = "i18n/ftl"] // path to localization resources
 //! struct Translations;
+//!
 //! const TRANSLATIONS: Translations = Translations {};
 //!
-//! language_loader!(MyLanguageLoader);
-//!
 //! lazy_static! {
-//!     static ref LANGUAGE_LOADER: MyLanguageLoader = MyLanguageLoader::new();
+//!     static ref LANGUAGE_LOADER: FluentLanguageLoader = {
+//!         // Usually you could use the fluent_language_loader!() macro
+//!         // to pull values from i18n.toml configuration and current
+//!         // module here at compile time, but instantiating the loader
+//!         // manually here instead so the example compiles.
+//!         let fallback: LanguageIdentifier = "en-US".parse().unwrap();
+//!         FluentLanguageLoader::new("test", fallback)
+//!     };
 //! }
 //!
-//! fn main() {
-//!     let localizer = DefaultLocalizer::new(
-//!         &*LANGUAGE_LOADER,
-//!         &TRANSLATIONS,
+//! fn main() {let localizer =
+//!     DefaultLocalizer::new(&*LANGUAGE_LOADER, &TRANSLATIONS,
 //!     );
 //!
 //!     let localizer_rc: Rc<dyn Localizer> = Rc::new(localizer);
@@ -132,32 +275,27 @@
 //! you can follow this code pattern in the library itself:
 //!
 //! ```
-//! # #![feature(proc_macro_hygiene)]
 //! use std::rc::Rc;
 //! use i18n_embed::{
-//!    I18nEmbed, language_loader, DesktopLanguageRequester,
-//!    LanguageRequester, DefaultLocalizer, Localizer};
-//! use rust_embed::RustEmbed;
-//! use lazy_static::lazy_static;
+//!     I18nEmbed, DesktopLanguageRequester, LanguageRequester,
+//!     DefaultLocalizer, Localizer, gettext::{
+//!         gettext_language_loader, GettextLanguageLoader     
+//!}};
+//! use rust_embed::RustEmbed; use lazy_static::lazy_static;
 //!
 //! #[derive(RustEmbed, I18nEmbed)]
 //! #[folder = "i18n/mo"] // path to the compiled localization resources
 //! struct Translations;
 //! const TRANSLATIONS: Translations = Translations {};
 //!
-//! language_loader!(MyLanguageLoader);
-//!
 //! lazy_static! {
-//!     static ref LANGUAGE_LOADER: MyLanguageLoader = MyLanguageLoader::new();
+//!     static ref LANGUAGE_LOADER: GettextLanguageLoader =
+//!         gettext_language_loader!();
 //! }
 //!
 //! // Get the `Localizer` to be used for localizing this library.
-//! #[cfg(feature = "localize")]
-//! pub fn localizer() -> Box<dyn Localizer<'static>> {
-//!     Box::from(DefaultLocalizer::new(
-//!         &LANGUAGE_LOADER,
-//!         &TRANSLATIONS
-//!     ))
+//! #[cfg(feature = "localize")] pub fn localizer() -> Box<dyn Localizer<'static>> {
+//!     Box::from(DefaultLocalizer::new(&LANGUAGE_LOADER, &TRANSLATIONS))
 //! }
 //! ```
 //!
@@ -173,11 +311,12 @@
 //! for the library:
 //!
 //! ```
-//! # #![feature(proc_macro_hygiene)]
 //! use std::rc::Rc;
 //! use i18n_embed::{
-//!    I18nEmbed, language_loader, DesktopLanguageRequester,
-//!    LanguageRequester, DefaultLocalizer, Localizer};
+//!     I18nEmbed, DesktopLanguageRequester, LanguageRequester,
+//!     DefaultLocalizer, Localizer, gettext::{
+//!         gettext_language_loader, GettextLanguageLoader     
+//!}};
 //! use rust_embed::RustEmbed;
 //! use i18n_embed::I18nEmbedDyn;
 //! use lazy_static::lazy_static;
@@ -185,13 +324,11 @@
 //! #[derive(RustEmbed, I18nEmbed)]
 //! #[folder = "i18n/mo"] // path to the compiled localization resources
 //! struct Translations;
-//!
 //! const TRANSLATIONS: Translations = Translations {};
 //!
-//! language_loader!(MyLanguageLoader);
-//!
 //! lazy_static! {
-//!     static ref LANGUAGE_LOADER: MyLanguageLoader = MyLanguageLoader::new();
+//!     static ref LANGUAGE_LOADER: GettextLanguageLoader =
+//!         gettext_language_loader!();
 //! }
 //!
 //! // Get the `Localizer` to be used for localizing this library,
@@ -226,6 +363,18 @@
 //! collate_extracted_subcrates = true
 //! ```
 
+mod requester;
+mod util;
+
+#[cfg(feature = "fluent-system")]
+pub mod fluent;
+
+#[cfg(feature = "gettext-system")]
+pub mod gettext;
+
+pub use requester::*;
+pub use util::*;
+
 #[cfg(doctest)]
 #[macro_use]
 extern crate doc_comment;
@@ -236,18 +385,15 @@ doctest!("../README.md");
 #[allow(unused_imports)]
 #[macro_use]
 extern crate i18n_embed_impl;
-pub use i18n_embed_impl::*;
+pub use i18n_embed_impl::I18nEmbed;
 
-use std::borrow::Cow;
-use std::{collections::HashMap, rc::Weak};
+use std::{borrow::Cow, string::FromUtf8Error};
 
 use fluent_langneg::{negotiate_languages, NegotiationStrategy};
+use gettext_system;
 use log::{debug, error, info};
 use rust_embed::RustEmbed;
 use thiserror::Error;
-
-#[cfg(feature = "gettext-system")]
-pub use ::{gettext, tr};
 
 pub use unic_langid;
 
@@ -256,10 +402,17 @@ pub use unic_langid;
 pub enum I18nEmbedError {
     #[error("Error parsing a language identifier string \"{0}\"")]
     ErrorParsingLocale(String, #[source] unic_langid::LanguageIdentifierError),
-    #[error("The requested language \"{0}\" is not available.")]
-    LanguageNotAvailable(String),
+    #[error("Error reading language file \"{0}\" as utf8.")]
+    ErrorParsingFileUtf8(String, #[source] FromUtf8Error),
+    #[error("The slice of requested languages cannot be empty.")]
+    RequestedLanguagesEmpty,
+    #[error("The language file \"{0}\" for the language \"{1}\" is not available.")]
+    LanguageNotAvailable(String, unic_langid::LanguageIdentifier),
     #[error("There are multiple errors: {}", error_vec_to_string(.0))]
     Multiple(Vec<I18nEmbedError>),
+    #[cfg(feature = "gettext-system")]
+    #[error(transparent)]
+    Gettext(#[from] gettext_system::Error),
 }
 
 fn error_vec_to_string(errors: &[I18nEmbedError]) -> String {
@@ -285,7 +438,7 @@ pub trait Localizer<'a> {
     fn select(
         &self,
         requested_languages: &[unic_langid::LanguageIdentifier],
-    ) -> Result<Option<unic_langid::LanguageIdentifier>, I18nEmbedError> {
+    ) -> Result<Vec<unic_langid::LanguageIdentifier>, I18nEmbedError> {
         select(
             self.language_loader(),
             self.i18n_embed(),
@@ -322,165 +475,17 @@ impl<'a> DefaultLocalizer<'a> {
     }
 }
 
-/// Provide the functionality for overrides and listeners for a
-/// [LanguageRequester](LanguageRequester) implementation.
-#[cfg(any(feature = "desktop-requester", feature = "web-sys-requester"))]
-struct LanguageRequesterImpl<'a> {
-    listeners: Vec<Weak<dyn Localizer<'a>>>,
-    language_override: Option<unic_langid::LanguageIdentifier>,
-}
-
-#[cfg(any(feature = "desktop-requester", feature = "web-sys-requester"))]
-impl<'a> LanguageRequesterImpl<'a> {
-    /// Create a new [LanguageRequesterImpl](LanguageRequesterImpl).
-    pub fn new() -> LanguageRequesterImpl<'a> {
-        LanguageRequesterImpl {
-            listeners: Vec::new(),
-            language_override: None,
-        }
-    }
-
-    /// Set an override for the requested language which is used when the
-    /// [LanguageRequesterImpl#poll()](LanguageRequester#poll()) method
-    /// is called. If `None`, then no override is used.
-    fn set_language_override(
-        &mut self,
-        language_override: Option<unic_langid::LanguageIdentifier>,
-    ) -> Result<(), I18nEmbedError> {
-        self.language_override = language_override;
-        Ok(())
-    }
-
-    fn add_listener(&mut self, localizer: Weak<dyn Localizer<'a>>) {
-        self.listeners.push(localizer);
-    }
-
-    /// With the provided `requested_languages` call
-    /// [Localizer#select()](Localizer#select()) on each of the
-    /// listeners.
-    fn poll_without_override(
-        &mut self,
-        requested_languages: Vec<unic_langid::LanguageIdentifier>,
-    ) -> Result<(), I18nEmbedError> {
-        let mut errors: Vec<I18nEmbedError> = Vec::new();
-
-        self.listeners.retain(|listener| match listener.upgrade() {
-            Some(l) => {
-                match l.select(&requested_languages) {
-                    Ok(_) => {}
-                    Err(err) => {
-                        errors.push(err);
-                    }
-                }
-
-                true
-            }
-            None => false,
-        });
-
-        if errors.is_empty() {
-            Ok(())
-        } else if errors.len() == 1 {
-            Err(errors.into_iter().next().unwrap())
-        } else {
-            Err(I18nEmbedError::Multiple(errors))
-        }
-    }
-
-    /// With the provided `requested_languages` call
-    /// [Localizer#select()](Localizer#select()) on each of the
-    /// listeners. The `requested_languages` may be ignored if
-    /// [#set_language_override()](#set_language_override()) has been
-    /// set.
-    pub fn poll(
-        &mut self,
-        requested_languages: Vec<unic_langid::LanguageIdentifier>,
-    ) -> Result<(), I18nEmbedError> {
-        let languages = match &self.language_override {
-            Some(language) => {
-                debug!("Using language override: {}", language);
-                vec![language.clone()]
-            }
-            None => requested_languages,
-        };
-
-        self.poll_without_override(languages)
-    }
-
-    /// The languages reported to be available in the
-    /// listener [Localizer](Localizer)s.
-    fn available_languages(&self) -> Result<Vec<unic_langid::LanguageIdentifier>, I18nEmbedError> {
-        let mut available_languages = std::collections::HashSet::new();
-        for weak_listener in &self.listeners {
-            if let Some(localizer) = weak_listener.upgrade() {
-                localizer
-                    .available_languages()?
-                    .iter()
-                    .for_each(|language| {
-                        available_languages.insert(language.clone());
-                    })
-            }
-        }
-
-        Ok(available_languages.into_iter().collect())
-    }
-
-    fn current_languages(&self) -> HashMap<&'static str, unic_langid::LanguageIdentifier> {
-        let mut current_languages = HashMap::new();
-        for weak_listener in &self.listeners {
-            if let Some(localizer) = weak_listener.upgrade() {
-                let loader = localizer.language_loader();
-                current_languages.insert(loader.domain(), loader.current_language());
-            }
-        }
-
-        current_languages
-    }
-}
-
-/// A trait used by [I18nEmbed](I18nEmbed) to ascertain which
-/// languages are being requested.
-pub trait LanguageRequester<'a> {
-    /// Add a listener to this `LanguageRequester`. When the system
-    /// reports that the currently requested languages has changed,
-    /// each listener will have its
-    /// [Localizer#select()](Localizer#select()) method called.
-    ///
-    /// If you haven't already selected a language for the localizer
-    /// you are adding here, you may want to manually call
-    /// [#poll()](#poll()) after adding the listener/s.
-    fn add_listener(&mut self, localizer: Weak<dyn Localizer<'a>>);
-    /// Poll the system's currently selected language, and call
-    /// [Localizer#select()](Localizer#select()) on each of the
-    /// listeners.
-    fn poll(&mut self) -> Result<(), I18nEmbedError>;
-    /// Override the languages fed to the [Localizer](Localizer) listeners during
-    /// a [#poll()](#poll()). Set this as `None` to disable the override.
-    fn set_language_override(
-        &mut self,
-        language_override: Option<unic_langid::LanguageIdentifier>,
-    ) -> Result<(), I18nEmbedError>;
-    /// The currently requested languages.
-    fn requested_languages(&self) -> Vec<unic_langid::LanguageIdentifier>;
-    /// The languages reported to be available in the
-    /// listener [Localizer](Localizer)s.
-    fn available_languages(&self) -> Result<Vec<unic_langid::LanguageIdentifier>, I18nEmbedError>;
-    /// The languages currently loaded, keyed by the
-    /// [LanguageLoader::domain()](LanguageLoader::domain()).
-    fn current_languages(&self) -> HashMap<&'static str, unic_langid::LanguageIdentifier>;
-}
-
 /// Select the most suitable language currently requested by the
 /// system by the the [LanguageRequester](LanguageRequester), and load
 /// it using the provided [LanguageLoader](LanguageLoader) from the
 /// languages embedded in [I18nEmbed](I18nEmbed) via
-/// [I18nEmbedDyn](I18nEmbedDyn). Returns the language that was
-/// negotiated to be selected.
+/// [I18nEmbedDyn](I18nEmbedDyn). Returns the available languages that
+/// were negotiated to be selected in order of preference.
 pub fn select(
     language_loader: &dyn LanguageLoader,
     i18n_embed: &dyn I18nEmbedDyn,
     requested_languages: &[unic_langid::LanguageIdentifier],
-) -> Result<Option<unic_langid::LanguageIdentifier>, I18nEmbedError> {
+) -> Result<Vec<unic_langid::LanguageIdentifier>, I18nEmbedError> {
     info!(
         "Selecting translations for domain \"{0}\"",
         language_loader.domain()
@@ -488,12 +493,12 @@ pub fn select(
 
     let available_languages: Vec<unic_langid::LanguageIdentifier> =
         i18n_embed.available_languages_dyn(language_loader)?;
-    let default_language: unic_langid::LanguageIdentifier = language_loader.src_locale();
+    let default_language: &unic_langid::LanguageIdentifier = language_loader.fallback_language();
 
     let supported_languages = negotiate_languages(
         &requested_languages,
         &available_languages,
-        Some(&default_language),
+        Some(default_language),
         NegotiationStrategy::Filtering,
     );
 
@@ -501,26 +506,16 @@ pub fn select(
     info!("Available Languages: {:?}", available_languages);
     info!("Supported Languages: {:?}", supported_languages);
 
-    match supported_languages.get(0) {
-        Some(language_id) => {
-            select_single(language_loader, i18n_embed, language_id)?;
-            Ok(Some((*language_id).clone()))
-        }
-        None => Ok(None),
+    if !supported_languages.is_empty() {
+        language_loader.load_languages(supported_languages.as_slice(), i18n_embed)?;
     }
+
+    Ok(supported_languages.into_iter().cloned().collect())
 }
 
-/// Load a language with `language_id` using the provided
-/// [LanguageLoader](LanguageLoader) from the languages embedded in
-/// [I18nEmbed](I18nEmbed) via [I18nEmbedDyn](I18nEmbedDyn).
-pub fn select_single(
-    language_loader: &dyn LanguageLoader,
-    i18n_embed: &dyn I18nEmbedDyn,
-    language_id: &unic_langid::LanguageIdentifier,
-) -> Result<(), I18nEmbedError> {
-    language_loader.load_language(language_id, i18n_embed)?;
-    info!("Selected languge \"{0}\"", language_id.to_string());
-    Ok(())
+pub struct LanguageResource<'a> {
+    pub locale: unic_langid::LanguageIdentifier,
+    pub file: Cow<'a, [u8]>,
 }
 
 /// A trait used by [I18nEmbed](I18nEmbed) to load a language file for
@@ -528,47 +523,41 @@ pub fn select_single(
 /// trait is designed such that the loader could be swapped during
 /// runtime, or contain state if required.
 pub trait LanguageLoader {
-    /// The locale used in the source code for the module this loader
-    /// is responsible for.
-    fn src_locale(&self) -> unic_langid::LanguageIdentifier;
+    /// The fallback language for the module this loader is responsible
+    /// for.
+    fn fallback_language(&self) -> &unic_langid::LanguageIdentifier;
     /// The domain for the translation that this loader is associated with.
     fn domain(&self) -> &'static str;
-    /// Load the language corresponding the specified `language_id`.
-    fn load_language(
+    /// The language file name to use for this loader's domain.
+    fn language_file_name(&self) -> String;
+    /// The computed path to the language file, and `Cow` of the file
+    /// itself if it exists.
+    fn language_file(
         &self,
         language_id: &unic_langid::LanguageIdentifier,
         i18n_embed: &dyn I18nEmbedDyn,
-    ) -> Result<(), I18nEmbedError> {
-        if language_id == &self.src_locale() {
-            self.load_src_locale();
-            return Ok(());
-        }
+    ) -> (String, Option<Cow<[u8]>>) {
         let language_id_string = language_id.to_string();
-
         let file_path = format!("{}/{}", language_id_string, self.language_file_name());
 
-        let f = i18n_embed
-            .get_dyn(file_path.as_ref())
-            .ok_or(I18nEmbedError::LanguageNotAvailable(language_id_string))?;
-        info!(
-            "Loading language \"{0}\" from file \"{1}\"",
-            language_id.to_string(),
-            file_path
-        );
-        self.load_language_file(language_id.clone(), f);
+        log::debug!("Attempting to load language file: \"{}\"", &file_path);
 
-        Ok(())
+        let file = i18n_embed.get_dyn(file_path.as_ref());
+        (file_path, file)
     }
-    /// Load the language `file` which is associated with the specified `language_id` and
-    /// set the current language, which can be retrieved via
-    /// [current_language()](LanguageLoader#current_language()).
-    fn load_language_file(&self, language_id: unic_langid::LanguageIdentifier, file: Cow<[u8]>);
-    /// Load the language associated with [src_locale()](LanguageLoader#src_locale()).
-    fn load_src_locale(&self);
-    /// The language file name to use for this loader.
-    fn language_file_name(&self) -> String;
     /// Get the language which is currently loaded for this loader.
     fn current_language(&self) -> unic_langid::LanguageIdentifier;
+    /// Load the languages `language_ids` using the resources packaged
+    /// in the `i18n_embed` in order of fallback preference. This also
+    /// sets the [current_language()] to the first in the
+    /// `language_ids` slice. You can use [select()] to determine
+    /// which fallbacks are actually available for an arbitrary slice
+    /// of preferences.
+    fn load_languages(
+        &self,
+        language_ids: &[&unic_langid::LanguageIdentifier],
+        i18n_embed: &dyn I18nEmbedDyn,
+    ) -> Result<(), I18nEmbedError>;
 }
 
 /// A dynamic reference to a static [I18nEmbed](I18nEmbed) implementation.
@@ -652,7 +641,18 @@ pub trait I18nEmbed: RustEmbed {
             })
             .collect();
 
-        language_strings.insert(0, language_loader.src_locale().to_string());
+        let fallback_locale = language_loader.fallback_language().to_string();
+
+        // For systems such as gettext which have a locale in the
+        // source code, this language will not be found in the
+        // localization assets, and should be the fallback_locale, so
+        // it needs to be added manually here.
+        if !language_strings
+            .iter()
+            .any(|language| language == &fallback_locale)
+        {
+            language_strings.insert(0, fallback_locale);
+        }
 
         language_strings
             .into_iter()
@@ -665,149 +665,13 @@ pub trait I18nEmbed: RustEmbed {
     }
 }
 
-/// A [LanguageRequester](LanguageRequester) for the desktop platform,
-/// supporting windows, linux and mac. It uses
-/// [locale_config](locale_config) to select the language based on the
-/// system selected language.
-///
-/// ⚠️ *This API requires the following crate features to be activated: `desktop-requester`.*
-#[cfg(feature = "desktop-requester")]
-pub struct DesktopLanguageRequester<'a> {
-    implementation: LanguageRequesterImpl<'a>,
-}
-
-#[cfg(feature = "desktop-requester")]
-impl<'a> LanguageRequester<'a> for DesktopLanguageRequester<'a> {
-    fn requested_languages(&self) -> Vec<unic_langid::LanguageIdentifier> {
-        Self::requested_languages()
+/// Populate gettext database with strings for use with tests.
+#[cfg(all(test, feature = "gettext-system"))]
+mod gettext_test_string {
+    fn _test_strings() {
+        tr::tr!("only en");
+        tr::tr!("only ru");
+        tr::tr!("only es");
+        tr::tr!("only fr");
     }
-
-    fn add_listener(&mut self, localizer: Weak<dyn Localizer<'a>>) {
-        self.implementation.add_listener(localizer)
-    }
-
-    fn set_language_override(
-        &mut self,
-        language_override: Option<unic_langid::LanguageIdentifier>,
-    ) -> Result<(), I18nEmbedError> {
-        self.implementation.set_language_override(language_override)
-    }
-
-    fn poll(&mut self) -> Result<(), I18nEmbedError> {
-        self.implementation.poll(self.requested_languages())
-    }
-
-    fn available_languages(&self) -> Result<Vec<unic_langid::LanguageIdentifier>, I18nEmbedError> {
-        self.implementation.available_languages()
-    }
-
-    fn current_languages(&self) -> HashMap<&'static str, unic_langid::LanguageIdentifier> {
-        self.implementation.current_languages()
-    }
-}
-
-#[cfg(feature = "desktop-requester")]
-impl<'a> Default for DesktopLanguageRequester<'a> {
-    fn default() -> Self {
-        DesktopLanguageRequester::new()
-    }
-}
-
-#[cfg(feature = "desktop-requester")]
-impl<'a> DesktopLanguageRequester<'a> {
-    pub fn new() -> DesktopLanguageRequester<'a> {
-        DesktopLanguageRequester {
-            implementation: LanguageRequesterImpl::new(),
-        }
-    }
-
-    pub fn requested_languages() -> Vec<unic_langid::LanguageIdentifier> {
-        use locale_config::{LanguageRange, Locale};
-
-        let current_locale = Locale::current();
-
-        let ids: Vec<unic_langid::LanguageIdentifier> = current_locale
-            .tags_for("messages")
-            .filter_map(|tag: LanguageRange| match tag.to_string().parse() {
-                Ok(tag) => Some(tag),
-                Err(err) => {
-                    error!("Unable to parse your locale: {:?}", err);
-                    None
-                }
-            })
-            .collect();
-
-        info!("Current Locale: {:?}", ids);
-
-        ids
-    }
-}
-
-/// A [LanguageRequester](LanguageRequester) for the `web-sys` web platform.
-///
-/// ⚠️ *This API requires the following crate features to be activated: `web-sys-requester`.*
-#[cfg(feature = "web-sys-requester")]
-pub struct WebLanguageRequester<'a> {
-    implementation: LanguageRequesterImpl<'a>,
-}
-
-#[cfg(feature = "web-sys-requester")]
-impl<'a> WebLanguageRequester<'a> {
-    pub fn new() -> WebLanguageRequester<'a> {
-        WebLanguageRequester {
-            implementation: LanguageRequesterImpl::new(),
-        }
-    }
-
-    pub fn requested_languages() -> Vec<unic_langid::LanguageIdentifier> {
-        use fluent_langneg::convert_vec_str_to_langids_lossy;
-        let window = web_sys::window().expect("no global `window` exists");
-        let navigator = window.navigator();
-        let languages = navigator.languages();
-
-        let requested_languages =
-            convert_vec_str_to_langids_lossy(languages.iter().map(|js_value| {
-                js_value
-                    .as_string()
-                    .expect("language value should be a string.")
-            }));
-
-        requested_languages
-    }
-}
-
-#[cfg(feature = "web-sys-requester")]
-impl<'a> LanguageRequester<'a> for WebLanguageRequester<'a> {
-    fn requested_languages(&self) -> Vec<unic_langid::LanguageIdentifier> {
-        Self::requested_languages()
-    }
-
-    fn add_listener(&mut self, localizer: Weak<dyn Localizer<'a>>) {
-        self.implementation.add_listener(localizer)
-    }
-
-    fn poll(&mut self) -> Result<(), I18nEmbedError> {
-        self.implementation.poll(self.requested_languages())
-    }
-
-    fn set_language_override(
-        &mut self,
-        language_override: Option<unic_langid::LanguageIdentifier>,
-    ) -> Result<(), I18nEmbedError> {
-        self.implementation.set_language_override(language_override)
-    }
-
-    fn available_languages(&self) -> Result<Vec<unic_langid::LanguageIdentifier>, I18nEmbedError> {
-        self.implementation.available_languages()
-    }
-
-    fn current_languages(&self) -> HashMap<&'static str, unic_langid::LanguageIdentifier> {
-        self.implementation.current_languages()
-    }
-}
-
-/// Get the translation domain from the module path (first module in
-/// the module path).
-pub fn domain_from_module(module_path: &str) -> &str {
-    module_path.split("::").next().unwrap_or(module_path)
 }

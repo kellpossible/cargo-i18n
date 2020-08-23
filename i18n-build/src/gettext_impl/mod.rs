@@ -3,7 +3,7 @@
 
 use crate::error::{PathError, PathType};
 use crate::util;
-use i18n_config::{Crate, GettextConfig, I18nConfig, I18nConfigError};
+use i18n_config::{Crate, GettextConfig, I18nConfigError};
 
 use std::ffi::OsStr;
 use std::fs::{create_dir_all, File};
@@ -224,12 +224,7 @@ pub fn run_msgcat<P: AsRef<Path>, I: IntoIterator<Item = P>>(
 ///
 /// `po_dir` is the directory where the output `po` files will be
 /// stored.
-pub fn run_msginit(
-    crt: &Crate,
-    i18n_config: &I18nConfig,
-    pot_dir: &Path,
-    po_dir: &Path,
-) -> Result<()> {
+pub fn run_msginit(crt: &Crate, pot_dir: &Path, po_dir: &Path) -> Result<()> {
     info!(
         "Initializing new po files with `msginit` for crate \"{0}\"",
         crt.path.to_string_lossy()
@@ -242,7 +237,10 @@ pub fn run_msginit(
 
     let msginit_command_name = "msginit";
 
-    for locale in &i18n_config.target_locales {
+    let gettext_config = crt.gettext_config_or_err()?;
+    let target_locales = &gettext_config.target_languages;
+
+    for locale in target_locales {
         let po_locale_dir = po_dir.join(locale.clone());
         let po_path = po_locale_dir.join(crt.module_name()).with_extension("po");
 
@@ -286,12 +284,7 @@ pub fn run_msginit(
 /// `pot_dir` is the directory where the input `pot` files are stored.
 ///
 /// `po_dir` is the directory where the `po` files are stored.
-pub fn run_msgmerge(
-    crt: &Crate,
-    i18n_config: &I18nConfig,
-    pot_dir: &Path,
-    po_dir: &Path,
-) -> Result<()> {
+pub fn run_msgmerge(crt: &Crate, pot_dir: &Path, po_dir: &Path) -> Result<()> {
     info!(
         "Merging message changes in pot files to po files with `msgmerge` for crate \"{0}\"",
         crt.path.to_string_lossy()
@@ -302,7 +295,10 @@ pub fn run_msgmerge(
 
     let msgmerge_command_name = "msgmerge";
 
-    for locale in &i18n_config.target_locales {
+    let gettext_config = crt.gettext_config_or_err()?;
+    let target_locales = &gettext_config.target_languages;
+
+    for locale in target_locales {
         let po_file_path = po_dir
             .join(locale)
             .join(crt.module_name())
@@ -335,19 +331,17 @@ pub fn run_msgmerge(
 /// `po_dir` is the directory where the input `po` files are stored.
 ///
 /// `mo_dir` is the directory where the output `mo` files will be stored.
-pub fn run_msgfmt(
-    crt: &Crate,
-    i18n_config: &I18nConfig,
-    po_dir: &Path,
-    mo_dir: &Path,
-) -> Result<()> {
+pub fn run_msgfmt(crt: &Crate, po_dir: &Path, mo_dir: &Path) -> Result<()> {
     info!(
         "Compiling po files to mo files with `msgfmt` for crate \"{0}\"",
         crt.path.to_string_lossy()
     );
     let msgfmt_command_name = "msgfmt";
 
-    for locale in &i18n_config.target_locales {
+    let gettext_config = crt.gettext_config_or_err()?;
+    let target_locales = &gettext_config.target_languages;
+
+    for locale in target_locales {
         let po_file_path = po_dir
             .join(locale.clone())
             .join(crt.module_name())
@@ -392,7 +386,7 @@ pub fn run<'a>(crt: &'a Crate) -> Result<()> {
         "Localizing crate \"{0}\" using the gettext system",
         crt.path.to_string_lossy()
     );
-    let (config_crate, i18n_config) = crt.active_config()?.unwrap_or_else(|| {
+    let (config_crate, _i18n_config) = crt.active_config()?.unwrap_or_else(|| {
         panic!(
             "expected that there would be an active config for the crate: \"{0}\" at \"{1}\"",
             crt.name,
@@ -495,9 +489,9 @@ pub fn run<'a>(crt: &'a Crate) -> Result<()> {
     }
 
     if !(crt.collated_subcrate()) {
-        run_msginit(crt, i18n_config, pot_dir.as_path(), po_dir.as_path())?;
-        run_msgmerge(crt, i18n_config, pot_dir.as_path(), po_dir.as_path())?;
-        run_msgfmt(crt, i18n_config, po_dir.as_path(), mo_dir.as_path())?;
+        run_msginit(crt, pot_dir.as_path(), po_dir.as_path())?;
+        run_msgmerge(crt, pot_dir.as_path(), po_dir.as_path())?;
+        run_msgfmt(crt, po_dir.as_path(), mo_dir.as_path())?;
     }
 
     Ok(())
