@@ -241,9 +241,8 @@
 //!     };
 //! }
 //!
-//! fn main() {let localizer =
-//!     DefaultLocalizer::new(&*LANGUAGE_LOADER, &TRANSLATIONS,
-//!     );
+//! fn main() {
+//!     let localizer = DefaultLocalizer::new(&*LANGUAGE_LOADER, &TRANSLATIONS);
 //!
 //!     let localizer_rc: Rc<dyn Localizer> = Rc::new(localizer);
 //!
