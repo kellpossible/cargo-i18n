@@ -551,8 +551,8 @@ pub trait LanguageLoader {
     fn current_language(&self) -> unic_langid::LanguageIdentifier;
     /// Load the languages `language_ids` using the resources packaged
     /// in the `i18n_embed` in order of fallback preference. This also
-    /// sets the [current_language()] to the first in the
-    /// `language_ids` slice. You can use [select()] to determine
+    /// sets the [LanguageLoader::current_language()] to the first in
+    /// the `language_ids` slice. You can use [select()] to determine
     /// which fallbacks are actually available for an arbitrary slice
     /// of preferences.
     fn load_languages(

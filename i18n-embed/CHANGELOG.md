@@ -1,5 +1,9 @@
 # Changelog for `i18n-embed`
 
+## v0.7.1
+
++ Fix broken documentation links.
+
 ## v0.7.0
 
 Changes for the support of the `fluent` localization system.
