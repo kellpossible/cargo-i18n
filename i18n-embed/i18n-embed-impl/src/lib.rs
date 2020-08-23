@@ -2,9 +2,7 @@ extern crate proc_macro;
 
 use crate::proc_macro::TokenStream;
 
-use i18n_config::I18nConfig;
 use quote::quote;
-use std::path::PathBuf;
 
 /// A procedural macro to implement the `I18nEmbed` trait on a struct.
 ///
@@ -47,7 +45,7 @@ pub fn i18n_embed_derive(input: TokenStream) -> TokenStream {
 #[proc_macro]
 #[cfg(feature = "gettext-system")]
 pub fn gettext_language_loader(_: TokenStream) -> TokenStream {
-    let config_file_path = PathBuf::from("i18n.toml");
+    let config_file_path = std::path::PathBuf::from("i18n.toml");
 
     if !config_file_path.exists() {
         panic!(format!(
@@ -57,7 +55,7 @@ pub fn gettext_language_loader(_: TokenStream) -> TokenStream {
         ));
     }
 
-    let config = I18nConfig::from_file(&config_file_path).unwrap_or_else(|err| {
+    let config = i18n_config::I18nConfig::from_file(&config_file_path).unwrap_or_else(|err| {
         panic!(
             "gettext_language_loader!() had a problem reading config file '{0}': {1}",
             config_file_path.to_string_lossy(),
@@ -91,7 +89,7 @@ pub fn gettext_language_loader(_: TokenStream) -> TokenStream {
 #[proc_macro]
 #[cfg(feature = "fluent-system")]
 pub fn fluent_language_loader(_: TokenStream) -> TokenStream {
-    let config_file_path = PathBuf::from("i18n.toml");
+    let config_file_path = std::path::PathBuf::from("i18n.toml");
 
     if !config_file_path.exists() {
         panic!(format!(
@@ -101,7 +99,7 @@ pub fn fluent_language_loader(_: TokenStream) -> TokenStream {
         ));
     }
 
-    let config = I18nConfig::from_file(&config_file_path).unwrap_or_else(|err| {
+    let config = i18n_config::I18nConfig::from_file(&config_file_path).unwrap_or_else(|err| {
         panic!(
             "fluent_language_loader!() had a problem reading config file '{0}': {1}",
             config_file_path.to_string_lossy(),
