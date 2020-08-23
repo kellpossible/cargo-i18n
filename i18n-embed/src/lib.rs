@@ -390,10 +390,12 @@ pub use i18n_embed_impl::I18nEmbed;
 use std::{borrow::Cow, string::FromUtf8Error};
 
 use fluent_langneg::{negotiate_languages, NegotiationStrategy};
-use gettext_system;
 use log::{debug, error, info};
 use rust_embed::RustEmbed;
 use thiserror::Error;
+
+#[cfg(feature = "gettext-system")]
+use gettext_system;
 
 pub use unic_langid;
 
