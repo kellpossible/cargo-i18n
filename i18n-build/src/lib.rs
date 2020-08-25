@@ -24,31 +24,6 @@ pub mod watch;
 use anyhow::Result;
 use i18n_config::Crate;
 
-#[cfg(feature = "localize")]
-use lazy_static::lazy_static;
-
-#[cfg(feature = "localize")]
-use i18n_embed::{
-    gettext::{gettext_language_loader, GettextLanguageLoader},
-    DefaultLocalizer, I18nEmbed,
-};
-
-#[cfg(feature = "localize")]
-use rust_embed::RustEmbed;
-
-#[cfg(feature = "localize")]
-#[derive(RustEmbed, I18nEmbed)]
-#[folder = "i18n/mo"]
-struct Translations;
-
-#[cfg(feature = "localize")]
-lazy_static! {
-    static ref LANGUAGE_LOADER: GettextLanguageLoader = gettext_language_loader!();
-}
-
-#[cfg(feature = "localize")]
-static TRANSLATIONS: Translations = Translations {};
-
 /// Run the i18n build process for the provided crate, which must
 /// contain an i18n config.
 pub fn run(crt: Crate) -> Result<()> {
@@ -86,10 +61,35 @@ pub fn run(crt: Crate) -> Result<()> {
     Ok(())
 }
 
-/// Obtain a [Localizer](i18n_embed::Localizer) for localizing this library.
-///
-/// ⚠️ *This API requires the following crate features to be activated: `localize`.*
 #[cfg(feature = "localize")]
-pub fn localizer() -> DefaultLocalizer<'static> {
-    DefaultLocalizer::new(&*LANGUAGE_LOADER, &TRANSLATIONS)
+mod localize_feature {
+    use lazy_static::lazy_static;
+
+    use i18n_embed::{
+        gettext::{gettext_language_loader, GettextLanguageLoader},
+        DefaultLocalizer, I18nEmbed,
+    };
+
+    use rust_embed::RustEmbed;
+
+    #[derive(RustEmbed, I18nEmbed)]
+    #[folder = "i18n/mo"]
+    struct Translations;
+
+    lazy_static! {
+        static ref LANGUAGE_LOADER: GettextLanguageLoader = gettext_language_loader!();
+    }
+
+    static TRANSLATIONS: Translations = Translations {};
+
+    /// Obtain a [Localizer](i18n_embed::Localizer) for localizing this library.
+    ///
+    /// ⚠️ *This API requires the following crate features to be activated: `localize`.*
+    pub fn localizer() -> DefaultLocalizer<'static> {
+        DefaultLocalizer::new(&*LANGUAGE_LOADER, &TRANSLATIONS)
+    }
 }
+
+#[cfg(feature = "localize")]
+pub use localize_feature::localizer;
+

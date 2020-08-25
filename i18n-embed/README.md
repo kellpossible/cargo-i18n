@@ -61,7 +61,7 @@ struct Translations;
 fn main() {
     let translations = Translations {};
 
-    let fallback_language: LanguageIdentifier = "en".parse().unwrap();
+    let fallback_language: LanguageIdentifier = "en-US".parse().unwrap();
      let language_loader = FluentLanguageLoader::new(
        "my_crate", fallback_language);
 
@@ -70,7 +70,8 @@ fn main() {
     // WebLanguageRequester, or you can implement your own.
     let requested_languages = DesktopLanguageRequester::requested_languages();
 
-    i18n_embed::select(&language_loader, &translations, &requested_languages);
+    let _result = i18n_embed::select(
+      &language_loader, &translations, &requested_languages);
 }
 ```
 

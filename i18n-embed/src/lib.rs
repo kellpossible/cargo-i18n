@@ -110,7 +110,8 @@
 //!     // WebLanguageRequester, or you can implement your own.
 //!     let requested_languages = DesktopLanguageRequester::requested_languages();
 //!
-//!     i18n_embed::select(&language_loader, &translations, &requested_languages);
+//!     let _result = i18n_embed::select(
+//!         &language_loader, &translations, &requested_languages);
 //!
 //!     // continue on with your application
 //! }
@@ -201,7 +202,8 @@
 //!     // WebLanguageRequester, or you can implement your own.
 //!     let requested_languages = DesktopLanguageRequester::requested_languages();
 //!
-//!     i18n_embed::select(&language_loader, &translations, &requested_languages);
+//!     let _result = i18n_embed::select(
+//!         &language_loader, &translations, &requested_languages);
 //!
 //!     // continue on with your application
 //! }
@@ -218,9 +220,8 @@
 //! use std::rc::Rc;
 //! use i18n_embed::{
 //!     I18nEmbed, DesktopLanguageRequester, LanguageRequester,
-//!     DefaultLocalizer, Localizer, fluent::{
-//!         fluent_language_loader, FluentLanguageLoader     
-//!}};
+//!     DefaultLocalizer, Localizer, fluent::FluentLanguageLoader     
+//! };
 //! use rust_embed::RustEmbed; use lazy_static::lazy_static;
 //! use unic_langid::LanguageIdentifier;
 //!
@@ -244,7 +245,7 @@
 //! fn main() {
 //!     let localizer = DefaultLocalizer::new(&*LANGUAGE_LOADER, &TRANSLATIONS);
 //!
-//!     let localizer_rc: Rc<dyn Localizer> = Rc::new(localizer);
+//!     let localizer_rc: Rc<dyn Localizer<'_>> = Rc::new(localizer);
 //!
 //!     let mut language_requester = DesktopLanguageRequester::new();
 //!     language_requester.add_listener(Rc::downgrade(&localizer_rc));
@@ -272,12 +273,11 @@
 //! you can follow this code pattern in the library itself:
 //!
 //! ```
-//! use std::rc::Rc;
 //! use i18n_embed::{
-//!     I18nEmbed, DesktopLanguageRequester, LanguageRequester,
-//!     DefaultLocalizer, Localizer, gettext::{
+//!     I18nEmbed, DefaultLocalizer, Localizer,
+//!     gettext::{
 //!         gettext_language_loader, GettextLanguageLoader     
-//!}};
+//! }};
 //! use rust_embed::RustEmbed; use lazy_static::lazy_static;
 //!
 //! #[derive(RustEmbed, I18nEmbed)]
@@ -291,8 +291,9 @@
 //! }
 //!
 //! // Get the `Localizer` to be used for localizing this library.
-//! #[cfg(feature = "localize")] pub fn localizer() -> Box<dyn Localizer<'static>> {
-//!     Box::from(DefaultLocalizer::new(&LANGUAGE_LOADER, &TRANSLATIONS))
+//! # #[allow(unused)]
+//! pub fn localizer() -> Box<dyn Localizer<'static>> {
+//!     Box::from(DefaultLocalizer::new(&*LANGUAGE_LOADER, &TRANSLATIONS))
 //! }
 //! ```
 //!
@@ -308,28 +309,21 @@
 //! for the library:
 //!
 //! ```
-//! use std::rc::Rc;
 //! use i18n_embed::{
-//!     I18nEmbed, DesktopLanguageRequester, LanguageRequester,
 //!     DefaultLocalizer, Localizer, gettext::{
-//!         gettext_language_loader, GettextLanguageLoader     
-//!}};
-//! use rust_embed::RustEmbed;
+//!     gettext_language_loader, GettextLanguageLoader     
+//! }};
 //! use i18n_embed::I18nEmbedDyn;
 //! use lazy_static::lazy_static;
-//!
-//! #[derive(RustEmbed, I18nEmbed)]
-//! #[folder = "i18n/mo"] // path to the compiled localization resources
-//! struct Translations;
-//! const TRANSLATIONS: Translations = Translations {};
 //!
 //! lazy_static! {
 //!     static ref LANGUAGE_LOADER: GettextLanguageLoader =
 //!         gettext_language_loader!();
 //! }
 //!
-//! // Get the `Localizer` to be used for localizing this library,
-//! // using the provided embeddes source of language files `embed`.
+//! /// Get the `Localizer` to be used for localizing this library,
+//! /// using the provided embeddes source of language files `embed`.
+//! # #[allow(unused)]
 //! pub fn localizer(embed: &'static dyn I18nEmbedDyn) -> Box<dyn Localizer<'static>> {
 //!     Box::from(DefaultLocalizer::new(
 //!         &*LANGUAGE_LOADER,
@@ -359,6 +353,19 @@
 //! # output pot file of that subcrate into this crate's pot file.
 //! collate_extracted_subcrates = true
 //! ```
+
+#![doc(test(
+    no_crate_inject,
+    attr(deny(warnings, rust_2018_idioms, single_use_lifetimes))
+))]
+#![forbid(unsafe_code)]
+#![warn(
+    missing_debug_implementations,
+    missing_docs,
+    rust_2018_idioms,
+    single_use_lifetimes,
+    unreachable_pub
+)]
 
 mod requester;
 mod util;
@@ -395,6 +402,7 @@ pub use unic_langid;
 
 /// An error that occurs in this library.
 #[derive(Error, Debug)]
+#[allow(missing_docs)]
 pub enum I18nEmbedError {
     #[error("Error parsing a language identifier string \"{0}\"")]
     ErrorParsingLocale(String, #[source] unic_langid::LanguageIdentifierError),
