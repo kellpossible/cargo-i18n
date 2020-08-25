@@ -245,7 +245,7 @@
 //! fn main() {
 //!     let localizer = DefaultLocalizer::new(&*LANGUAGE_LOADER, &TRANSLATIONS);
 //!
-//!     let localizer_rc: Rc<dyn Localizer<'_>> = Rc::new(localizer);
+//!     let localizer_rc: Rc<dyn Localizer> = Rc::new(localizer);
 //!
 //!     let mut language_requester = DesktopLanguageRequester::new();
 //!     language_requester.add_listener(Rc::downgrade(&localizer_rc));
@@ -292,7 +292,7 @@
 //!
 //! // Get the `Localizer` to be used for localizing this library.
 //! # #[allow(unused)]
-//! pub fn localizer() -> Box<dyn Localizer<'static>> {
+//! pub fn localizer() -> Box<dyn Localizer> {
 //!     Box::from(DefaultLocalizer::new(&*LANGUAGE_LOADER, &TRANSLATIONS))
 //! }
 //! ```
@@ -324,7 +324,7 @@
 //! /// Get the `Localizer` to be used for localizing this library,
 //! /// using the provided embeddes source of language files `embed`.
 //! # #[allow(unused)]
-//! pub fn localizer(embed: &'static dyn I18nEmbedDyn) -> Box<dyn Localizer<'static>> {
+//! pub fn localizer(embed: &dyn I18nEmbedDyn) -> Box<dyn Localizer + '_> {
 //!     Box::from(DefaultLocalizer::new(
 //!         &*LANGUAGE_LOADER,
 //!         embed
