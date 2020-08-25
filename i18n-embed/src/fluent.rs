@@ -1,3 +1,10 @@
+//! This module contains the types and functions to interact with the
+//! `fluent` localization system.
+//!
+//! Most important is the [FluentLanguageLoader].
+//!
+//! ⚠️ *This module requires the following crate features to be activated: `fluent-system`.*
+
 use crate::{I18nEmbedDyn, I18nEmbedError, LanguageLoader};
 
 pub use i18n_embed_impl::fluent_language_loader;
@@ -5,7 +12,7 @@ pub use i18n_embed_impl::fluent_language_loader;
 use fluent::{concurrent::FluentBundle, FluentMessage, FluentResource, FluentValue};
 use fluent_syntax::ast::Pattern;
 use parking_lot::RwLock;
-use std::{borrow::Cow, collections::HashMap, sync::Arc};
+use std::{borrow::Cow, collections::HashMap, fmt::Debug, sync::Arc};
 use unic_langid::LanguageIdentifier;
 
 lazy_static::lazy_static! {
@@ -16,12 +23,12 @@ lazy_static::lazy_static! {
 }
 
 struct LocaleBundle {
-    pub locale: LanguageIdentifier,
-    pub bundle: FluentBundle<Arc<FluentResource>>,
+    locale: LanguageIdentifier,
+    bundle: FluentBundle<Arc<FluentResource>>,
 }
 
 impl LocaleBundle {
-    pub fn new(locale: LanguageIdentifier, resources: Vec<Arc<FluentResource>>) -> Self {
+    fn new(locale: LanguageIdentifier, resources: Vec<Arc<FluentResource>>) -> Self {
         let mut bundle = FluentBundle::new(&[locale.clone()]);
 
         for resource in &resources {
@@ -36,11 +43,24 @@ impl LocaleBundle {
     }
 }
 
+impl Debug for LocaleBundle {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "LocaleBundle(locale: {})", self.locale)
+    }
+}
+
+#[derive(Debug)]
 struct LocaleConfig {
     current_language: LanguageIdentifier,
     locale_bundles: Vec<LocaleBundle>,
 }
 
+/// [LanguageLoader] implemenation for the `fluent` localization
+/// system. Also provides methods to access localizations which have
+/// been loaded.
+///
+/// ⚠️ *This API requires the following crate features to be activated: `fluent-system`.*
+#[derive(Debug)]
 pub struct FluentLanguageLoader {
     locale_config: RwLock<LocaleConfig>,
     domain: String,
@@ -52,7 +72,10 @@ impl FluentLanguageLoader {
     /// the specified `domain`, and relies on the specified
     /// `fallback_language` for any messages that do not exist for the
     /// current language.
-    pub fn new<S: Into<String>>(domain: S, fallback_language: unic_langid::LanguageIdentifier) -> Self {
+    pub fn new<S: Into<String>>(
+        domain: S,
+        fallback_language: unic_langid::LanguageIdentifier,
+    ) -> Self {
         let config = LocaleConfig {
             current_language: fallback_language.clone(),
             locale_bundles: Vec::new(),
@@ -84,8 +107,8 @@ impl FluentLanguageLoader {
             locale_bundle
                 .bundle
                 .get_message(message_id)
-                .and_then(|m: FluentMessage| m.value)
-                .map(|pattern: &Pattern| {
+                .and_then(|m: FluentMessage<'_>| m.value)
+                .map(|pattern: &Pattern<'_>| {
                     let mut errors = Vec::new();
                     let value = locale_bundle.bundle.format_pattern(pattern, args, &mut errors);
                     if !errors.is_empty() {
@@ -120,7 +143,7 @@ impl FluentLanguageLoader {
     {
         let mut keys: Vec<Cow<'a, str>> = Vec::new();
 
-        let mut map: HashMap<&str, FluentValue> = HashMap::with_capacity(args.len());
+        let mut map: HashMap<&str, FluentValue<'_>> = HashMap::with_capacity(args.len());
 
         let mut values = Vec::new();
 
@@ -150,11 +173,10 @@ impl FluentLanguageLoader {
         let config_lock = self.locale_config.read();
         let mut has_message = false;
 
-        config_lock.locale_bundles.iter().for_each(|locale_bundle| {
-            has_message |= locale_bundle
-                .bundle
-                .has_message(message_id)
-            });
+        config_lock
+            .locale_bundles
+            .iter()
+            .for_each(|locale_bundle| has_message |= locale_bundle.bundle.has_message(message_id));
 
         has_message
     }

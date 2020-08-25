@@ -51,18 +51,21 @@ pub fn gettext_language_loader(_: TokenStream) -> TokenStream {
     let i18n_embed_crate_name = if current_crate_package.name == "i18n_embed" {
         "i18n_embed".to_string()
     } else {
-        manifest.find(|s| s == "i18n-embed").expect("i18n-embed should be an active dependency in your Cargo.toml").name
+        manifest
+            .find(|s| s == "i18n-embed")
+            .expect("i18n-embed should be an active dependency in your Cargo.toml")
+            .name
     };
 
-    let i18n_embed_crate_ident = syn::Ident::new(&i18n_embed_crate_name, proc_macro2::Span::call_site());
+    let i18n_embed_crate_ident =
+        syn::Ident::new(&i18n_embed_crate_name, proc_macro2::Span::call_site());
 
     let config_file_path = std::path::PathBuf::from("i18n.toml");
 
     let config = i18n_config::I18nConfig::from_file(&config_file_path).unwrap_or_else(|err| {
         panic!(
             "gettext_language_loader!() had a problem reading config file {0:?}: {1}",
-            config_file_path,
-            err
+            config_file_path, err
         )
     });
 
@@ -96,23 +99,26 @@ pub fn fluent_language_loader(_: TokenStream) -> TokenStream {
     let manifest = find_crate::Manifest::new().expect("Error reading Cargo.toml");
     let current_crate_package = manifest.crate_package().expect("Error reading Cargo.toml");
     let domain = syn::Ident::new(&current_crate_package.name, proc_macro2::Span::call_site());
-    
+
     // Special case for when this macro is invoked in i18n-embed tests/docs
     let i18n_embed_crate_name = if current_crate_package.name == "i18n_embed" {
         "i18n_embed".to_string()
     } else {
-        manifest.find(|s| s == "i18n-embed").expect("i18n-embed should be an active dependency in your Cargo.toml").name
+        manifest
+            .find(|s| s == "i18n-embed")
+            .expect("i18n-embed should be an active dependency in your Cargo.toml")
+            .name
     };
 
-    let i18n_embed_crate_ident = syn::Ident::new(&i18n_embed_crate_name, proc_macro2::Span::call_site());
+    let i18n_embed_crate_ident =
+        syn::Ident::new(&i18n_embed_crate_name, proc_macro2::Span::call_site());
 
     let config_file_path = std::path::PathBuf::from("i18n.toml");
 
     let config = i18n_config::I18nConfig::from_file(&config_file_path).unwrap_or_else(|err| {
         panic!(
             "fluent_language_loader!() had a problem reading config file {0:?}: {1}",
-            config_file_path,
-            err
+            config_file_path, err
         )
     });
     let fallback_language = &config.fallback_language;

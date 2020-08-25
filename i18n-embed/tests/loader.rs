@@ -5,10 +5,7 @@ fn setup() {
 #[cfg(feature = "fluent-system")]
 mod fluent {
     use super::setup;
-    use i18n_embed::{
-        fluent::FluentLanguageLoader,
-        I18nEmbed, LanguageLoader,
-    };
+    use i18n_embed::{fluent::FluentLanguageLoader, I18nEmbed, LanguageLoader};
     use rust_embed::RustEmbed;
     use unic_langid::LanguageIdentifier;
 

@@ -1,3 +1,10 @@
+//! This module contains the types and functions to interact with the
+//! `gettext` localization system.
+//!
+//! Most important is the [GettextLanguageLoader].
+//!
+//! ⚠️ *This module requires the following crate features to be activated: `gettext-system`.*
+
 use crate::{domain_from_module, I18nEmbedDyn, I18nEmbedError, LanguageLoader};
 
 pub use i18n_embed_impl::gettext_language_loader;
@@ -5,6 +12,11 @@ pub use i18n_embed_impl::gettext_language_loader;
 use parking_lot::RwLock;
 use unic_langid::LanguageIdentifier;
 
+/// [LanguageLoader] implementation for the `gettext` localization
+/// system.
+///
+/// ⚠️ *This API requires the following crate features to be activated: `gettext-system`.*
+#[derive(Debug)]
 pub struct GettextLanguageLoader {
     current_language: RwLock<LanguageIdentifier>,
     module: &'static str,
@@ -12,6 +24,15 @@ pub struct GettextLanguageLoader {
 }
 
 impl GettextLanguageLoader {
+    /// Create a new `GettextLanguageLoader`.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use i18n_embed::gettext::GettextLanguageLoader;
+    ///
+    /// GettextLanguageLoader::new(module_path!(), "en".parse().unwrap());
+    /// ```
     pub fn new(module: &'static str, fallback_language: unic_langid::LanguageIdentifier) -> Self {
         Self {
             current_language: RwLock::new(fallback_language.clone()),

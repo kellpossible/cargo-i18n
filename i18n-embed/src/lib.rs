@@ -391,7 +391,7 @@ doctest!("../README.md");
 extern crate i18n_embed_impl;
 pub use i18n_embed_impl::I18nEmbed;
 
-use std::{borrow::Cow, string::FromUtf8Error};
+use std::{borrow::Cow, fmt::Debug, string::FromUtf8Error};
 
 use fluent_langneg::{negotiate_languages, NegotiationStrategy};
 use log::{debug, error, info};
@@ -427,10 +427,14 @@ fn error_vec_to_string(errors: &[I18nEmbedError]) -> String {
 /// This trait provides dynamic access to an
 /// [LanguageLoader](LanguageLoader) and an [I18nEmbed](I18nEmbed),
 /// which are used together to localize a library/crate on demand.
-pub trait Localizer<'a> {
-    fn language_loader(&self) -> &'a dyn LanguageLoader;
-    fn i18n_embed(&self) -> &'a dyn I18nEmbedDyn;
+pub trait Localizer {
+    /// The [LanguageLoader] used by this localizer.
+    fn language_loader(&self) -> &'_ dyn LanguageLoader;
 
+    /// The source of localization assets used by this localizer
+    fn i18n_embed(&self) -> &'_ dyn I18nEmbedDyn;
+
+    /// The available languages that can be selected by this localizer.
     fn available_languages(&self) -> Result<Vec<unic_langid::LanguageIdentifier>, I18nEmbedError> {
         self.i18n_embed()
             .available_languages_dyn(self.language_loader())
@@ -453,15 +457,28 @@ pub trait Localizer<'a> {
 
 /// A simple default implemenation of the [Localizer](Localizer) trait.
 pub struct DefaultLocalizer<'a> {
+    /// The [LanguageLoader] used by this localizer.
     pub language_loader: &'a dyn LanguageLoader,
+    /// The source of assets used by this localizer.
     pub i18n_embed: &'a dyn I18nEmbedDyn,
 }
 
-impl<'a> Localizer<'a> for DefaultLocalizer<'a> {
-    fn language_loader(&self) -> &'a dyn LanguageLoader {
+impl Debug for DefaultLocalizer<'_> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "DefaultLocalizer(language_loader: {:p}, i18n_embed: {:p})",
+            self.language_loader, self.i18n_embed,
+        )
+    }
+}
+
+#[allow(single_use_lifetimes)]
+impl<'a> Localizer for DefaultLocalizer<'a> {
+    fn language_loader(&self) -> &'_ dyn LanguageLoader {
         self.language_loader
     }
-    fn i18n_embed(&self) -> &'a dyn I18nEmbedDyn {
+    fn i18n_embed(&self) -> &'_ dyn I18nEmbedDyn {
         self.i18n_embed
     }
 }
@@ -517,8 +534,12 @@ pub fn select(
     Ok(supported_languages.into_iter().cloned().collect())
 }
 
+/// A language resource file, and its associated `language`.
+#[derive(Debug)]
 pub struct LanguageResource<'a> {
-    pub locale: unic_langid::LanguageIdentifier,
+    /// The language which this resource is associated with.
+    pub language: unic_langid::LanguageIdentifier,
+    /// The data for the file containing the localizations.
     pub file: Cow<'a, [u8]>,
 }
 
@@ -540,7 +561,7 @@ pub trait LanguageLoader {
         &self,
         language_id: &unic_langid::LanguageIdentifier,
         i18n_embed: &dyn I18nEmbedDyn,
-    ) -> (String, Option<Cow<[u8]>>) {
+    ) -> (String, Option<Cow<'_, [u8]>>) {
         let language_id_string = language_id.to_string();
         let file_path = format!("{}/{}", language_id_string, self.language_file_name());
 
@@ -606,7 +627,7 @@ pub trait I18nEmbed: RustEmbed {
             .filter_map(|filename| {
                 let path: &Path = Path::new(&filename);
 
-                let components: Vec<Component> = path.components().collect();
+                let components: Vec<Component<'_>> = path.components().collect();
 
                 let locale: Option<String> = match components.get(0) {
                     Some(language_component) => match language_component {
