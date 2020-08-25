@@ -30,7 +30,7 @@ pub trait LanguageRequester<'a> {
     fn available_languages(&self) -> Result<Vec<unic_langid::LanguageIdentifier>, I18nEmbedError>;
     /// The languages currently loaded, keyed by the
     /// [LanguageLoader::domain()](crate::LanguageLoader::domain()).
-    fn current_languages(&self) -> HashMap<&'static str, unic_langid::LanguageIdentifier>;
+    fn current_languages(&self) -> HashMap<&str, unic_langid::LanguageIdentifier>;
 }
 
 /// Provide the functionality for overrides and listeners for a
@@ -136,7 +136,7 @@ impl<'a> LanguageRequesterImpl<'a> {
         Ok(available_languages.into_iter().collect())
     }
 
-    fn current_languages(&self) -> HashMap<&'static str, unic_langid::LanguageIdentifier> {
+    fn current_languages(&self) -> HashMap<&str, unic_langid::LanguageIdentifier> {
         let mut current_languages = HashMap::new();
         for weak_listener in &self.listeners {
             if let Some(localizer) = weak_listener.upgrade() {
@@ -185,7 +185,7 @@ impl<'a> LanguageRequester<'a> for DesktopLanguageRequester<'a> {
         self.implementation.available_languages()
     }
 
-    fn current_languages(&self) -> HashMap<&'static str, unic_langid::LanguageIdentifier> {
+    fn current_languages(&self) -> HashMap<&str, unic_langid::LanguageIdentifier> {
         self.implementation.current_languages()
     }
 }
@@ -285,7 +285,7 @@ impl<'a> LanguageRequester<'a> for WebLanguageRequester<'a> {
         self.implementation.available_languages()
     }
 
-    fn current_languages(&self) -> HashMap<&'static str, unic_langid::LanguageIdentifier> {
+    fn current_languages(&self) -> HashMap<&str, unic_langid::LanguageIdentifier> {
         self.implementation.current_languages()
     }
 }

@@ -12,16 +12,16 @@ version = "0.5.1"
 [badges]
 maintenance = { status = "actively-developed" }
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [lib]
 proc-macro = true
 
 [dependencies]
+find-crate = { git = "https://github.com/kellpossible/find-crate.git", branch = "manifest-crate-package", version = "0.5", optional = true }
+i18n-config = { version = "0.3", path = "../../i18n-config", optional = true }
+proc-macro2 = "1.0"
 quote = "1.0"
 serde = { version = "1", features = ["derive"] }
 serde_derive = "1"
-i18n-config = { version = "0.3", path = "../../i18n-config", optional = true }
-proc-macro2 = "1.0"
 
 [dev-dependencies]
 rust-embed = "5.6"
@@ -33,5 +33,5 @@ features = ["derive", "proc-macro", "parsing", "printing", "extra-traits",]
 
 [features]
 default = []
-gettext-system = ["i18n-config"]
-fluent-system = ["i18n-config"]
+gettext-system = ["i18n-config", "find-crate"]
+fluent-system = ["i18n-config", "find-crate"]

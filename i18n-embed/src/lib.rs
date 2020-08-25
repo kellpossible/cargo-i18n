@@ -523,7 +523,7 @@ pub trait LanguageLoader {
     /// for.
     fn fallback_language(&self) -> &unic_langid::LanguageIdentifier;
     /// The domain for the translation that this loader is associated with.
-    fn domain(&self) -> &'static str;
+    fn domain(&self) -> &str;
     /// The language file name to use for this loader's domain.
     fn language_file_name(&self) -> String;
     /// The computed path to the language file, and `Cow` of the file

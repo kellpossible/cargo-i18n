@@ -1,4 +1,4 @@
-use crate::{domain_from_module, I18nEmbedDyn, I18nEmbedError, LanguageLoader};
+use crate::{I18nEmbedDyn, I18nEmbedError, LanguageLoader};
 
 pub use i18n_embed_impl::fluent_language_loader;
 
@@ -43,12 +43,16 @@ struct LocaleConfig {
 
 pub struct FluentLanguageLoader {
     locale_config: RwLock<LocaleConfig>,
-    module: &'static str,
+    domain: String,
     fallback_language: unic_langid::LanguageIdentifier,
 }
 
 impl FluentLanguageLoader {
-    pub fn new(domain: &'static str, fallback_language: unic_langid::LanguageIdentifier) -> Self {
+    /// Create a new `FluentLanguageLoader`, which loads messages for
+    /// the specified `domain`, and relies on the specified
+    /// `fallback_language` for any messages that do not exist for the
+    /// current language.
+    pub fn new<S: Into<String>>(domain: S, fallback_language: unic_langid::LanguageIdentifier) -> Self {
         let config = LocaleConfig {
             current_language: fallback_language.clone(),
             locale_bundles: Vec::new(),
@@ -56,19 +60,20 @@ impl FluentLanguageLoader {
 
         Self {
             locale_config: RwLock::new(config),
-            module: domain,
+            domain: domain.into(),
             fallback_language,
         }
     }
 
-    pub fn get(&self, id: &'static str) -> String {
-        self.get_args_concrete(id, HashMap::new())
+    /// Get a localized message referenced by the `message_id`.
+    pub fn get(&self, message_id: &str) -> String {
+        self.get_args_concrete(message_id, HashMap::new())
     }
 
     /// A non-generic version of [FluentLanguageLoader::get_args()].
     pub fn get_args_concrete<'a>(
         &self,
-        id: &'static str,
+        message_id: &str,
         args: HashMap<&'a str, FluentValue<'a>>,
     ) -> String {
         let config_lock = self.locale_config.read();
@@ -78,7 +83,7 @@ impl FluentLanguageLoader {
         config_lock.locale_bundles.iter().filter_map(|locale_bundle| {
             locale_bundle
                 .bundle
-                .get_message(id)
+                .get_message(message_id)
                 .and_then(|m: FluentMessage| m.value)
                 .map(|pattern: &Pattern| {
                     let mut errors = Vec::new();
@@ -87,7 +92,7 @@ impl FluentLanguageLoader {
                         log::error!(
                             target:"i18n_embed::fluent",
                             "Failed to format a message for locale \"{}\" and id \"{}\".\nErrors\n{:?}.",
-                            &config_lock.current_language, id, errors
+                            &config_lock.current_language, message_id, errors
                         )
                     }
 
@@ -100,13 +105,15 @@ impl FluentLanguageLoader {
                     target:"i18n_embed::fluent",
                     "Unable to find localization for locale \"{}\" and id \"{}\".",
                     config_lock.current_language,
-                    id
+                    message_id
                 );
-                format!("No localization for id: \"{}\"", id)
+                format!("No localization for id: \"{}\"", message_id)
             })
     }
 
-    pub fn get_args<'a, S, V>(&self, id: &'static str, args: HashMap<S, V>) -> String
+    /// Get a localized message referenced by the `message_id`, and
+    /// formatted with the specified `args`.
+    pub fn get_args<'a, S, V>(&self, id: &str, args: HashMap<S, V>) -> String
     where
         S: Into<Cow<'a, str>> + Clone + 'static,
         V: Into<FluentValue<'a>> + Clone + 'static,
@@ -135,6 +142,22 @@ impl FluentLanguageLoader {
 
         self.get_args_concrete(id, map)
     }
+
+    /// Returns true if a message with the specified `message_id` is
+    /// available in any of the languages currently loaded (including
+    /// the fallback language).
+    pub fn has(&self, message_id: &str) -> bool {
+        let config_lock = self.locale_config.read();
+        let mut has_message = false;
+
+        config_lock.locale_bundles.iter().for_each(|locale_bundle| {
+            has_message |= locale_bundle
+                .bundle
+                .has_message(message_id)
+            });
+
+        has_message
+    }
 }
 
 impl LanguageLoader for FluentLanguageLoader {
@@ -144,8 +167,8 @@ impl LanguageLoader for FluentLanguageLoader {
         &self.fallback_language
     }
     /// The domain for the translation that this loader is associated with.
-    fn domain(&self) -> &'static str {
-        domain_from_module(self.module)
+    fn domain(&self) -> &str {
+        &self.domain
     }
 
     /// The language file name to use for this loader.

@@ -5,7 +5,10 @@ fn setup() {
 #[cfg(feature = "fluent-system")]
 mod fluent {
     use super::setup;
-    use i18n_embed::{fluent::FluentLanguageLoader, I18nEmbed, LanguageLoader};
+    use i18n_embed::{
+        fluent::FluentLanguageLoader,
+        I18nEmbed, LanguageLoader,
+    };
     use rust_embed::RustEmbed;
     use unic_langid::LanguageIdentifier;
 
@@ -67,6 +70,20 @@ mod fluent {
             "Привет \u{2068}Tanya\u{2069}!",
             loader.get_args("only-ru-args", args)
         );
+    }
+
+    #[test]
+    fn has() {
+        setup();
+        let en_us: LanguageIdentifier = "en-US".parse().unwrap();
+        let ru: LanguageIdentifier = "ru".parse().unwrap();
+
+        let loader = FluentLanguageLoader::new("test", en_us.clone());
+        loader.load_languages(&[&ru], &Localizations).unwrap();
+
+        assert!(loader.has("only-ru-args"));
+        assert!(loader.has("only-us"));
+        assert!(!loader.has("non-existent-message"))
     }
 }
 

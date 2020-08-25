@@ -119,6 +119,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "dashmap"
+version = "4.0.0-rc6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "308a6703be2d759cb5fb7b80a23547fe73a8d5ebf70d3a4ca7f0ef4c0bfc2265"
+dependencies = [
+ "once_cell",
+]
+
+[[package]]
 name = "difference"
 version = "2.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -205,6 +214,14 @@ dependencies = [
  "log",
  "regex",
  "termcolor",
+]
+
+[[package]]
+name = "find-crate"
+version = "0.5.0"
+source = "git+https://github.com/kellpossible/find-crate.git?branch=manifest-crate-package#699a45cea651c68d875f3bcf704fb63abcd43e48"
+dependencies = [
+ "toml",
 ]
 
 [[package]]
@@ -337,9 +354,28 @@ dependencies = [
 ]
 
 [[package]]
+name = "i18n-embed-fl"
+version = "0.1.0"
+dependencies = [
+ "dashmap",
+ "doc-comment",
+ "env_logger",
+ "find-crate",
+ "i18n-config",
+ "i18n-embed",
+ "lazy_static",
+ "pretty_assertions",
+ "proc-macro2",
+ "quote",
+ "rust-embed",
+ "syn",
+]
+
+[[package]]
 name = "i18n-embed-impl"
 version = "0.5.1"
 dependencies = [
+ "find-crate",
  "i18n-config",
  "proc-macro2",
  "quote",
@@ -476,6 +512,12 @@ checksum = "c92d4ddb4bd7b50d730c215ff871754d0da6b2178849f8a2a2ab69712d0c073b"
 dependencies = [
  "objc",
 ]
+
+[[package]]
+name = "once_cell"
+version = "1.4.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "260e51e7efe62b592207e9e13a68e43692a7a279171d6ba57abd208bf23645ad"
 
 [[package]]
 name = "output_vt100"
