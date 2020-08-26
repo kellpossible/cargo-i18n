@@ -370,6 +370,7 @@ dependencies = [
  "quote",
  "rust-embed",
  "syn",
+ "unic-langid",
 ]
 
 [[package]]
@@ -381,8 +382,6 @@ dependencies = [
  "proc-macro2",
  "quote",
  "rust-embed",
- "serde",
- "serde_derive",
  "syn",
 ]
 

@@ -1,4 +1,4 @@
-use std::{path::PathBuf, borrow::Cow};
+use std::borrow::Cow;
 
 /// A trait to handle the retrieval of localization assets.
 pub trait I18nAssets {
@@ -22,22 +22,45 @@ where
     }
 }
 
+/// An [I18nAssets] implementation which pulls assets from the OS
+/// file system.
+#[cfg(feature = "filesystem-assets")]
+#[derive(Debug)]
 pub struct FileSystemAssets {
-    base: PathBuf,
+    base_dir: std::path::PathBuf,
 }
 
+#[cfg(feature = "filesystem-assets")]
 impl FileSystemAssets {
-    /// Create a new `FileSystemAssets` instance.
-    pub fn new<P: Into<PathBuf>>(base: P) -> Self {
+    /// Create a new `FileSystemAssets` instance, all files will be
+    /// read from within the specified base directory. Will panic if
+    /// the specified `base_dir` does not exist, or is not a valid
+    /// directory.
+    pub fn new<P: Into<std::path::PathBuf>>(base_dir: P) -> Self {
+        let base_dir = base_dir.into();
+
+        if !base_dir.exists() {
+            panic!(
+                "specified `base_dir` ({:?}) does not exist", 
+                base_dir);
+        }
+        
+        if !base_dir.is_dir() {
+            panic!(
+                "specified `base_dir` ({:?}) is not a directory", 
+                base_dir);
+        }
+
         Self {
-            base: base.into(),
+            base_dir,
         }
     }
 }
 
+#[cfg(feature = "filesystem-assets")]
 impl I18nAssets for FileSystemAssets {
     fn get_file(&self, file_path: &str) -> Option<Cow<'_, [u8]>> {
-        let full_path = self.base.join(file_path); 
+        let full_path = self.base_dir.join(file_path); 
 
         if !(full_path.is_file() && full_path.exists()) {
             return None;
@@ -56,7 +79,7 @@ impl I18nAssets for FileSystemAssets {
     }
 
     fn filenames_iter(&self) ->  Box<dyn Iterator<Item = String>> {
-        Box::new(walkdir::WalkDir::new(&self.base).into_iter().filter_map(|f| {
+        Box::new(walkdir::WalkDir::new(&self.base_dir).into_iter().filter_map(|f| {
             match f {
                 Ok(f) => {
                     if f.file_type().is_file() {

@@ -1,8 +1,6 @@
 #![feature(proc_macro_diagnostic)]
 use proc_macro::TokenStream;
 
-use quote::quote;
-
 /// A procedural macro to create a new `GettextLanguageLoader` using
 /// the current crate's `i18n.toml` configuration, and domain.
 ///
@@ -45,7 +43,7 @@ pub fn gettext_language_loader(_: TokenStream) -> TokenStream {
 
     let fallback_language = &config.fallback_language;
 
-    let gen = quote! {
+    let gen = quote::quote! {
         #i18n_embed_crate_ident::gettext::GettextLanguageLoader::new(
             module_path!(),
             #fallback_language.parse().unwrap(),
@@ -97,7 +95,7 @@ pub fn fluent_language_loader(_: TokenStream) -> TokenStream {
     });
     let fallback_language = &config.fallback_language;
 
-    let gen = quote! {
+    let gen = quote::quote! {
         #i18n_embed_crate_ident::fluent::FluentLanguageLoader::new(
             #domain,
             #fallback_language.parse().unwrap(),

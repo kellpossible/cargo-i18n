@@ -1,7 +1,7 @@
 use crate::{I18nEmbedError, Localizer};
 use std::{collections::HashMap, rc::Weak};
 
-/// A trait used by [I18nAssets](I18nAssets) to ascertain which
+/// A trait used by [I18nAssets](crate::I18nAssets) to ascertain which
 /// languages are being requested.
 pub trait LanguageRequester {
     /// Add a listener to this `LanguageRequester`. When the system

@@ -14,11 +14,11 @@
 //! project and implement its trait on your struct in addition to
 //! [I18nAssets](I18nAssets). At some point in the future this library
 //! may incorperate the embedding process into the `I18nAssets` trait
-//! and remove this dependency. [RustEmbed](RustEmbed) currently will
-//! not compile if the target `folder` path is invalid, so it is
-//! recommended to either run `cargo i18n` before building your
-//! project, or committing the compiled resources to ensure that the
-//! project can build without requiring `cargo i18n`.
+//! and remove this dependency. `RustEmbed` currently will not compile
+//! if the target `folder` path is invalid, so it is recommended to
+//! either run `cargo i18n` before building your project, or
+//! committing the compiled resources to ensure that the project can
+//! build without requiring `cargo i18n`.
 //!
 //! # Optional Features
 //!
@@ -391,6 +391,7 @@ extern crate doc_comment;
 #[cfg(doctest)]
 doctest!("../README.md");
 
+#[cfg(any(feature = "gettext-system", feature = "fluent-system"))]
 #[allow(unused_imports)]
 #[macro_use]
 extern crate i18n_embed_impl;
@@ -500,11 +501,10 @@ impl<'a> DefaultLocalizer<'a> {
 }
 
 /// Select the most suitable language currently requested by the
-/// system by the the [LanguageRequester](LanguageRequester), and load
-/// it using the provided [LanguageLoader](LanguageLoader) from the
-/// languages embedded in [I18nAssets](I18nAssets) via
-/// [I18nAssetsDyn](I18nAssetsDyn). Returns the available languages that
-/// were negotiated to be selected in order of preference.
+/// system by the the [LanguageRequester], and load it using the
+/// provided [LanguageLoader] from the languages available in
+/// [I18nAssets]. Returns the available languages that were negotiated
+/// to be selected in order of preference.
 pub fn select(
     language_loader: &dyn LanguageLoader,
     i18n_embed: &dyn I18nAssets,

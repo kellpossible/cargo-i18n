@@ -19,9 +19,7 @@ proc-macro = true
 find-crate = { git = "https://github.com/kellpossible/find-crate.git", branch = "manifest-crate-package", version = "0.5", optional = true }
 i18n-config = { version = "0.3", path = "../../i18n-config", optional = true }
 proc-macro2 = "1.0"
-quote = "1.0"
-serde = { version = "1", features = ["derive"] }
-serde_derive = "1"
+quote = { version = "1.0", optional = true }
 
 [dev-dependencies]
 rust-embed = "5.6"
@@ -33,5 +31,5 @@ features = ["derive", "proc-macro", "parsing", "printing", "extra-traits",]
 
 [features]
 default = []
-gettext-system = ["i18n-config", "find-crate"]
-fluent-system = ["i18n-config", "find-crate"]
+gettext-system = ["i18n-config", "find-crate", "quote"]
+fluent-system = ["i18n-config", "find-crate", "quote"]
