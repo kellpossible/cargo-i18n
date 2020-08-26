@@ -4,18 +4,12 @@ use i18n_embed::{
 use i18n_embed_fl::fl;
 use rust_embed::RustEmbed;
 
-fn setup() {
-    // log messages from the `i18n-embed` crate.
-    let _ = env_logger::try_init();
-}
-
 #[derive(RustEmbed)]
 #[folder = "i18n/"]
 struct Localizations;
 
 #[test]
 fn no_args() {
-    setup();
     let en_us: LanguageIdentifier = "en-US".parse().unwrap();
     let loader = FluentLanguageLoader::new("i18n_embed_fl", en_us.clone());
     loader.load_languages(&Localizations, &[&en_us]).unwrap();
@@ -27,7 +21,6 @@ fn no_args() {
 
 #[test]
 fn with_args_hashmap() {
-    setup();
     let en_us: LanguageIdentifier = "en-US".parse().unwrap();
     let loader = FluentLanguageLoader::new("i18n_embed_fl", en_us.clone());
     loader.load_languages(&Localizations, &[&en_us]).unwrap();
@@ -44,7 +37,6 @@ fn with_args_hashmap() {
 
 #[test]
 fn with_one_arg_lit() {
-    setup();
     let en_us: LanguageIdentifier = "en-US".parse().unwrap();
     let loader = FluentLanguageLoader::new("i18n_embed_fl", en_us.clone());
     loader.load_languages(&Localizations, &[&en_us]).unwrap();
@@ -57,7 +49,6 @@ fn with_one_arg_lit() {
 
 #[test]
 fn with_one_arg_expr() {
-    setup();
     let en_us: LanguageIdentifier = "en-US".parse().unwrap();
     let loader = FluentLanguageLoader::new("i18n_embed_fl", en_us.clone());
     loader.load_languages(&Localizations, &[&en_us]).unwrap();
@@ -70,7 +61,6 @@ fn with_one_arg_expr() {
 
 #[test]
 fn with_two_args_fail() {
-    setup();
     let en_us: LanguageIdentifier = "en-US".parse().unwrap();
     let loader = FluentLanguageLoader::new("i18n_embed_fl", en_us.clone());
     loader.load_languages(&Localizations, &[&en_us]).unwrap();
@@ -83,7 +73,6 @@ fn with_two_args_fail() {
 
 #[test]
 fn with_two_args() {
-    setup();
     let en_us: LanguageIdentifier = "en-US".parse().unwrap();
     let loader = FluentLanguageLoader::new("i18n_embed_fl", en_us.clone());
     loader.load_languages(&Localizations, &[&en_us]).unwrap();
