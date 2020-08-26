@@ -5,21 +5,38 @@ use proc_macro::TokenStream;
 use quote::quote;
 use syn::{parse::Parse, parse_macro_input};
 use unic_langid::LanguageIdentifier;
-use std::path::Path;
+use std::{collections::HashMap, path::Path};
+use fluent::FluentValue;
 
-struct TrMacroInput {
-    fluent_loader: syn::Ident,
-    message_id: syn::Lit,
+enum FlArgs {
+    HashMap(syn::Ident),
+    None,
 }
 
-impl Parse for TrMacroInput {
+struct FlMacroInput {
+    fluent_loader: syn::Ident,
+    message_id: syn::Lit,
+    args: FlArgs, 
+}
+
+impl Parse for FlMacroInput {
     fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
         let fluent_loader = input.parse()?;
         input.parse::<syn::Token![,]>()?;
         let message_id = input.parse()?;
+
+        let args = if !input.is_empty() {
+            input.parse::<syn::Token![,]>()?;
+            let hash_map: syn::Ident = input.parse()?;
+            FlArgs::HashMap(hash_map)
+        } else {
+            FlArgs::None
+        };
+        
         Ok(Self {
             fluent_loader,
             message_id,
+            args,
         })
     }
 }
@@ -34,9 +51,11 @@ lazy_static::lazy_static! {
         dashmap::DashMap::new();
 }
 
+/// A macro to obtain localized messages, and check the `message_id`
+/// at compile time.
 #[proc_macro]
 pub fn fl(input: TokenStream) -> TokenStream {
-    let input: TrMacroInput = parse_macro_input!(input as TrMacroInput);
+    let input: FlMacroInput = parse_macro_input!(input as FlMacroInput);
 
     let fluent_loader = input.fluent_loader;
     let message_id = input.message_id;
@@ -132,7 +151,8 @@ pub fn fl(input: TokenStream) -> TokenStream {
                     .span()
                     .unstable()
                     .error(&format!(
-                        "`message_id` of \"{0}\" does not exist in language \"{1}\"",
+                        "fl!() `message_id` validation failed. `message_id` \
+                        of \"{0}\" does not exist in the `fallback_language` (\"{1}\")",
                         message_id_str,
                         domain_data.loader.current_language(),
                     ))
@@ -148,8 +168,17 @@ pub fn fl(input: TokenStream) -> TokenStream {
         }
     }
 
-    let gen = quote! {
-        #fluent_loader.get(#message_id)
+    let gen = match input.args {
+        FlArgs::HashMap(args_hash_map) => {
+            quote! {
+                #fluent_loader.get_args(#message_id, #args_hash_map)
+            }
+        }
+        FlArgs::None => {
+            quote! {
+                #fluent_loader.get(#message_id)
+            }
+        }
     };
 
     gen.into()
