@@ -1,7 +1,7 @@
 use crate::{I18nEmbedError, Localizer};
-use std::{collections::HashMap, fmt::Debug, rc::Weak};
+use std::{collections::HashMap, rc::Weak};
 
-/// A trait used by [I18nEmbed](I18nEmbed) to ascertain which
+/// A trait used by [I18nAssets](I18nAssets) to ascertain which
 /// languages are being requested.
 pub trait LanguageRequester {
     /// Add a listener to this `LanguageRequester`. When the system
@@ -150,7 +150,7 @@ impl LanguageRequesterImpl {
 }
 
 #[cfg(any(feature = "desktop-requester", feature = "web-sys-requester"))]
-impl Debug for LanguageRequesterImpl {
+impl std::fmt::Debug for LanguageRequesterImpl {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let listeners_debug: String = self
             .listeners

@@ -5,7 +5,7 @@
 //!
 //! ⚠️ *This module requires the following crate features to be activated: `gettext-system`.*
 
-use crate::{domain_from_module, I18nEmbedDyn, I18nEmbedError, LanguageLoader};
+use crate::{domain_from_module, I18nAssetsDyn, I18nEmbedError, LanguageLoader};
 
 pub use i18n_embed_impl::gettext_language_loader;
 
@@ -83,7 +83,7 @@ impl LanguageLoader for GettextLanguageLoader {
     fn load_languages(
         &self,
         language_ids: &[&unic_langid::LanguageIdentifier],
-        i18n_embed: &dyn I18nEmbedDyn,
+        i18n_embed: &dyn I18nAssetsDyn,
     ) -> Result<(), I18nEmbedError> {
         let language_id = *language_ids
             .get(0)

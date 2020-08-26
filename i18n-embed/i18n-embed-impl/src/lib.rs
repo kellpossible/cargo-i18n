@@ -3,32 +3,6 @@ use proc_macro::TokenStream;
 
 use quote::quote;
 
-/// A procedural macro to implement the `I18nEmbed` trait on a struct.
-///
-/// ## Example
-///
-/// ```ignore
-/// use rust_embed::RustEmbed;
-/// use i18n_embed::I18nEmbed;
-///
-/// #[derive(RustEmbed, I18nEmbed)]
-/// #[folder = "i18n"]
-/// struct Localizations;
-/// ```
-#[proc_macro_derive(I18nEmbed)]
-pub fn i18n_embed_derive(input: TokenStream) -> TokenStream {
-    let ast: syn::DeriveInput = syn::parse(input).unwrap();
-
-    let struct_name = &ast.ident;
-
-    let gen = quote! {
-        impl I18nEmbed for #struct_name {
-        }
-    };
-
-    gen.into()
-}
-
 /// A procedural macro to create a new `GettextLanguageLoader` using
 /// the current crate's `i18n.toml` configuration, and domain.
 ///

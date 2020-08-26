@@ -1,5 +1,5 @@
 use i18n_embed::{
-    fluent::FluentLanguageLoader, unic_langid::LanguageIdentifier, I18nEmbed, LanguageLoader,
+    fluent::FluentLanguageLoader, unic_langid::LanguageIdentifier, I18nAssets, LanguageLoader,
 };
 use i18n_embed_fl::fl;
 use rust_embed::RustEmbed;
@@ -8,7 +8,7 @@ fn setup() {
     let _ = env_logger::try_init();
 }
 
-#[derive(RustEmbed, I18nEmbed)]
+#[derive(RustEmbed, I18nAssets)]
 #[folder = "../i18n-embed/i18n"]
 struct Localizations;
 

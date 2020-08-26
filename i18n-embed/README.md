@@ -48,13 +48,13 @@ my_crate/
 Then you can instantiate your language loader and language requester:
 
 ```rust
-use i18n_embed::{I18nEmbed, DesktopLanguageRequester, fluent::{
+use i18n_embed::{DesktopLanguageRequester, fluent::{
   FluentLanguageLoader
 }};
 use rust_embed::RustEmbed;
 use unic_langid::LanguageIdentifier;
 
-#[derive(RustEmbed, I18nEmbed)]
+#[derive(RustEmbed)]
 #[folder = "i18n"] // path to the localization resources
 struct Translations;
 

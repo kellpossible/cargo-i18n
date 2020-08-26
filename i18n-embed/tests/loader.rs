@@ -5,11 +5,11 @@ fn setup() {
 #[cfg(feature = "fluent-system")]
 mod fluent {
     use super::setup;
-    use i18n_embed::{fluent::FluentLanguageLoader, I18nEmbed, LanguageLoader};
+    use i18n_embed::{fluent::FluentLanguageLoader, LanguageLoader};
     use rust_embed::RustEmbed;
     use unic_langid::LanguageIdentifier;
 
-    #[derive(RustEmbed, I18nEmbed)]
+    #[derive(RustEmbed)]
     #[folder = "i18n/ftl"]
     struct Localizations;
 
@@ -87,7 +87,7 @@ mod fluent {
 #[cfg(feature = "gettext-system")]
 mod gettext {
     use super::setup;
-    use i18n_embed::{gettext::GettextLanguageLoader, I18nEmbed, LanguageLoader};
+    use i18n_embed::{gettext::GettextLanguageLoader, LanguageLoader};
     use rust_embed::RustEmbed;
     use tr::internal::with_translator;
     use unic_langid::LanguageIdentifier;
@@ -99,7 +99,7 @@ mod gettext {
         with_translator("i18n_embed", |t| t.translate(msgid, None).to_string())
     }
 
-    #[derive(RustEmbed, I18nEmbed)]
+    #[derive(RustEmbed)]
     #[folder = "i18n/mo"]
     struct Localizations;
 

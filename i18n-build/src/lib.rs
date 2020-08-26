@@ -67,12 +67,12 @@ mod localize_feature {
 
     use i18n_embed::{
         gettext::{gettext_language_loader, GettextLanguageLoader},
-        DefaultLocalizer, I18nEmbed,
+        DefaultLocalizer, I18nAssets,
     };
 
     use rust_embed::RustEmbed;
 
-    #[derive(RustEmbed, I18nEmbed)]
+    #[derive(RustEmbed, I18nAssets)]
     #[folder = "i18n/mo"]
     struct Translations;
 
