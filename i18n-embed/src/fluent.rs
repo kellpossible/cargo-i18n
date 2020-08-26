@@ -180,6 +180,20 @@ impl FluentLanguageLoader {
 
         has_message
     }
+
+    pub fn with_fluent_message<OUT, C: Fn(fluent::FluentMessage<'_>) -> OUT>(&self, message_id: &str, closure: C) -> Option<OUT> {
+        let config_lock = self.locale_config.read();
+        
+        if let Some(message) = config_lock.locale_bundles.iter().filter_map(|locale_bundle| {
+            locale_bundle
+                .bundle
+                .get_message(message_id)
+        }).next() {
+            Some((closure)(message))
+        } else {
+            None
+        }
+    }
 }
 
 impl LanguageLoader for FluentLanguageLoader {
