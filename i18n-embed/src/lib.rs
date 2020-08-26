@@ -313,7 +313,7 @@
 //!     DefaultLocalizer, Localizer, gettext::{
 //!     gettext_language_loader, GettextLanguageLoader     
 //! }};
-//! use i18n_embed::I18nAssetsDyn;
+//! use i18n_embed::I18nAssets;
 //! use lazy_static::lazy_static;
 //!
 //! lazy_static! {
@@ -324,7 +324,7 @@
 //! /// Get the `Localizer` to be used for localizing this library,
 //! /// using the provided embeddes source of language files `embed`.
 //! # #[allow(unused)]
-//! pub fn localizer(embed: &dyn I18nAssetsDyn) -> Box<dyn Localizer + '_> {
+//! pub fn localizer(embed: &dyn I18nAssets) -> Box<dyn Localizer + '_> {
 //!     Box::from(DefaultLocalizer::new(
 //!         &*LANGUAGE_LOADER,
 //!         embed
@@ -431,12 +431,12 @@ pub trait Localizer {
     fn language_loader(&self) -> &'_ dyn LanguageLoader;
 
     /// The source of localization assets used by this localizer
-    fn i18n_embed(&self) -> &'_ dyn I18nAssetsDyn;
+    fn i18n_embed(&self) -> &'_ dyn I18nAssets;
 
     /// The available languages that can be selected by this localizer.
     fn available_languages(&self) -> Result<Vec<unic_langid::LanguageIdentifier>, I18nEmbedError> {
         self.i18n_embed()
-            .available_languages_dyn(self.language_loader())
+            .available_languages(self.language_loader())
     }
 
     /// Automatically the language currently requested by the system
@@ -459,7 +459,7 @@ pub struct DefaultLocalizer<'a> {
     /// The [LanguageLoader] used by this localizer.
     pub language_loader: &'a dyn LanguageLoader,
     /// The source of assets used by this localizer.
-    pub i18n_embed: &'a dyn I18nAssetsDyn,
+    pub i18n_embed: &'a dyn I18nAssets,
 }
 
 impl Debug for DefaultLocalizer<'_> {
@@ -477,7 +477,7 @@ impl<'a> Localizer for DefaultLocalizer<'a> {
     fn language_loader(&self) -> &'_ dyn LanguageLoader {
         self.language_loader
     }
-    fn i18n_embed(&self) -> &'_ dyn I18nAssetsDyn {
+    fn i18n_embed(&self) -> &'_ dyn I18nAssets {
         self.i18n_embed
     }
 }
@@ -486,7 +486,7 @@ impl<'a> DefaultLocalizer<'a> {
     /// Create a new [DefaultLocalizer](DefaultLocalizer).
     pub fn new(
         language_loader: &'a dyn LanguageLoader,
-        i18n_embed: &'a dyn I18nAssetsDyn,
+        i18n_embed: &'a dyn I18nAssets,
     ) -> DefaultLocalizer<'a> {
         DefaultLocalizer {
             language_loader,
@@ -503,7 +503,7 @@ impl<'a> DefaultLocalizer<'a> {
 /// were negotiated to be selected in order of preference.
 pub fn select(
     language_loader: &dyn LanguageLoader,
-    i18n_embed: &dyn I18nAssetsDyn,
+    i18n_embed: &dyn I18nAssets,
     requested_languages: &[unic_langid::LanguageIdentifier],
 ) -> Result<Vec<unic_langid::LanguageIdentifier>, I18nEmbedError> {
     info!(
@@ -512,7 +512,7 @@ pub fn select(
     );
 
     let available_languages: Vec<unic_langid::LanguageIdentifier> =
-        i18n_embed.available_languages_dyn(language_loader)?;
+        i18n_embed.available_languages(language_loader)?;
     let default_language: &unic_langid::LanguageIdentifier = language_loader.fallback_language();
 
     let supported_languages = negotiate_languages(
@@ -559,14 +559,14 @@ pub trait LanguageLoader {
     fn language_file(
         &self,
         language_id: &unic_langid::LanguageIdentifier,
-        i18n_embed: &dyn I18nAssetsDyn,
+        i18n_embed: &dyn I18nAssets,
     ) -> (String, Option<Cow<'_, [u8]>>) {
         let language_id_string = language_id.to_string();
         let file_path = format!("{}/{}", language_id_string, self.language_file_name());
 
         log::debug!("Attempting to load language file: \"{}\"", &file_path);
 
-        let file = i18n_embed.get_file_dyn(file_path.as_ref());
+        let file = i18n_embed.get_file(file_path.as_ref());
         (file_path, file)
     }
     /// Get the language which is currently loaded for this loader.
@@ -580,55 +580,33 @@ pub trait LanguageLoader {
     fn load_languages(
         &self,
         language_ids: &[&unic_langid::LanguageIdentifier],
-        i18n_embed: &dyn I18nAssetsDyn,
+        i18n_embed: &dyn I18nAssets,
     ) -> Result<(), I18nEmbedError>;
-}
-
-/// A dynamic reference to a static [I18nAssets](I18nAssets) implementation.
-pub trait I18nAssetsDyn {
-    /// A dynamic way to access the static
-    /// [I18nAssets#available_languages()](I18nAssets#available_languages())
-    /// method for a given [I18nAssets](I18nAssets) implementation.
-    fn available_languages_dyn<'a>(
-        &self,
-        language_loader: &'a dyn LanguageLoader,
-    ) -> Result<Vec<unic_langid::LanguageIdentifier>, I18nEmbedError>;
-    /// A dynamic way to access the static [RustEmbed#get()](RustEmbed#get())
-    /// for a given [I18nAssets](I18nAssets) implementation.
-    fn get_file_dyn(&self, file_path: &str) -> Option<std::borrow::Cow<'static, [u8]>>;
-}
-
-impl<T: I18nAssets + ?Sized> I18nAssetsDyn for T {
-    fn available_languages_dyn<'a>(
-        &self,
-        language_loader: &'a dyn LanguageLoader,
-    ) -> Result<Vec<unic_langid::LanguageIdentifier>, I18nEmbedError> {
-        T::available_languages(language_loader)
-    }
-    fn get_file_dyn(&self, file_path: &str) -> Option<std::borrow::Cow<'static, [u8]>> {
-        T::get_file(file_path)
-    }
 }
 
 /// A trait to handle the retrieval of localization assets.
 pub trait I18nAssets {
-    /// Get a localization asset (returns `None` if the asset does not exist).
-    fn get_file(file_path: &str) -> Option<Cow<'static, [u8]>>;
     /// Calculate the embedded languages available to be selected for
     /// the module requested by the provided [LanguageLoader](LanguageLoader).
-    fn available_languages(
-        language_loader: &'_ dyn LanguageLoader,
+    fn available_languages<'a>(
+        &self,
+        language_loader: &'a dyn LanguageLoader,
     ) -> Result<Vec<unic_langid::LanguageIdentifier>, I18nEmbedError>;
+    /// Get a localization asset (returns `None` if the asset does not exist).
+    fn get_file(&self, file_path: &str) -> Option<std::borrow::Cow<'static, [u8]>>;
 }
 
 impl<T> I18nAssets for T
-    where T: RustEmbed + 'static {
-    fn get_file(file_path: &str) -> Option<Cow<'static, [u8]>> {
+where
+    T: RustEmbed + 'static,
+{
+    fn get_file(&self, file_path: &str) -> Option<std::borrow::Cow<'static, [u8]>> {
         Self::get(file_path)
     }
 
-        fn available_languages(
-        language_loader: &'_ dyn LanguageLoader,
+    fn available_languages<'a>(
+        &self,
+        language_loader: &'a dyn LanguageLoader,
     ) -> Result<Vec<unic_langid::LanguageIdentifier>, I18nEmbedError> {
         use std::path::{Component, Path};
 
@@ -697,7 +675,6 @@ impl<T> I18nAssets for T
                     .map_err(|err| I18nEmbedError::ErrorParsingLocale(language, err))
             })
             .collect()
-    
     }
 }
 

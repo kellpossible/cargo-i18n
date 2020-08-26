@@ -5,7 +5,7 @@
 //!
 //! ⚠️ *This module requires the following crate features to be activated: `fluent-system`.*
 
-use crate::{I18nAssetsDyn, I18nEmbedError, LanguageLoader};
+use crate::{I18nAssets, I18nEmbedError, LanguageLoader};
 
 pub use i18n_embed_impl::fluent_language_loader;
 
@@ -212,7 +212,7 @@ impl LanguageLoader for FluentLanguageLoader {
     fn load_languages(
         &self,
         language_ids: &[&unic_langid::LanguageIdentifier],
-        i18n_embed: &dyn I18nAssetsDyn,
+        i18n_embed: &dyn I18nAssets,
     ) -> Result<(), I18nEmbedError> {
         let current_language = *language_ids
             .get(0)
