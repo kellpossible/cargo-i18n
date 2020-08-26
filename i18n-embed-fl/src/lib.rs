@@ -10,7 +10,7 @@ use std::{collections::HashMap, path::Path};
 #[derive(Debug)]
 enum FlArgs {
     HashMap(syn::Ident),
-    KeyValuePairs(HashMap<syn::Ident, Box<syn::Expr>>),
+    KeyValuePairs(HashMap<syn::LitStr, Box<syn::Expr>>),
     None,
 }
 
@@ -27,7 +27,7 @@ impl Parse for FlArgs {
                 }
             }
 
-            let mut args_map = HashMap::new();
+            let mut args_map: HashMap<syn::LitStr, Box<syn::Expr>> = HashMap::new();
 
             while let Ok(expr) = input.parse::<syn::ExprAssign>() {
                 let argument_name_ident_opt = match &*expr.left {
@@ -46,9 +46,15 @@ impl Parse for FlArgs {
                     }
                 }.clone();
 
+                let argument_name_string = argument_name_ident.to_string();
+                let argument_name_lit_str = syn::LitStr::new(&argument_name_string, argument_name_ident.span());
+
                 let argument_value = expr.right;
 
-                args_map.insert(argument_name_ident, argument_value);
+                args_map.insert(argument_name_lit_str, argument_value);
+
+                // parse the next comma if there is one
+                let _result = input.parse::<syn::Token![,]>();
             }
 
             if args_map.is_empty() {
@@ -231,7 +237,26 @@ pub fn fl(input: TokenStream) -> TokenStream {
             }
         }
         FlArgs::KeyValuePairs(pairs) => {
-            panic!("Unsupported input type {:?}", pairs)
+            let mut arg_assignments = proc_macro2::TokenStream::default();
+
+            for (key, value) in pairs {
+                arg_assignments = quote! {
+                    #arg_assignments
+                    args.insert(#key, #value.into());
+                }
+            }
+
+            let gen = quote!{ 
+                #fluent_loader.get_args_concrete(
+                    #message_id,
+                    {
+                        let mut args = std::collections::HashMap::new();
+                        #arg_assignments
+                        args
+                    })
+            };
+
+            gen
         }
     };
 
