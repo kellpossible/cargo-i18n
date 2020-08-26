@@ -3,14 +3,71 @@
 use i18n_embed::{fluent::FluentLanguageLoader, LanguageLoader, FileSystemAssets};
 use proc_macro::TokenStream;
 use quote::quote;
-use syn::{parse::Parse, parse_macro_input};
+use syn::{parse::Parse, parse_macro_input, spanned::Spanned};
 use unic_langid::LanguageIdentifier;
 use std::{collections::HashMap, path::Path};
-use fluent::FluentValue;
 
+#[derive(Debug)]
 enum FlArgs {
     HashMap(syn::Ident),
+    KeyValuePairs(HashMap<syn::Ident, Box<syn::Expr>>),
     None,
+}
+
+impl Parse for FlArgs {
+    fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
+        if !input.is_empty() {
+            input.parse::<syn::Token![,]>()?;
+
+            let lookahead = input.fork();
+            if let Ok(_) = lookahead.parse::<syn::Ident>() {
+                if lookahead.is_empty() {
+                    let hash_map = input.parse()?;
+                    return Ok(FlArgs::HashMap(hash_map))
+                }
+            }
+
+            let mut args_map = HashMap::new();
+
+            while let Ok(expr) = input.parse::<syn::ExprAssign>() {
+                let argument_name_ident_opt = match &*expr.left {
+                    syn::Expr::Path(path) => {
+                        path.path.get_ident()
+                    }
+                    _ => {
+                        None
+                    }
+                };
+
+                let argument_name_ident = match argument_name_ident_opt {
+                    Some(ident) => ident,
+                    None => {
+                        return Err(syn::Error::new(expr.left.span(), "unable to parse as an identifier"))
+                    }
+                }.clone();
+
+                let argument_value = expr.right;
+
+                args_map.insert(argument_name_ident, argument_value);
+            }
+
+            if args_map.is_empty() {
+                let span = match input.fork().parse::<syn::Expr>() {
+                    Ok(expr) => {
+                        expr.span()
+                    }
+                    Err(_) => {
+                        input.span()
+                    }
+                };
+                Err(syn::Error::new(span, "unable to parse args input"))
+            } else {
+                Ok(FlArgs::KeyValuePairs(args_map))
+            }
+        } else {
+            Ok(FlArgs::None)
+        }
+    }
 }
 
 struct FlMacroInput {
@@ -24,14 +81,8 @@ impl Parse for FlMacroInput {
         let fluent_loader = input.parse()?;
         input.parse::<syn::Token![,]>()?;
         let message_id = input.parse()?;
-
-        let args = if !input.is_empty() {
-            input.parse::<syn::Token![,]>()?;
-            let hash_map: syn::Ident = input.parse()?;
-            FlArgs::HashMap(hash_map)
-        } else {
-            FlArgs::None
-        };
+        
+        let args = input.parse()?;
         
         Ok(Self {
             fluent_loader,
@@ -178,6 +229,9 @@ pub fn fl(input: TokenStream) -> TokenStream {
             quote! {
                 #fluent_loader.get(#message_id)
             }
+        }
+        FlArgs::KeyValuePairs(pairs) => {
+            panic!("Unsupported input type {:?}", pairs)
         }
     };
 

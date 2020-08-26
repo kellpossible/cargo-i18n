@@ -42,3 +42,15 @@ fn with_args_hashmap() {
     );
 }
 
+#[test]
+fn with_one_arg() {
+    setup();
+    let en_us: LanguageIdentifier = "en-US".parse().unwrap();
+    let loader = FluentLanguageLoader::new("i18n_embed_fl", en_us.clone());
+    loader.load_languages(&Localizations, &[&en_us]).unwrap();
+
+    pretty_assertions::assert_eq!(
+        "Hello \u{2068}Tanya\u{2069}!",
+        fl!(loader, "hello-arg", name = "Tanya")
+    );
+}
