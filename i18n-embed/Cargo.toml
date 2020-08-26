@@ -25,7 +25,7 @@ unic-langid = "0.9"
 locale_config = { version = "0.3", optional = true }
 fluent-langneg = "0.13"
 web-sys = { version = "0.3", features = ["Window", "Navigator"], optional = true }
-rust-embed = "5"
+rust-embed = { version = "5", optional = true }
 gettext_system = { package = "gettext", version = "0.4", optional = true }
 tr = { version = "0.1", default-features = false, optional = true }
 log = "0.4"
@@ -34,6 +34,7 @@ fluent = { version = "0.12", optional = true }
 fluent-syntax = { version = "0.9", optional = true }
 lazy_static = "1.4"
 parking_lot = { version = "0.11", optional = true }
+walkdir = "2"
 
 [dev-dependencies]
 doc-comment = "0.3"
@@ -42,7 +43,7 @@ env_logger = "0.7"
 maplit = "1.0"
 
 [features]
-default = []
+default = ["rust-embed"]
 
 gettext-system = ["tr", "tr/gettext", "gettext_system", "parking_lot", "i18n-embed-impl/gettext-system"]
 fluent-system = ["fluent", "fluent-syntax", "parking_lot", "i18n-embed-impl/fluent-system"]

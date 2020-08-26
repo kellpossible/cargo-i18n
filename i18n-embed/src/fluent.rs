@@ -204,15 +204,15 @@ impl LanguageLoader for FluentLanguageLoader {
     }
 
     /// Load the languages `language_ids` using the resources packaged
-    /// in the `i18n_embed` in order of fallback preference. This also
-    /// sets the [LanguageLoader::current_language()] to the first in
-    /// the `language_ids` slice. You can use
+    /// in the `i18n_assets` in order of fallback preference. This
+    /// also sets the [LanguageLoader::current_language()] to the
+    /// first in the `language_ids` slice. You can use
     /// [select()](super::select()) to determine which fallbacks are
     /// actually available for an arbitrary slice of preferences.
     fn load_languages(
         &self,
+        i18n_assets: &dyn I18nAssets,
         language_ids: &[&unic_langid::LanguageIdentifier],
-        i18n_embed: &dyn I18nAssets,
     ) -> Result<(), I18nEmbedError> {
         let current_language = *language_ids
             .get(0)
@@ -228,7 +228,7 @@ impl LanguageLoader for FluentLanguageLoader {
         let mut locale_bundles = Vec::with_capacity(language_ids.len());
 
         for locale in load_language_ids {
-            let (path, file) = self.language_file(&locale, i18n_embed);
+            let (path, file) = self.language_file(&locale, i18n_assets);
 
             if let Some(file) = file {
                 log::debug!(target:"i18n_embed::fluent", "Loaded language file: \"{0}\" for language: \"{1}\"", path, locale);

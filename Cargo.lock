@@ -350,6 +350,7 @@ dependencies = [
  "thiserror",
  "tr",
  "unic-langid",
+ "walkdir",
  "web-sys",
 ]
 

@@ -71,19 +71,19 @@ impl LanguageLoader for GettextLanguageLoader {
     }
 
     /// Load the languages `language_ids` using the resources packaged
-    /// in the `i18n_embed` in order of fallback preference. This also
-    /// sets the [LanguageLoader::current_language()] to the first in
-    /// the `language_ids` slice. You can use [select()](super::select())
-    /// to determine which fallbacks are actually available for an
-    /// arbitrary slice of preferences.
+    /// in the `i18n_assets` in order of fallback preference. This
+    /// also sets the [LanguageLoader::current_language()] to the
+    /// first in the `language_ids` slice. You can use
+    /// [select()](super::select()) to determine which fallbacks are
+    /// actually available for an arbitrary slice of preferences.
     ///
     /// **Note:** Gettext doesn't support loading multiple languages
     /// as multiple fallbacks. We only load the first of the requested
     /// languages, and the fallback is the src language.
     fn load_languages(
         &self,
+        i18n_assets: &dyn I18nAssets,
         language_ids: &[&unic_langid::LanguageIdentifier],
-        i18n_embed: &dyn I18nAssets,
     ) -> Result<(), I18nEmbedError> {
         let language_id = *language_ids
             .get(0)
@@ -94,7 +94,7 @@ impl LanguageLoader for GettextLanguageLoader {
             return Ok(());
         }
 
-        let (_path, file) = match self.language_file(&language_id, i18n_embed) {
+        let (_path, file) = match self.language_file(&language_id, i18n_assets) {
             (path, Some(f)) => (path, f),
             (path, None) => {
                 log::error!(

@@ -16,6 +16,7 @@ dashmap = "4.0.0-rc6"
 lazy_static = "1.4"
 proc-macro2 = "1.0"
 quote = "1.0"
+unic_langid = ""
 
 [dependencies.syn]
 version = "1.0"

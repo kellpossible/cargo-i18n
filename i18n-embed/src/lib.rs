@@ -24,6 +24,9 @@
 //!
 //! The `i18n-embed` crate has the following optional Cargo features:
 //!
+//! + `rust-embed` (Enabled by default)
+//!   + Enable an automatic implementation of [I18nAssets] for any
+//!     type that also implements `RustEmbed`.
 //! + `fluent-system`
 //!   + Enable support for the
 //!     [fluent](https://www.projectfluent.org/) localization system
@@ -367,6 +370,7 @@
     unreachable_pub
 )]
 
+mod assets;
 mod requester;
 mod util;
 
@@ -376,6 +380,7 @@ pub mod fluent;
 #[cfg(feature = "gettext-system")]
 pub mod gettext;
 
+pub use assets::*;
 pub use requester::*;
 pub use util::*;
 
@@ -394,7 +399,6 @@ use std::{borrow::Cow, fmt::Debug, string::FromUtf8Error, path::{Path, Component
 
 use fluent_langneg::{negotiate_languages, NegotiationStrategy};
 use log::{debug, error, info};
-use rust_embed::RustEmbed;
 use thiserror::Error;
 
 pub use unic_langid;
@@ -527,7 +531,7 @@ pub fn select(
     info!("Supported Languages: {:?}", supported_languages);
 
     if !supported_languages.is_empty() {
-        language_loader.load_languages(supported_languages.as_slice(), i18n_embed)?;
+        language_loader.load_languages(i18n_embed, supported_languages.as_slice())?;
     }
 
     Ok(supported_languages.into_iter().cloned().collect())
@@ -577,7 +581,7 @@ pub trait LanguageLoader {
     ) -> Result<Vec<unic_langid::LanguageIdentifier>, I18nEmbedError> {
         let mut language_strings: Vec<String> = i18n_assets.filenames_iter()
             .filter_map(|filename| {
-                let path: &Path = Path::new(filename.as_ref());
+                let path: &Path = Path::new(&filename);
 
                 let components: Vec<Component<'_>> = path.components().collect();
 
@@ -651,30 +655,9 @@ pub trait LanguageLoader {
     /// of preferences.
     fn load_languages(
         &self,
+        i18n_assets: &dyn I18nAssets,
         language_ids: &[&unic_langid::LanguageIdentifier],
-        i18n_embed: &dyn I18nAssets,
     ) -> Result<(), I18nEmbedError>;
-}
-
-/// A trait to handle the retrieval of localization assets.
-pub trait I18nAssets {
-    /// Get a localization asset (returns `None` if the asset does not exist).
-    fn get_file(&self, file_path: &str) -> Option<Cow<'_, [u8]>>;
-    /// Get an iterator over the filenames of the localization assets.
-    fn filenames_iter(&self) ->  Box<dyn Iterator<Item = Cow<'_, str>>>;
-}
-
-impl<T> I18nAssets for T
-where
-    T: RustEmbed + 'static,
-{
-    fn get_file(&self, file_path: &str) -> Option<Cow<'_, [u8]>> {
-        Self::get(file_path) 
-    }
-
-    fn filenames_iter(&self) -> Box<dyn Iterator<Item = Cow<'_, str>>> {
-        Box::new(Self::iter().map(|filename| filename.clone()))
-    }
 }
 
 /// Populate gettext database with strings for use with tests.
