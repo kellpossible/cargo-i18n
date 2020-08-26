@@ -6,6 +6,7 @@ use quote::quote;
 use syn::{parse::Parse, parse_macro_input, spanned::Spanned};
 use unic_langid::LanguageIdentifier;
 use std::{collections::HashMap, path::Path};
+use fluent::FluentMessage;
 
 #[derive(Debug)]
 enum FlArgs {
@@ -200,23 +201,10 @@ pub fn fl(input: TokenStream) -> TokenStream {
         DOMAINS.insert_and_get(domain.clone(), data)
     };
 
-    match &message_id {
+    let message_id_string = match &message_id {
         syn::Lit::Str(message_id_str) => {
             let message_id_str = message_id_str.value();
-            
-            if !domain_data.loader.has(&message_id_str) {
-                message_id
-                    .span()
-                    .unstable()
-                    .error(&format!(
-                        "fl!() `message_id` validation failed. `message_id` \
-                        of \"{0}\" does not exist in the `fallback_language` (\"{1}\")",
-                        message_id_str,
-                        domain_data.loader.current_language(),
-                    ))
-                    .emit();
-            }
-
+            Some(message_id_str)
         }
         unexpected_lit => {
             unexpected_lit
@@ -224,8 +212,9 @@ pub fn fl(input: TokenStream) -> TokenStream {
                 .unstable()
                 .error("`message_id` should be a &'static str")
                 .emit();
+            None
         }
-    }
+    };
 
     let gen = match input.args {
         FlArgs::HashMap(args_hash_map) => {
@@ -241,7 +230,19 @@ pub fn fl(input: TokenStream) -> TokenStream {
         FlArgs::KeyValuePairs(pairs) => {
             let mut arg_assignments = proc_macro2::TokenStream::default();
 
-            for (key, value) in pairs {
+            if let Some(message_id_str) = &message_id_string {
+                domain_data.loader.with_fluent_message(message_id_str, |message: FluentMessage<'_>| {
+                    if let Some(_pattern) = message.value {
+                        // TODO: search through the pattern to find the 
+                        // InlineExpression::VariableReference
+
+                        // Check that the variable references match
+                        // those specified in the pairs
+                    }
+                });
+            }
+            
+            for (key, value) in &pairs {
                 arg_assignments = quote! {
                     #arg_assignments
                     args.insert(#key, #value.into());
@@ -257,6 +258,23 @@ pub fn fl(input: TokenStream) -> TokenStream {
                         args
                     })
             };
+
+            // TODO: save some performance and reuse the message lookup done in KeyValuePairs
+            if let Some(message_id_str) = &message_id_string {
+                if !domain_data.loader.has(&message_id_str) {
+                    message_id
+                        .span()
+                        .unstable()
+                        .error(&format!(
+                            "fl!() `message_id` validation failed. `message_id` \
+                            of \"{0}\" does not exist in the `fallback_language` (\"{1}\")",
+                            message_id_str,
+                            domain_data.loader.current_language(),
+                        ))
+                        .emit();
+                }
+            }
+           
 
             gen
         }
