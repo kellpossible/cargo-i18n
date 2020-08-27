@@ -1,9 +1,8 @@
-#![feature(proc_macro_diagnostic)]
-
 use fluent::FluentMessage;
 use fluent_syntax::ast::{CallArguments, Expression, InlineExpression, Pattern, PatternElement};
 use i18n_embed::{fluent::FluentLanguageLoader, FileSystemAssets, LanguageLoader};
 use proc_macro::TokenStream;
+use proc_macro_error::{abort, emit_error, proc_macro_error};
 use quote::quote;
 use std::{
     collections::{HashMap, HashSet},
@@ -273,6 +272,7 @@ lazy_static::lazy_static! {
 /// assert_eq!("Hello \u{2068}Bob\u{2069}!", fl!(loader, "hello-arg", args));
 /// ```
 #[proc_macro]
+#[proc_macro_error]
 pub fn fl(input: TokenStream) -> TokenStream {
     let input: FlMacroInput = parse_macro_input!(input as FlMacroInput);
 
@@ -280,8 +280,8 @@ pub fn fl(input: TokenStream) -> TokenStream {
     let message_id = input.message_id;
 
     let manifest = find_crate::Manifest::new().expect("Error reading Cargo.toml");
+    let current_crate_package = manifest.crate_package().expect("Error parsing Cargo.toml");
 
-    let current_crate_package = manifest.crate_package().expect("Error reading Cargo.toml");
     let domain = current_crate_package.name;
 
     let domain_data = if let Some(domain_data) = DOMAINS.get(&domain) {
@@ -296,18 +296,25 @@ pub fn fl(input: TokenStream) -> TokenStream {
         let config_file_path = Path::new(&crate_dir).join("i18n.toml");
 
         let config = i18n_config::I18nConfig::from_file(&config_file_path).unwrap_or_else(|err| {
-            panic!(
-                "fl!() had a problem reading config file {0:?}: {1}",
-                config_file_path, err
-            )
+            abort! {
+                proc_macro2::Span::call_site(),
+                format!(
+                    "fl!() had a problem reading config file {0:?}: {1}",
+                    config_file_path, err);
+                help = "Try creating the `i18n.toml` configuration file.";
+            }
         });
 
         let fluent_config = config.fluent.unwrap_or_else(|| {
-            panic!(
-                "fl!() had a problem parsing config file {0:?}: \
-                there is no `[fluent]` subsection.",
-                config_file_path
-            )
+            abort! {
+                proc_macro2::Span::call_site(),
+                format!(
+                    "fl!() had a problem parsing config file {0:?}: \
+                    there is no `[fluent]` subsection.",
+                    config_file_path);
+                help = "Add the `[fluent]` subsection to `i18n.toml`, \
+                        along with its required `assets_dir`.";
+            }
         });
 
         let assets_dir = Path::new(&crate_dir).join(fluent_config.assets_dir);
@@ -329,11 +336,14 @@ pub fn fl(input: TokenStream) -> TokenStream {
                             language_id, fallback_language
                         )
                     }
-                    panic!(
-                        "fl!() was unable to load the localization \
-                        file for the `fallback_language` (\"{0}\"): {1}",
-                        fallback_language, file,
-                    )
+                    abort! {
+                        proc_macro2::Span::call_site(),
+                        format!(
+                            "fl!() was unable to load the localization \
+                            file for the `fallback_language` (\"{0}\"): {1}",
+                            fallback_language, file,);
+                        help = "Try creating the required fluent localization file.";
+                    }
                 }
                 _ => panic!(
                     "fl!() had an unexpected problem while \
@@ -356,11 +366,10 @@ pub fn fl(input: TokenStream) -> TokenStream {
             Some(message_id_str)
         }
         unexpected_lit => {
-            unexpected_lit
-                .span()
-                .unstable()
-                .error("fl!() `message_id` should be a &'static str")
-                .emit();
+            emit_error! {
+                unexpected_lit,
+                "fl!() `message_id` should be a literal rust string"
+            };
             None
         }
     };
@@ -412,16 +421,18 @@ pub fn fl(input: TokenStream) -> TokenStream {
 
             if let Some(message_id_str) = &message_id_string {
                 if !checked_loader_has_message && !domain_data.loader.has(&message_id_str) {
-                    message_id
-                        .span()
-                        .unstable()
-                        .error(&format!(
+                    emit_error! {
+                        message_id,
+                        format!(
                             "fl!() `message_id` validation failed. `message_id` \
                             of \"{0}\" does not exist in the `fallback_language` (\"{1}\")",
                             message_id_str,
                             domain_data.loader.current_language(),
-                        ))
-                        .emit();
+                        );
+                        help = "Enter the correct `message_id` or create \
+                                the message in the localization file if the \
+                                intended message does not yet exist."
+                    };
                 }
             }
 
@@ -455,14 +466,17 @@ fn check_message_args<'a>(
                         .collect::<Vec<String>>()
                         .join(", ");
 
-                    key.span()
-                        .unstable()
-                        .error(format!(
+                    emit_error! {
+                        key,
+                        format!(
                             "fl!() argument `{0}` does not exist in the \
                             fluent message. Available arguments: {1}.",
                             &arg, available_args
-                        ))
-                        .emit();
+                        );
+                        help = "Enter the correct arguments, or fix the message \
+                                in the fluent localization file so that the arguments \
+                                match this macro invokation.";
+                    };
                 }
 
                 arg
@@ -483,13 +497,16 @@ fn check_message_args<'a>(
             .collect();
 
         if !unspecified_args.is_empty() {
-            proc_macro2::Span::call_site()
-                .unstable()
-                .error(format!(
+            emit_error! {
+                proc_macro2::Span::call_site(),
+                format!(
                     "fl!() the following arguments have not been specified: {}",
                     unspecified_args.join(", ")
-                ))
-                .emit();
+                );
+                help = "Enter the correct arguments, or fix the message \
+                        in the fluent localization file so that the arguments \
+                        match this macro invokation.";
+            };
         }
     }
 }
