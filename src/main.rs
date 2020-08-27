@@ -4,8 +4,8 @@ use i18n_build::run;
 use i18n_config::Crate;
 use i18n_embed::{
     gettext::{gettext_language_loader, GettextLanguageLoader},
-    DefaultLocalizer, DesktopLanguageRequester, I18nEmbed, I18nEmbedDyn, LanguageLoader,
-    LanguageRequester, Localizer,
+    DefaultLocalizer, DesktopLanguageRequester, I18nAssets, LanguageLoader, LanguageRequester,
+    Localizer,
 };
 use lazy_static::lazy_static;
 use rust_embed::RustEmbed;
@@ -14,7 +14,7 @@ use std::rc::Rc;
 use tr::tr;
 use unic_langid::LanguageIdentifier;
 
-#[derive(RustEmbed, I18nEmbed)]
+#[derive(RustEmbed)]
 #[folder = "i18n/mo"]
 struct Translations;
 
@@ -30,7 +30,7 @@ fn short_about() -> String {
     tr!("A Cargo sub-command to extract and build localization resources.")
 }
 
-fn available_languages<'a>(localizer: &Rc<dyn Localizer<'a>>) -> Result<Vec<String>> {
+fn available_languages(localizer: &Rc<dyn Localizer>) -> Result<Vec<String>> {
     Ok(localizer
         .available_languages()?
         .iter()
@@ -75,10 +75,10 @@ fn main() -> Result<()> {
     let mut language_requester = DesktopLanguageRequester::new();
 
     let cargo_i18n_localizer =
-        DefaultLocalizer::new(&*LANGUAGE_LOADER, &TRANSLATIONS as &dyn I18nEmbedDyn);
+        DefaultLocalizer::new(&*LANGUAGE_LOADER, &TRANSLATIONS as &dyn I18nAssets);
 
     let cargo_i18n_localizer_rc: Rc<dyn Localizer> = Rc::new(cargo_i18n_localizer);
-    let i18n_build_localizer_rc = Rc::new(i18n_build::localizer()) as Rc<dyn Localizer<'static>>;
+    let i18n_build_localizer_rc = Rc::new(i18n_build::localizer()) as Rc<dyn Localizer>;
 
     language_requester.add_listener(Rc::downgrade(&cargo_i18n_localizer_rc));
     language_requester.add_listener(Rc::downgrade(&i18n_build_localizer_rc));

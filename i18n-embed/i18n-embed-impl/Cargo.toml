@@ -2,26 +2,25 @@
 authors = ["Luke Frisken <l.frisken@gmail.com>"]
 description = "Derive macros for the traits defined in i18n-embed"
 edition = "2018"
-keywords = ["embed", "build", "i18n", "gettext", "locale"]
+keywords = ["build", "i18n", "gettext", "locale", "fluent"]
+categories = ["localization", "internationalization"]
 license = "MIT"
 name = "i18n-embed-impl"
 readme = "../README.md"
 repository = "https://github.com/kellpossible/cargo-i18n/tree/master/i18n-embed"
-version = "0.5.1"
+version = "0.6.0"
 
 [badges]
 maintenance = { status = "actively-developed" }
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [lib]
 proc-macro = true
 
 [dependencies]
-quote = "1.0"
-serde = { version = "1", features = ["derive"] }
-serde_derive = "1"
-i18n-config = { version = "0.3", path = "../../i18n-config", optional = true }
+find-crate = { version = "0.6", optional = true }
+i18n-config = { version = "0.4", path = "../../i18n-config", optional = true }
 proc-macro2 = "1.0"
+quote = { version = "1.0", optional = true }
 
 [dev-dependencies]
 rust-embed = "5.6"
@@ -33,5 +32,5 @@ features = ["derive", "proc-macro", "parsing", "printing", "extra-traits",]
 
 [features]
 default = []
-gettext-system = ["i18n-config"]
-fluent-system = ["i18n-config"]
+gettext-system = ["i18n-config", "find-crate", "quote"]
+fluent-system = ["i18n-config", "find-crate", "quote"]

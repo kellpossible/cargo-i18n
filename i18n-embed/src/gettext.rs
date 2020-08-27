@@ -1,10 +1,22 @@
-use crate::{domain_from_module, I18nEmbedDyn, I18nEmbedError, LanguageLoader};
+//! This module contains the types and functions to interact with the
+//! `gettext` localization system.
+//!
+//! Most important is the [GettextLanguageLoader].
+//!
+//! ⚠️ *This module requires the following crate features to be activated: `gettext-system`.*
+
+use crate::{domain_from_module, I18nAssets, I18nEmbedError, LanguageLoader};
 
 pub use i18n_embed_impl::gettext_language_loader;
 
 use parking_lot::RwLock;
 use unic_langid::LanguageIdentifier;
 
+/// [LanguageLoader] implementation for the `gettext` localization
+/// system.
+///
+/// ⚠️ *This API requires the following crate features to be activated: `gettext-system`.*
+#[derive(Debug)]
 pub struct GettextLanguageLoader {
     current_language: RwLock<LanguageIdentifier>,
     module: &'static str,
@@ -12,6 +24,15 @@ pub struct GettextLanguageLoader {
 }
 
 impl GettextLanguageLoader {
+    /// Create a new `GettextLanguageLoader`.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use i18n_embed::gettext::GettextLanguageLoader;
+    ///
+    /// GettextLanguageLoader::new(module_path!(), "en".parse().unwrap());
+    /// ```
     pub fn new(module: &'static str, fallback_language: unic_langid::LanguageIdentifier) -> Self {
         Self {
             current_language: RwLock::new(fallback_language.clone()),
@@ -50,19 +71,19 @@ impl LanguageLoader for GettextLanguageLoader {
     }
 
     /// Load the languages `language_ids` using the resources packaged
-    /// in the `i18n_embed` in order of fallback preference. This also
-    /// sets the [LanguageLoader::current_language()] to the first in
-    /// the `language_ids` slice. You can use [select()](super::select())
-    /// to determine which fallbacks are actually available for an
-    /// arbitrary slice of preferences.
+    /// in the `i18n_assets` in order of fallback preference. This
+    /// also sets the [LanguageLoader::current_language()] to the
+    /// first in the `language_ids` slice. You can use
+    /// [select()](super::select()) to determine which fallbacks are
+    /// actually available for an arbitrary slice of preferences.
     ///
     /// **Note:** Gettext doesn't support loading multiple languages
     /// as multiple fallbacks. We only load the first of the requested
     /// languages, and the fallback is the src language.
     fn load_languages(
         &self,
+        i18n_assets: &dyn I18nAssets,
         language_ids: &[&unic_langid::LanguageIdentifier],
-        i18n_embed: &dyn I18nEmbedDyn,
     ) -> Result<(), I18nEmbedError> {
         let language_id = *language_ids
             .get(0)
@@ -73,7 +94,7 @@ impl LanguageLoader for GettextLanguageLoader {
             return Ok(());
         }
 
-        let (_path, file) = match self.language_file(&language_id, i18n_embed) {
+        let (_path, file) = match self.language_file(&language_id, i18n_assets) {
             (path, Some(f)) => (path, f),
             (path, None) => {
                 log::error!(

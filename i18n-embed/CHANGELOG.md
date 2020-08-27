@@ -1,5 +1,30 @@
 # Changelog for `i18n-embed`
 
+## v0.8.0
+
+Changes to support the new `i18n-embed-fl` crate's `fl!()` macro, and some major cleanup/refactoring/simplification.
+
+### New Features
+
++ A new `I18nAssets` trait, to support situations where assets are not embedded.
++ Automatic implementation of the `I18nAssets` trait for types that implement `RustEmbed`.
++ A new `FileSystemAssets` type (which is enabled using the crate feature `filesystem-assets`), which implements `I18nAssets` for loading assets at runtime from the file system.
++ Implemented `Debug` trait on more types.
++ Added new `has()` and `with_fluent_message()` methods to `FluentLanguageLoader`.
++ Made `LanguageRequesterImpl` available on default crate features. No longer requires `gettext-system` or `fluent-system` to be enabled.
+
+### Breaking Changes
+
++ Removed `I18nEmbed` trait, and derive macro, it was replaced with the new `I18nAssets` trait.
++ Clarified the `domain` and `module` arguments/variable inputs to `FluentLanguageLoader` and `GettextLanguageLoader`, and in the `LanguageLoader` trait with some renaming.
++ Removed a bunch of unecessary lifetimes, and `'static` bounds on types, methods and arguments.
++ `LanguageRequester::current_languages()`'s return type now uses `String` as the `HashMap` key instead of `&'static str`.
++ `available_languages()` implementation moved from `I18nEmbed` to `LanguageLoader`.
+
+### Bug Fixes
+
++ Improved resolution of `i18n.toml` location in both the `gettext_language_loader!()` and `fluent_language_loader!()` macros using [find-crate](https://github.com/taiki-e/find-crate).
+
 ## v0.7.2
 
 + Fix broken documentation links when compiling with no features.
@@ -48,11 +73,11 @@ Changes for the support of the `fluent` localization system.
 
 ## v0.4.0
 
-Mostly a refactor of `LanguageLoader` and `I18nEmbed` to solve [issue #15](https://github.com/kellpossible/cargo-i18n/issues/15).
+Mostly a refactor of `LanguageLoader` and `I18nAssets` to solve [issue #15](https://github.com/kellpossible/cargo-i18n/issues/15).
 
 + Replaced the derive macro for `LanguageLoader` with a new `language_loader!(StructName)` which creates a new struct with the specified `StructName` and implements `LanguageLoader` for it. This was done because `LanguageLoader` now needs to store state for the currently selected language, and deriving this automatically would be complicated.
-+ Refactored `I18nEmbed` to move the `load_language_file` responsibility into `LanguageLoader` and add a new `load_language` method to `LanguageLoader`.
-+ Refactored `I18nEmbedDyn` to also expose the `RustEmbed#get()` method, required for the new `LanguageLoader` changes.
++ Refactored `I18nAssets` to move the `load_language_file` responsibility into `LanguageLoader` and add a new `load_language` method to `LanguageLoader`.
++ Refactored `I18nAssetsDyn` to also expose the `RustEmbed#get()` method, required for the new `LanguageLoader` changes.
 + Using `LanguageLoader` as a static now requires [lazy_static](https://crates.io/crates/lazy_static) or something similar because the `StructName#new()` constructor which is created for it in `language_loader!(StructName)` is not `const`.
 
 ## v0.3.4

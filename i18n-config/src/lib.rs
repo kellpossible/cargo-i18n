@@ -18,14 +18,15 @@ use std::{
 use log::{debug, error};
 use serde_derive::Deserialize;
 use thiserror::Error;
+use unic_langid::LanguageIdentifier;
 
 /// An error type for use with the `i18n-config` crate.
 #[derive(Debug, Error)]
 pub enum I18nConfigError {
     #[error("The specified path is not a crate because there is no Cargo.toml present.")]
     NotACrate(PathBuf),
-    #[error("Cannot read file {0:?} because {1}.")]
-    CannotReadFile(PathBuf, #[source] io::Error),
+    #[error("Cannot read file {0:?} in the current working directory {1:?} because {2}.")]
+    CannotReadFile(PathBuf, io::Result<PathBuf>, #[source] io::Error),
     #[error("Cannot parse Cargo configuration file {0:?} because {1}.")]
     CannotParseCargoToml(PathBuf, String),
     #[error("Cannot deserialize toml file {0:?} because {1}.")]
@@ -80,8 +81,9 @@ impl<'a> Crate<'a> {
             return Err(I18nConfigError::NotACrate(path_into));
         }
 
-        let toml_str = read_to_string(cargo_path.clone())
-            .map_err(|err| I18nConfigError::CannotReadFile(cargo_path.clone(), err))?;
+        let toml_str = read_to_string(cargo_path.clone()).map_err(|err| {
+            I18nConfigError::CannotReadFile(cargo_path.clone(), std::env::current_dir(), err)
+        })?;
         let cargo_toml: toml::Value = toml::from_str(toml_str.as_ref())
             .map_err(|err| I18nConfigError::CannotDeserializeToml(cargo_path.clone(), err))?;
 
@@ -347,7 +349,7 @@ pub struct I18nConfig {
     /// for `gettext` system, and the primary fallback language (for
     /// which all strings must be present) when using the `fluent`
     /// system.
-    pub fallback_language: String,
+    pub fallback_language: LanguageIdentifier,
     /// Specify which subcrates to perform localization within. The
     /// subcrate needs to have its own `i18n.toml`.
     #[serde(default)]
@@ -364,8 +366,13 @@ impl I18nConfig {
     /// Load the config from the specified toml file path.
     pub fn from_file<P: AsRef<Path>>(toml_path: P) -> Result<I18nConfig, I18nConfigError> {
         let toml_path_final: &Path = toml_path.as_ref();
-        let toml_str = read_to_string(toml_path_final)
-            .map_err(|err| I18nConfigError::CannotReadFile(toml_path_final.to_path_buf(), err))?;
+        let toml_str = read_to_string(toml_path_final).map_err(|err| {
+            I18nConfigError::CannotReadFile(
+                toml_path_final.to_path_buf(),
+                std::env::current_dir(),
+                err,
+            )
+        })?;
         let config: I18nConfig = toml::from_str(toml_str.as_ref()).map_err(|err| {
             I18nConfigError::CannotDeserializeToml(toml_path_final.to_path_buf(), err)
         })?;

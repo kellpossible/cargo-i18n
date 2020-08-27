@@ -61,7 +61,7 @@ checksum = "08c48aae112d48ed9f069b33538ea9e3e90aa263cfa3d1c24309612b1f7472de"
 
 [[package]]
 name = "cargo-i18n"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
  "anyhow",
  "clap",
@@ -116,6 +116,15 @@ checksum = "39858aa5bac06462d4dd4b9164848eb81ffc4aa5c479746393598fd193afa227"
 dependencies = [
  "quote",
  "syn",
+]
+
+[[package]]
+name = "dashmap"
+version = "4.0.0-rc6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "308a6703be2d759cb5fb7b80a23547fe73a8d5ebf70d3a4ca7f0ef4c0bfc2265"
+dependencies = [
+ "once_cell",
 ]
 
 [[package]]
@@ -208,6 +217,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "find-crate"
+version = "0.6.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a1f822feb0e409c1248bc9d84bea41f73bfb7114c4a57888599cff5ae5a67dfa"
+dependencies = [
+ "toml",
+]
+
+[[package]]
 name = "fluent"
 version = "0.12.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -286,7 +304,7 @@ dependencies = [
 
 [[package]]
 name = "i18n-build"
-version = "0.5.1"
+version = "0.5.2"
 dependencies = [
  "anyhow",
  "gettext",
@@ -303,18 +321,19 @@ dependencies = [
 
 [[package]]
 name = "i18n-config"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "log",
  "serde",
  "serde_derive",
  "thiserror",
  "toml",
+ "unic-langid",
 ]
 
 [[package]]
 name = "i18n-embed"
-version = "0.7.2"
+version = "0.8.0"
 dependencies = [
  "doc-comment",
  "env_logger",
@@ -333,19 +352,40 @@ dependencies = [
  "thiserror",
  "tr",
  "unic-langid",
+ "walkdir",
  "web-sys",
 ]
 
 [[package]]
-name = "i18n-embed-impl"
-version = "0.5.1"
+name = "i18n-embed-fl"
+version = "0.1.0"
 dependencies = [
+ "dashmap",
+ "doc-comment",
+ "env_logger",
+ "find-crate",
+ "fluent",
+ "fluent-syntax",
+ "i18n-config",
+ "i18n-embed",
+ "lazy_static",
+ "pretty_assertions",
+ "proc-macro2",
+ "quote",
+ "rust-embed",
+ "syn",
+ "unic-langid",
+]
+
+[[package]]
+name = "i18n-embed-impl"
+version = "0.6.0"
+dependencies = [
+ "find-crate",
  "i18n-config",
  "proc-macro2",
  "quote",
  "rust-embed",
- "serde",
- "serde_derive",
  "syn",
 ]
 
@@ -476,6 +516,12 @@ checksum = "c92d4ddb4bd7b50d730c215ff871754d0da6b2178849f8a2a2ab69712d0c073b"
 dependencies = [
  "objc",
 ]
+
+[[package]]
+name = "once_cell"
+version = "1.4.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "260e51e7efe62b592207e9e13a68e43692a7a279171d6ba57abd208bf23645ad"
 
 [[package]]
 name = "output_vt100"
@@ -795,6 +841,7 @@ version = "0.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1a4a8eeaf0494862c1404c95ec2f4c33a2acff5076f64314b465e3ddae1b934d"
 dependencies = [
+ "serde",
  "tinystr",
 ]
 

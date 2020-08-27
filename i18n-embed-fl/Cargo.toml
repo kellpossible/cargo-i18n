@@ -1,0 +1,35 @@
+[package]
+name = "i18n-embed-fl"
+description = "Macro to perform compile time checks when using the i18n-embed crate and the fluent localization system"
+categories = ["localization", "internationalization", "development-tools"]
+version = "0.1.0"
+authors = ["Luke Frisken <l.frisken@gmail.com>"]
+edition = "2018"
+license = "MIT"
+exclude = ["i18n.toml", "i18n/"]
+
+[lib]
+proc-macro = true
+
+[dependencies]
+dashmap = "4.0.0-rc6"
+find-crate = "0.6"
+fluent = "0.12"
+fluent-syntax = "0.9"
+i18n-config = { path = "../i18n-config", version = "0.4" }
+i18n-embed = { path = "../i18n-embed", version = "0.8", features = ["fluent-system", "filesystem-assets"]}
+lazy_static = "1.4"
+proc-macro2 = "1.0"
+quote = "1.0"
+unic-langid = "0.9"
+
+[dependencies.syn]
+version = "1.0"
+default-features = false
+features = ["derive", "proc-macro", "parsing", "printing", "extra-traits"]
+
+[dev-dependencies]
+doc-comment = "0.3"
+env_logger = "0.7"
+pretty_assertions = "0.6"
+rust-embed = "5"

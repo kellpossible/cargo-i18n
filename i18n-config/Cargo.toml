@@ -8,7 +8,7 @@ license = "MIT"
 name = "i18n-config"
 readme = "README.md"
 repository = "https://github.com/kellpossible/cargo-i18n/tree/master/i18n-config"
-version = "0.3.0"
+version = "0.4.0"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -21,3 +21,4 @@ toml = "0.5"
 serde = { version = "1", features = ["derive"] }
 serde_derive = "1"
 thiserror = "1"
+unic-langid = { version = "0.9", features = ["serde"] }

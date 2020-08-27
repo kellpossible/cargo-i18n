@@ -1,4 +1,18 @@
-# Changelog for `i18n-config`
+# v0.4.0
+
+## v0.4.0
+
+### New Features
+
++ Introduced new `assets_dir` member of `[fluent]` subsection.
+
+### Breaking Changes
+
++ Changed type of `fallback_language` from `String` to `unic_langid::LanguageIdentifier`.
+
+### Internal Changes
+
++ Improved error messages.
 
 ## v0.3.0
 
