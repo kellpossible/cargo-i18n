@@ -18,6 +18,7 @@ use std::{
 use log::{debug, error};
 use serde_derive::Deserialize;
 use thiserror::Error;
+use unic_langid::LanguageIdentifier;
 
 /// An error type for use with the `i18n-config` crate.
 #[derive(Debug, Error)]
@@ -348,7 +349,7 @@ pub struct I18nConfig {
     /// for `gettext` system, and the primary fallback language (for
     /// which all strings must be present) when using the `fluent`
     /// system.
-    pub fallback_language: String,
+    pub fallback_language: LanguageIdentifier,
     /// Specify which subcrates to perform localization within. The
     /// subcrate needs to have its own `i18n.toml`.
     #[serde(default)]

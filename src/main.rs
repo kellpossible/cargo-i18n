@@ -4,8 +4,8 @@ use i18n_build::run;
 use i18n_config::Crate;
 use i18n_embed::{
     gettext::{gettext_language_loader, GettextLanguageLoader},
-    DefaultLocalizer, DesktopLanguageRequester, I18nAssets, LanguageLoader,
-    LanguageRequester, Localizer,
+    DefaultLocalizer, DesktopLanguageRequester, I18nAssets, LanguageLoader, LanguageRequester,
+    Localizer,
 };
 use lazy_static::lazy_static;
 use rust_embed::RustEmbed;
@@ -30,7 +30,7 @@ fn short_about() -> String {
     tr!("A Cargo sub-command to extract and build localization resources.")
 }
 
-fn available_languages<'a>(localizer: &Rc<dyn Localizer>) -> Result<Vec<String>> {
+fn available_languages(localizer: &Rc<dyn Localizer>) -> Result<Vec<String>> {
     Ok(localizer
         .available_languages()?
         .iter()

@@ -5,7 +5,7 @@ pub trait I18nAssets {
     /// Get a localization asset (returns `None` if the asset does not exist).
     fn get_file(&self, file_path: &str) -> Option<Cow<'_, [u8]>>;
     /// Get an iterator over the filenames of the localization assets.
-    fn filenames_iter(&self) ->  Box<dyn Iterator<Item = String>>;
+    fn filenames_iter(&self) -> Box<dyn Iterator<Item = String>>;
 }
 
 #[cfg(feature = "rust-embed")]
@@ -14,7 +14,7 @@ where
     T: rust_embed::RustEmbed + 'static,
 {
     fn get_file(&self, file_path: &str) -> Option<Cow<'_, [u8]>> {
-        Self::get(file_path) 
+        Self::get(file_path)
     }
 
     fn filenames_iter(&self) -> Box<dyn Iterator<Item = String>> {
@@ -40,27 +40,21 @@ impl FileSystemAssets {
         let base_dir = base_dir.into();
 
         if !base_dir.exists() {
-            panic!(
-                "specified `base_dir` ({:?}) does not exist", 
-                base_dir);
-        }
-        
-        if !base_dir.is_dir() {
-            panic!(
-                "specified `base_dir` ({:?}) is not a directory", 
-                base_dir);
+            panic!("specified `base_dir` ({:?}) does not exist", base_dir);
         }
 
-        Self {
-            base_dir,
+        if !base_dir.is_dir() {
+            panic!("specified `base_dir` ({:?}) is not a directory", base_dir);
         }
+
+        Self { base_dir }
     }
 }
 
 #[cfg(feature = "filesystem-assets")]
 impl I18nAssets for FileSystemAssets {
     fn get_file(&self, file_path: &str) -> Option<Cow<'_, [u8]>> {
-        let full_path = self.base_dir.join(file_path); 
+        let full_path = self.base_dir.join(file_path);
 
         if !(full_path.is_file() && full_path.exists()) {
             return None;
@@ -68,7 +62,7 @@ impl I18nAssets for FileSystemAssets {
 
         match std::fs::read(full_path) {
             Ok(contents) => Some(Cow::from(contents)),
-            Err(e) =>  {
+            Err(e) => {
                 log::error!(
                     target: "i18n_embed::assets", 
                     "Unexpected error while reading localization asset file: {}", 
@@ -78,35 +72,35 @@ impl I18nAssets for FileSystemAssets {
         }
     }
 
-    fn filenames_iter(&self) ->  Box<dyn Iterator<Item = String>> {
-        Box::new(walkdir::WalkDir::new(&self.base_dir).into_iter().filter_map(|f| {
-            match f {
-                Ok(f) => {
-                    if f.file_type().is_file() {
-                        match f.file_name().to_str() {
-                            Some(filename) => {
-                                Some(filename.to_string())
-                            }
-                            None => {
-                                log::error!(
+    fn filenames_iter(&self) -> Box<dyn Iterator<Item = String>> {
+        Box::new(
+            walkdir::WalkDir::new(&self.base_dir)
+                .into_iter()
+                .filter_map(|f| match f {
+                    Ok(f) => {
+                        if f.file_type().is_file() {
+                            match f.file_name().to_str() {
+                                Some(filename) => Some(filename.to_string()),
+                                None => {
+                                    log::error!(
                                     target: "i18n_embed::assets", 
                                     "Filename {:?} is not valid UTF-8.", 
                                     f.file_name());
-                                None
+                                    None
+                                }
                             }
+                        } else {
+                            None
                         }
-                    } else {
-                        None
                     }
-                }
-                Err(err) => {
-                    log::error!(
+                    Err(err) => {
+                        log::error!(
                         target: "i18n_embed::assets", 
                         "Unexpected error while gathering localization asset filenames: {}", 
                         err);
-                    None
-                }
-            }
-        }))
+                        None
+                    }
+                }),
+        )
     }
 }

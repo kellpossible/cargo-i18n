@@ -21,3 +21,4 @@ toml = "0.5"
 serde = { version = "1", features = ["derive"] }
 serde_derive = "1"
 thiserror = "1"
+unic-langid = { version = "0.9", features = ["serde"] }

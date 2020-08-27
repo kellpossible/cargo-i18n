@@ -76,7 +76,7 @@ mod fluent {
         let ru: LanguageIdentifier = "ru".parse().unwrap();
 
         let loader = FluentLanguageLoader::new("test", en_us.clone());
-        loader.load_languages(&Localizations,&[&ru]).unwrap();
+        loader.load_languages(&Localizations, &[&ru]).unwrap();
 
         assert!(loader.has("only-ru-args"));
         assert!(loader.has("only-us"));

@@ -67,7 +67,7 @@ mod localize_feature {
 
     use i18n_embed::{
         gettext::{gettext_language_loader, GettextLanguageLoader},
-        DefaultLocalizer
+        DefaultLocalizer,
     };
 
     use rust_embed::RustEmbed;

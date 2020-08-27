@@ -35,13 +35,11 @@ pub trait LanguageRequester {
 
 /// Provide the functionality for overrides and listeners for a
 /// [LanguageRequester](LanguageRequester) implementation.
-#[cfg(any(feature = "desktop-requester", feature = "web-sys-requester"))]
 pub struct LanguageRequesterImpl {
     listeners: Vec<Weak<dyn Localizer>>,
     language_override: Option<unic_langid::LanguageIdentifier>,
 }
 
-#[cfg(any(feature = "desktop-requester", feature = "web-sys-requester"))]
 impl LanguageRequesterImpl {
     /// Create a new [LanguageRequesterImpl](LanguageRequesterImpl).
     pub fn new() -> LanguageRequesterImpl {
@@ -149,7 +147,12 @@ impl LanguageRequesterImpl {
     }
 }
 
-#[cfg(any(feature = "desktop-requester", feature = "web-sys-requester"))]
+impl Default for LanguageRequesterImpl {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl std::fmt::Debug for LanguageRequesterImpl {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let listeners_debug: String = self

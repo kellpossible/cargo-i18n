@@ -1,9 +1,7 @@
 #![feature(proc_macro_diagnostic)]
 
 use fluent::FluentMessage;
-use fluent_syntax::ast::{
-    CallArguments, Expression, InlineExpression, Pattern, PatternElement,
-};
+use fluent_syntax::ast::{CallArguments, Expression, InlineExpression, Pattern, PatternElement};
 use i18n_embed::{fluent::FluentLanguageLoader, FileSystemAssets, LanguageLoader};
 use proc_macro::TokenStream;
 use quote::quote;
@@ -16,8 +14,19 @@ use unic_langid::LanguageIdentifier;
 
 #[derive(Debug)]
 enum FlArgs {
+    /// `fl!(LOADER, "message", args)` where `args` is a
+    /// `HashMap<&'a str, FluentValue<'a>>`.
     HashMap(syn::Ident),
-    KeyValuePairs(HashMap<syn::LitStr, Box<syn::Expr>>),
+    /// ```ignore
+    /// fl!(LOADER, "message",
+    ///     arg1 = "value",
+    ///     arg2 = value2,
+    ///     arg3 = calc_value());
+    /// ```
+    KeyValuePairs {
+        specified_args: HashMap<syn::LitStr, Box<syn::Expr>>,
+    },
+    /// `fl!(LOADER, "message")` no arguments after the message id.
     None,
 }
 
@@ -27,11 +36,9 @@ impl Parse for FlArgs {
             input.parse::<syn::Token![,]>()?;
 
             let lookahead = input.fork();
-            if let Ok(_) = lookahead.parse::<syn::Ident>() {
-                if lookahead.is_empty() {
-                    let hash_map = input.parse()?;
-                    return Ok(FlArgs::HashMap(hash_map));
-                }
+            if lookahead.parse::<syn::Ident>().is_ok() && lookahead.is_empty() {
+                let hash_map = input.parse()?;
+                return Ok(FlArgs::HashMap(hash_map));
             }
 
             let mut args_map: HashMap<syn::LitStr, Box<syn::Expr>> = HashMap::new();
@@ -82,7 +89,9 @@ impl Parse for FlArgs {
                 };
                 Err(syn::Error::new(span, "fl!() unable to parse args input"))
             } else {
-                Ok(FlArgs::KeyValuePairs(args_map))
+                Ok(FlArgs::KeyValuePairs {
+                    specified_args: args_map,
+                })
             }
         } else {
             Ok(FlArgs::None)
@@ -90,6 +99,7 @@ impl Parse for FlArgs {
     }
 }
 
+/// Input for the [fl()] macro.
 struct FlMacroInput {
     fluent_loader: syn::Ident,
     message_id: syn::Lit,
@@ -118,12 +128,143 @@ struct DomainSpecificData {
 }
 
 lazy_static::lazy_static! {
+    /// Cached data specific to each localization domain, to improve
+    /// performance of subsequent macro invokations.
     static ref DOMAINS: dashmap::DashMap<String, DomainSpecificData> =
         dashmap::DashMap::new();
 }
 
 /// A macro to obtain localized messages, and check the `message_id`
-/// at compile time.
+/// and arguments at compile time.
+///
+/// Compile time checks are performed using the `fallback_language`
+/// specified in the current crate's `i18n.toml` confiration file.
+///
+/// This macro supports three different calling syntaxes which are
+/// explained in the following sections.
+///
+/// ## No Arguments
+///
+/// ```ignore
+/// fl!(loader: FluentLanguageLoader, "message_id")
+/// ```
+///
+/// This is the simplest form of the `fl!()` macro, just obtaining a
+/// message with no arguments. The `message_id` should be specified as
+/// a literal string, and is checked at compile time.
+///
+/// ### Example
+///
+/// ```
+/// use i18n_embed::{
+///     fluent::{fluent_language_loader, FluentLanguageLoader},
+///     LanguageLoader,
+/// };
+/// use i18n_embed_fl::fl;
+/// use rust_embed::RustEmbed;
+///
+/// #[derive(RustEmbed)]
+/// #[folder = "i18n/"]
+/// struct Localizations;
+///
+/// let loader: FluentLanguageLoader = fluent_language_loader!();
+/// loader
+///     .load_languages(&Localizations, &[loader.fallback_language()])
+///     .unwrap();
+///
+/// // Invoke the fl!() macro to obtain the translated message, and
+/// // check the message id compile time.
+/// assert_eq!("Hello World!", fl!(loader, "hello-world"));
+/// ```
+///
+/// ## Individual Arguments
+///
+/// ```ignore
+/// fl!(
+///     loader: FluentLanguageLoader,
+///     "message_id",
+///     arg1 = value,
+///     arg2 = "value",
+///     arg3 = function(),
+///     ...
+/// )
+/// ```
+///
+/// This form of the `fl!()` macro allows individual arguments to be
+/// specified in the form `key = value` after the `message_id`. `key`
+/// needs to be a valid literal argument name, and `value` can be any
+/// expression that resolves to a type that implements
+/// `Into<FluentValue>`. The `key`s will be checked at compile time to
+/// ensure that they match the arguments specified in original fluent
+/// message.
+///
+/// ### Example
+///
+/// ```
+/// # use i18n_embed::{
+/// #     fluent::{fluent_language_loader, FluentLanguageLoader},
+/// #     LanguageLoader,
+/// # };
+/// # use i18n_embed_fl::fl;
+/// # use rust_embed::RustEmbed;
+/// # #[derive(RustEmbed)]
+/// # #[folder = "i18n/"]
+/// # struct Localizations;
+/// # let loader: FluentLanguageLoader = fluent_language_loader!();
+/// # loader
+/// #     .load_languages(&Localizations, &[loader.fallback_language()])
+/// #     .unwrap();
+/// let calc_james = || "James".to_string();
+/// pretty_assertions::assert_eq!(
+///     "Hello \u{2068}Bob\u{2069} and \u{2068}James\u{2069}!",
+///     // Invoke the fl!() macro to obtain the translated message, and
+///     // check the message id, and arguments at compile time.
+///     fl!(loader, "hello-arg-2", name1 = "Bob", name2 = calc_james())
+/// );
+/// ```
+///
+/// ## Arguments Hashmap
+///
+/// ```ignore
+/// fl!(
+///     loader: FluentLanguageLoader,
+///     message_id: &'static str,
+///     args: HashMap<
+///         S where S: Into<Cow<'a, str>> + Clone,
+///         T where T: Into<FluentValue>> + Clone>
+/// )
+/// ```
+///
+/// With this form of the `fl!()` macro, arguments can be specified at
+/// runtime using a [HashMap](std::collections::HashMap), using the
+/// same signature as in
+/// [FluentLanguageLoader::get_args()](i18n_embed::fluent::FluentLanguageLoader::get_args()).
+/// When using this method of specifying argments, they are not
+/// checked at compile time.
+///
+/// ### Example
+///
+/// ```
+/// # use i18n_embed::{
+/// #     fluent::{fluent_language_loader, FluentLanguageLoader},
+/// #     LanguageLoader,
+/// # };
+/// # use i18n_embed_fl::fl;
+/// # use rust_embed::RustEmbed;
+/// # #[derive(RustEmbed)]
+/// # #[folder = "i18n/"]
+/// # struct Localizations;
+/// # let loader: FluentLanguageLoader = fluent_language_loader!();
+/// # loader
+/// #     .load_languages(&Localizations, &[loader.fallback_language()])
+/// #     .unwrap();
+/// use std::collections::HashMap;
+///
+/// let mut args: HashMap<&str, &str> = HashMap::new();
+/// args.insert("name", "Bob");
+///
+/// assert_eq!("Hello \u{2068}Bob\u{2069}!", fl!(loader, "hello-arg", args));
+/// ```
 #[proc_macro]
 pub fn fl(input: TokenStream) -> TokenStream {
     let input: FlMacroInput = parse_macro_input!(input as FlMacroInput);
@@ -134,7 +275,7 @@ pub fn fl(input: TokenStream) -> TokenStream {
     let manifest = find_crate::Manifest::new().expect("Error reading Cargo.toml");
 
     let current_crate_package = manifest.crate_package().expect("Error reading Cargo.toml");
-    let domain = current_crate_package.name.clone();
+    let domain = current_crate_package.name;
 
     let domain_data = if let Some(domain_data) = DOMAINS.get(&domain) {
         domain_data
@@ -165,10 +306,7 @@ pub fn fl(input: TokenStream) -> TokenStream {
         let assets_dir = Path::new(&crate_dir).join(fluent_config.assets_dir);
         let assets = FileSystemAssets::new(assets_dir);
 
-        let fallback_language: LanguageIdentifier = config
-            .fallback_language
-            .parse()
-            .expect("fl!() had a problem parsing config: unable to parse `fallback_language`");
+        let fallback_language: LanguageIdentifier = config.fallback_language;
 
         let loader = FluentLanguageLoader::new(&domain, fallback_language.clone());
 
@@ -220,6 +358,11 @@ pub fn fl(input: TokenStream) -> TokenStream {
         }
     };
 
+    // If we have already confirmed that the loader has the message.
+    // `false` if we haven't checked, or we have checked but no
+    // message was found.
+    let mut checked_loader_has_message = false;
+
     let gen = match input.args {
         FlArgs::HashMap(args_hash_map) => {
             quote! {
@@ -231,72 +374,19 @@ pub fn fl(input: TokenStream) -> TokenStream {
                 #fluent_loader.get(#message_id)
             }
         }
-        FlArgs::KeyValuePairs(pairs) => {
+        FlArgs::KeyValuePairs { specified_args } => {
             let mut arg_assignments = proc_macro2::TokenStream::default();
 
             if let Some(message_id_str) = &message_id_string {
-                domain_data.loader.with_fluent_message(
-                    message_id_str,
-                    |message: FluentMessage<'_>| {
-                        if let Some(pattern) = message.value {
-                            let mut args = Vec::new();
-                            args_from_pattern(pattern, &mut args);
-
-                            let args_set: HashSet<&str> = args.into_iter().collect();
-
-                            let key_args: Vec<String> = pairs
-                                .keys()
-                                .into_iter()
-                                .map(|key| {
-                                    let arg = key.value();
-
-                                    if !args_set.contains(arg.as_str()) {
-                                        let available_args: String = args_set
-                                            .iter()
-                                            .map(|arg| format!("`{}`", arg))
-                                            .collect::<Vec<String>>()
-                                            .join(", ");
-
-                                        key.span()
-                                            .unstable()
-                                            .error(format!(
-                                                "fl!() argument `{0}` does not exist in the \
-                                                fluent message. Available arguments: {1}.",
-                                                &arg, available_args
-                                            ))
-                                            .emit();
-                                    }
-
-                                    arg
-                                })
-                                .collect();
-
-                            let key_args_set: HashSet<&str> =
-                                key_args.iter().map(|v| v.as_str()).collect();
-
-                            let unspecified_args: Vec<String> = args_set
-                                .iter()
-                                .filter_map(|arg| {
-                                    if !key_args_set.contains(arg) {
-                                        Some(format!("`{}`", arg))
-                                    } else {
-                                        None
-                                    }
-                                })
-                                .collect();
-
-                            if !unspecified_args.is_empty() {
-                                panic!(
-                                    "fl!() the following arguments have not been specified: {}",
-                                    unspecified_args.join(", ")
-                                )
-                            }
-                        }
-                    },
-                );
+                checked_loader_has_message = domain_data
+                    .loader
+                    .with_fluent_message(message_id_str, |message: FluentMessage<'_>| {
+                        check_message_args(message, &specified_args);
+                    })
+                    .is_some();
             }
 
-            for (key, value) in &pairs {
+            for (key, value) in &specified_args {
                 arg_assignments = quote! {
                     #arg_assignments
                     args.insert(#key, #value.into());
@@ -313,9 +403,8 @@ pub fn fl(input: TokenStream) -> TokenStream {
                     })
             };
 
-            // TODO: save some performance and reuse the message lookup done in KeyValuePairs
             if let Some(message_id_str) = &message_id_string {
-                if !domain_data.loader.has(&message_id_str) {
+                if !checked_loader_has_message && !domain_data.loader.has(&message_id_str) {
                     message_id
                         .span()
                         .unstable()
@@ -334,6 +423,68 @@ pub fn fl(input: TokenStream) -> TokenStream {
     };
 
     gen.into()
+}
+
+fn check_message_args<'a>(
+    message: FluentMessage<'a>,
+    specified_args: &HashMap<syn::LitStr, Box<syn::Expr>>,
+) {
+    if let Some(pattern) = message.value {
+        let mut args = Vec::new();
+        args_from_pattern(pattern, &mut args);
+
+        let args_set: HashSet<&str> = args.into_iter().collect();
+
+        let key_args: Vec<String> = specified_args
+            .keys()
+            .into_iter()
+            .map(|key| {
+                let arg = key.value();
+
+                if !args_set.contains(arg.as_str()) {
+                    let available_args: String = args_set
+                        .iter()
+                        .map(|arg| format!("`{}`", arg))
+                        .collect::<Vec<String>>()
+                        .join(", ");
+
+                    key.span()
+                        .unstable()
+                        .error(format!(
+                            "fl!() argument `{0}` does not exist in the \
+                            fluent message. Available arguments: {1}.",
+                            &arg, available_args
+                        ))
+                        .emit();
+                }
+
+                arg
+            })
+            .collect();
+
+        let key_args_set: HashSet<&str> = key_args.iter().map(|v| v.as_str()).collect();
+
+        let unspecified_args: Vec<String> = args_set
+            .iter()
+            .filter_map(|arg| {
+                if !key_args_set.contains(arg) {
+                    Some(format!("`{}`", arg))
+                } else {
+                    None
+                }
+            })
+            .collect();
+
+        if !unspecified_args.is_empty() {
+            proc_macro2::Span::call_site()
+                .unstable()
+                .error(format!(
+                    "fl!() the following arguments have not been specified: {}",
+                    unspecified_args.join(", ")
+                ))
+                .emit();
+        }
+    }
 }
 
 fn args_from_pattern<'a>(pattern: &'a Pattern, args: &mut Vec<&'a str>) {

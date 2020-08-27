@@ -29,6 +29,5 @@ features = ["derive", "proc-macro", "parsing", "printing", "extra-traits"]
 [dev-dependencies]
 doc-comment = "0.3"
 env_logger = "0.7"
-maplit = "1.0"
 pretty_assertions = "0.6"
 rust-embed = "5"

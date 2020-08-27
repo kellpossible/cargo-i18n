@@ -138,8 +138,8 @@ impl FluentLanguageLoader {
     /// formatted with the specified `args`.
     pub fn get_args<'a, S, V>(&self, id: &str, args: HashMap<S, V>) -> String
     where
-        S: Into<Cow<'a, str>> + Clone + 'static,
-        V: Into<FluentValue<'a>> + Clone + 'static,
+        S: Into<Cow<'a, str>> + Clone,
+        V: Into<FluentValue<'a>> + Clone,
     {
         let mut keys: Vec<Cow<'a, str>> = Vec::new();
 
@@ -181,14 +181,24 @@ impl FluentLanguageLoader {
         has_message
     }
 
-    pub fn with_fluent_message<OUT, C: Fn(fluent::FluentMessage<'_>) -> OUT>(&self, message_id: &str, closure: C) -> Option<OUT> {
+    /// Run the `closure` with the message that matches the specified
+    /// `message_id` (if it is available in any of the languages
+    /// currently loaded, including the fallback language). Returns
+    /// `Some` of whatever whatever the closure returns, or `None` if
+    /// no messages were found matching the `message_id`.
+    pub fn with_fluent_message<OUT, C: Fn(fluent::FluentMessage<'_>) -> OUT>(
+        &self,
+        message_id: &str,
+        closure: C,
+    ) -> Option<OUT> {
         let config_lock = self.locale_config.read();
-        
-        if let Some(message) = config_lock.locale_bundles.iter().filter_map(|locale_bundle| {
-            locale_bundle
-                .bundle
-                .get_message(message_id)
-        }).next() {
+
+        if let Some(message) = config_lock
+            .locale_bundles
+            .iter()
+            .filter_map(|locale_bundle| locale_bundle.bundle.get_message(message_id))
+            .next()
+        {
             Some((closure)(message))
         } else {
             None

@@ -396,7 +396,12 @@ doctest!("../README.md");
 #[macro_use]
 extern crate i18n_embed_impl;
 
-use std::{borrow::Cow, fmt::Debug, string::FromUtf8Error, path::{Path, Component}};
+use std::{
+    borrow::Cow,
+    fmt::Debug,
+    path::{Component, Path},
+    string::FromUtf8Error,
+};
 
 use fluent_langneg::{negotiate_languages, NegotiationStrategy};
 use log::{debug, error, info};
@@ -579,7 +584,8 @@ pub trait LanguageLoader {
         &self,
         i18n_assets: &dyn I18nAssets,
     ) -> Result<Vec<unic_langid::LanguageIdentifier>, I18nEmbedError> {
-        let mut language_strings: Vec<String> = i18n_assets.filenames_iter()
+        let mut language_strings: Vec<String> = i18n_assets
+            .filenames_iter()
             .filter_map(|filename| {
                 let path: &Path = Path::new(&filename);
 

@@ -107,11 +107,11 @@ i18n-embed = "0.7"
 A minimal example for how to embed the compiled translations into your application could be:
 
 ```rust
-use i18n_embed::{I18nAssets, DesktopLanguageRequester,
+use i18n_embed::{DesktopLanguageRequester,
     gettext::gettext_language_loader};
 use rust_embed::RustEmbed;
 
-#[derive(RustEmbed, I18nAssets)]
+#[derive(RustEmbed)]
 #[folder = "i18n/mo"] // path to the compiled localization resources
 struct Translations;
 
