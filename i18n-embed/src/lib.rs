@@ -69,14 +69,14 @@
 //! i18n-embed = { version = "0.7", features = ["fluent-system", "desktop-requester"]}
 //! rust-embed = "5"
 //! ```
-//! 
-//! Set up a minimal `i18n.toml` in your crate root to use with 
-//! `cargo-i18n` (see 
-//! [cargo i18n](https://github.com/kellpossible/cargo-i18n#configuration) 
+//!
+//! Set up a minimal `i18n.toml` in your crate root to use with
+//! `cargo-i18n` (see
+//! [cargo i18n](https://github.com/kellpossible/cargo-i18n#configuration)
 //! for more information on the configuration file format):
 //!
-//! 
-//! 
+//!
+//!
 //!
 //! Next, you want to create your localization resources, per language
 //! fluent (`.ftl`) files. `lang_code` needs to conform to the
@@ -167,9 +167,9 @@
 //! rust-embed = "5"
 //! ```
 //!
-//! Set up a minimal `i18n.toml` in your crate root to use with 
-//! `cargo-i18n` (see 
-//! [cargo i18n](https://github.com/kellpossible/cargo-i18n#configuration) 
+//! Set up a minimal `i18n.toml` in your crate root to use with
+//! `cargo-i18n` (see
+//! [cargo i18n](https://github.com/kellpossible/cargo-i18n#configuration)
 //! for more information on the configuration file format):
 //!
 //! ```toml
