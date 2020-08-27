@@ -13,6 +13,7 @@ proc-macro = true
 dashmap = "4.0.0-rc6"
 find-crate = { git = "https://github.com/kellpossible/find-crate.git", branch = "manifest-crate-package", version = "0.5"}
 fluent = "0.12"
+fluent-syntax = "0.9"
 i18n-config = { path = "../i18n-config", version = "0.3" }
 i18n-embed = { path = "../i18n-embed", version = "0.7", features = ["fluent-system", "filesystem-assets"]}
 lazy_static = "1.4"

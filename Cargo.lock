@@ -363,6 +363,7 @@ dependencies = [
  "env_logger",
  "find-crate",
  "fluent",
+ "fluent-syntax",
  "i18n-config",
  "i18n-embed",
  "lazy_static",

@@ -1,12 +1,18 @@
 #![feature(proc_macro_diagnostic)]
 
-use i18n_embed::{fluent::FluentLanguageLoader, LanguageLoader, FileSystemAssets};
+use fluent::FluentMessage;
+use fluent_syntax::ast::{
+    CallArguments, Expression, InlineExpression, Pattern, PatternElement,
+};
+use i18n_embed::{fluent::FluentLanguageLoader, FileSystemAssets, LanguageLoader};
 use proc_macro::TokenStream;
 use quote::quote;
+use std::{
+    collections::{HashMap, HashSet},
+    path::Path,
+};
 use syn::{parse::Parse, parse_macro_input, spanned::Spanned};
 use unic_langid::LanguageIdentifier;
-use std::{collections::HashMap, path::Path};
-use fluent::FluentMessage;
 
 #[derive(Debug)]
 enum FlArgs {
@@ -24,7 +30,7 @@ impl Parse for FlArgs {
             if let Ok(_) = lookahead.parse::<syn::Ident>() {
                 if lookahead.is_empty() {
                     let hash_map = input.parse()?;
-                    return Ok(FlArgs::HashMap(hash_map))
+                    return Ok(FlArgs::HashMap(hash_map));
                 }
             }
 
@@ -32,27 +38,38 @@ impl Parse for FlArgs {
 
             while let Ok(expr) = input.parse::<syn::ExprAssign>() {
                 let argument_name_ident_opt = match &*expr.left {
-                    syn::Expr::Path(path) => {
-                        path.path.get_ident()
-                    }
-                    _ => {
-                        None
-                    }
+                    syn::Expr::Path(path) => path.path.get_ident(),
+                    _ => None,
                 };
 
                 let argument_name_ident = match argument_name_ident_opt {
                     Some(ident) => ident,
                     None => {
-                        return Err(syn::Error::new(expr.left.span(), "unable to parse as an identifier"))
+                        return Err(syn::Error::new(
+                            expr.left.span(),
+                            "fl!() unable to parse argument identifier",
+                        ))
                     }
-                }.clone();
+                }
+                .clone();
 
                 let argument_name_string = argument_name_ident.to_string();
-                let argument_name_lit_str = syn::LitStr::new(&argument_name_string, argument_name_ident.span());
+                let argument_name_lit_str =
+                    syn::LitStr::new(&argument_name_string, argument_name_ident.span());
 
                 let argument_value = expr.right;
 
-                args_map.insert(argument_name_lit_str, argument_value);
+                if let Some(_duplicate) =
+                    args_map.insert(argument_name_lit_str.clone(), argument_value)
+                {
+                    return Err(syn::Error::new(
+                        argument_name_lit_str.span(),
+                        format!(
+                            "fl!() macro contains a duplicate argument `{}`",
+                            argument_name_lit_str.value()
+                        ),
+                    ));
+                }
 
                 // parse the next comma if there is one
                 let _result = input.parse::<syn::Token![,]>();
@@ -60,14 +77,10 @@ impl Parse for FlArgs {
 
             if args_map.is_empty() {
                 let span = match input.fork().parse::<syn::Expr>() {
-                    Ok(expr) => {
-                        expr.span()
-                    }
-                    Err(_) => {
-                        input.span()
-                    }
+                    Ok(expr) => expr.span(),
+                    Err(_) => input.span(),
                 };
-                Err(syn::Error::new(span, "unable to parse args input"))
+                Err(syn::Error::new(span, "fl!() unable to parse args input"))
             } else {
                 Ok(FlArgs::KeyValuePairs(args_map))
             }
@@ -80,7 +93,7 @@ impl Parse for FlArgs {
 struct FlMacroInput {
     fluent_loader: syn::Ident,
     message_id: syn::Lit,
-    args: FlArgs, 
+    args: FlArgs,
 }
 
 impl Parse for FlMacroInput {
@@ -88,9 +101,9 @@ impl Parse for FlMacroInput {
         let fluent_loader = input.parse()?;
         input.parse::<syn::Token![,]>()?;
         let message_id = input.parse()?;
-        
+
         let args = input.parse()?;
-        
+
         Ok(Self {
             fluent_loader,
             message_id,
@@ -119,7 +132,7 @@ pub fn fl(input: TokenStream) -> TokenStream {
     let message_id = input.message_id;
 
     let manifest = find_crate::Manifest::new().expect("Error reading Cargo.toml");
-            
+
     let current_crate_package = manifest.crate_package().expect("Error reading Cargo.toml");
     let domain = current_crate_package.name.clone();
 
@@ -127,19 +140,19 @@ pub fn fl(input: TokenStream) -> TokenStream {
         domain_data
     } else {
         let crate_dir = std::env::var_os("CARGO_MANIFEST_DIR").unwrap_or_else(|| {
-            panic!("fl!() had a problem reading `CARGO_MANIFEST_DIR` \
-            environment variable")
+            panic!(
+                "fl!() had a problem reading `CARGO_MANIFEST_DIR` \
+            environment variable"
+            )
         });
         let config_file_path = Path::new(&crate_dir).join("i18n.toml");
 
-        let config =
-            i18n_config::I18nConfig::from_file(&config_file_path).unwrap_or_else(|err| {
-                panic!(
-                    "fl!() had a problem reading config file {0:?}: {1}",
-                    config_file_path,
-                    err
-                )
-            });
+        let config = i18n_config::I18nConfig::from_file(&config_file_path).unwrap_or_else(|err| {
+            panic!(
+                "fl!() had a problem reading config file {0:?}: {1}",
+                config_file_path, err
+            )
+        });
 
         let fluent_config = config.fluent.unwrap_or_else(|| {
             panic!(
@@ -153,45 +166,36 @@ pub fn fl(input: TokenStream) -> TokenStream {
         let assets = FileSystemAssets::new(assets_dir);
 
         let fallback_language: LanguageIdentifier = config
-                .fallback_language
-                .parse()
-                .expect("fl!() had a problem parsing config: unable to parse `fallback_language`");
-        
-                let loader = FluentLanguageLoader::new(
-            &domain,
-            fallback_language.clone(),
-        );
+            .fallback_language
+            .parse()
+            .expect("fl!() had a problem parsing config: unable to parse `fallback_language`");
 
+        let loader = FluentLanguageLoader::new(&domain, fallback_language.clone());
 
-        loader.load_languages(&assets, &[&fallback_language]).unwrap_or_else(|err| {
-            match err {
+        loader
+            .load_languages(&assets, &[&fallback_language])
+            .unwrap_or_else(|err| match err {
                 i18n_embed::I18nEmbedError::LanguageNotAvailable(file, language_id) => {
                     if fallback_language != language_id {
                         panic!(
                             "fl!() encountered an unexpected problem, \
                             the language being loaded (\"{0}\") is not the \
                             `fallback_language` (\"{1}\")",
-                            language_id,
-                            fallback_language
+                            language_id, fallback_language
                         )
                     }
                     panic!(
                         "fl!() was unable to load the localization \
                         file for the `fallback_language` (\"{0}\"): {1}",
-                        fallback_language,
-                        file,
+                        fallback_language, file,
                     )
                 }
-                _ => {
-                    panic!(
-                        "fl!() had an unexpected problem while \
+                _ => panic!(
+                    "fl!() had an unexpected problem while \
                         loading language \"{0}\": {1}",
-                        fallback_language,
-                        err
-                    )   
-                }
-            }
-        });
+                    fallback_language, err
+                ),
+            });
 
         let data = DomainSpecificData {
             loader,
@@ -210,7 +214,7 @@ pub fn fl(input: TokenStream) -> TokenStream {
             unexpected_lit
                 .span()
                 .unstable()
-                .error("`message_id` should be a &'static str")
+                .error("fl!() `message_id` should be a &'static str")
                 .emit();
             None
         }
@@ -231,17 +235,67 @@ pub fn fl(input: TokenStream) -> TokenStream {
             let mut arg_assignments = proc_macro2::TokenStream::default();
 
             if let Some(message_id_str) = &message_id_string {
-                domain_data.loader.with_fluent_message(message_id_str, |message: FluentMessage<'_>| {
-                    if let Some(_pattern) = message.value {
-                        // TODO: search through the pattern to find the 
-                        // InlineExpression::VariableReference
+                domain_data.loader.with_fluent_message(
+                    message_id_str,
+                    |message: FluentMessage<'_>| {
+                        if let Some(pattern) = message.value {
+                            let mut args = Vec::new();
+                            args_from_pattern(pattern, &mut args);
 
-                        // Check that the variable references match
-                        // those specified in the pairs
-                    }
-                });
+                            let args_set: HashSet<&str> = args.into_iter().collect();
+
+                            let key_args: Vec<String> = pairs
+                                .keys()
+                                .into_iter()
+                                .map(|key| {
+                                    let arg = key.value();
+
+                                    if !args_set.contains(arg.as_str()) {
+                                        let available_args: String = args_set
+                                            .iter()
+                                            .map(|arg| format!("`{}`", arg))
+                                            .collect::<Vec<String>>()
+                                            .join(", ");
+
+                                        key.span()
+                                            .unstable()
+                                            .error(format!(
+                                                "fl!() argument `{0}` does not exist in the \
+                                                fluent message. Available arguments: {1}.",
+                                                &arg, available_args
+                                            ))
+                                            .emit();
+                                    }
+
+                                    arg
+                                })
+                                .collect();
+
+                            let key_args_set: HashSet<&str> =
+                                key_args.iter().map(|v| v.as_str()).collect();
+
+                            let unspecified_args: Vec<String> = args_set
+                                .iter()
+                                .filter_map(|arg| {
+                                    if !key_args_set.contains(arg) {
+                                        Some(format!("`{}`", arg))
+                                    } else {
+                                        None
+                                    }
+                                })
+                                .collect();
+
+                            if !unspecified_args.is_empty() {
+                                panic!(
+                                    "fl!() the following arguments have not been specified: {}",
+                                    unspecified_args.join(", ")
+                                )
+                            }
+                        }
+                    },
+                );
             }
-            
+
             for (key, value) in &pairs {
                 arg_assignments = quote! {
                     #arg_assignments
@@ -249,7 +303,7 @@ pub fn fl(input: TokenStream) -> TokenStream {
                 }
             }
 
-            let gen = quote!{ 
+            let gen = quote! {
                 #fluent_loader.get_args_concrete(
                     #message_id,
                     {
@@ -274,11 +328,65 @@ pub fn fl(input: TokenStream) -> TokenStream {
                         .emit();
                 }
             }
-           
 
             gen
         }
     };
 
     gen.into()
+}
+
+fn args_from_pattern<'a>(pattern: &'a Pattern, args: &mut Vec<&'a str>) {
+    pattern.elements.iter().for_each(|element| {
+        if let PatternElement::Placeable(expr) = element {
+            args_from_expression(expr, args)
+        }
+    });
+}
+
+fn args_from_expression<'a>(expr: &'a Expression, args: &mut Vec<&'a str>) {
+    match expr {
+        Expression::InlineExpression(inline_expr) => {
+            args_from_inline_expression(inline_expr, args);
+        }
+        Expression::SelectExpression { selector, variants } => {
+            args_from_inline_expression(selector, args);
+
+            variants.iter().for_each(|variant| {
+                args_from_pattern(&variant.value, args);
+            })
+        }
+    }
+}
+
+fn args_from_inline_expression<'a>(inline_expr: &'a InlineExpression, args: &mut Vec<&'a str>) {
+    match inline_expr {
+        InlineExpression::FunctionReference { id: _, arguments } => {
+            if let Some(call_args) = arguments {
+                args_from_call_arguments(call_args, args);
+            }
+        }
+        InlineExpression::TermReference {
+            id: _,
+            attribute: _,
+            arguments,
+        } => {
+            if let Some(call_args) = arguments {
+                args_from_call_arguments(call_args, args);
+            }
+        }
+        InlineExpression::VariableReference { id } => args.push(id.name),
+        InlineExpression::Placeable { expression } => args_from_expression(expression, args),
+        _ => {}
+    }
+}
+
+fn args_from_call_arguments<'a>(call_args: &'a CallArguments, args: &mut Vec<&'a str>) {
+    call_args.positional.iter().for_each(|expr| {
+        args_from_inline_expression(expr, args);
+    });
+
+    call_args.named.iter().for_each(|named_arg| {
+        args_from_inline_expression(&named_arg.value, args);
+    })
 }
