@@ -235,7 +235,7 @@ lazy_static::lazy_static! {
 /// ```ignore
 /// fl!(
 ///     loader: FluentLanguageLoader,
-///     message_id: &'static str,
+///     "message_id",
 ///     args: HashMap<
 ///         S where S: Into<Cow<'a, str>> + Clone,
 ///         T where T: Into<FluentValue>> + Clone>
