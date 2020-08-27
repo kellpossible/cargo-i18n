@@ -125,7 +125,7 @@
 //! following:
 //!
 //! + Use the [cargo i18n](https://crates.io/crates/cargo-i18n) tool
-//!   to perform validity checks (not yet implemented). 
+//!   to perform validity checks (not yet implemented).
 //! + Integrate with a code-base using the `gettext` localization
 //!   system.
 //! + Use the `fluent::fluent_language_loader!()` macro to pull the
