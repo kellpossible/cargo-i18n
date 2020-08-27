@@ -49,32 +49,34 @@ Then you can instantiate your language loader and language requester:
 
 ```rust
 use i18n_embed::{DesktopLanguageRequester, fluent::{
-  FluentLanguageLoader
+    FluentLanguageLoader, fluent_language_loader
 }};
 use rust_embed::RustEmbed;
-use unic_langid::LanguageIdentifier;
 
 #[derive(RustEmbed)]
-#[folder = "i18n"] // path to the localization resources
+#[folder = "i18n"] // path to the compiled localization resources
 struct Translations;
 
 fn main() {
     let translations = Translations {};
-
-    let fallback_language: LanguageIdentifier = "en-US".parse().unwrap();
-     let language_loader = FluentLanguageLoader::new(
-       "my_crate", fallback_language);
+    let language_loader: FluentLanguageLoader = fluent_language_loader!();
 
     // Use the language requester for the desktop platform (linux, windows, mac).
     // There is also a requester available for the web-sys WASM platform called
     // WebLanguageRequester, or you can implement your own.
     let requested_languages = DesktopLanguageRequester::requested_languages();
-
     let _result = i18n_embed::select(
-      &language_loader, &translations, &requested_languages);
+        &language_loader, &translations, &requested_languages);
+
+    // continue on with your application
 }
 ```
 
-You can also make use of the `i18n.toml` configuration file, and the [cargo i18n](https://crates.io/crates/cargo-i18n) tool to integrate with a code-base using `gettext`, and in the future to perform compile time checks, and use the `fluent_language_loader!()` macro to pull the configuration at compile time to create the `FluentLanguageLoader`.
+To access localizations, you can use `FluentLanguageLoader`'s methods directly, or, for added compile-time checks/safety, you can use the [fl!() macro](https://crates.io/crates/i18n-embed-fl). Having an `i18n.toml` configuration file enables you to do the following:
+
++ Use the [cargo i18n](https://crates.io/crates/cargo-i18n) tool   to perform validity checks (not yet implemented).
++ Integrate with a code-base using the `gettext` localization   system.
++ Use the `fluent::fluent_language_loader!()` macro to pull the   configuration in at compile time to create the `fluent::FluentLanguageLoader`.
++ Use the [fl!() macro](https://crates.io/crates/i18n-embed-fl) to have added compile-time safety when accessing messages.
 
 For more examples, see the [documentation for i18n-embed](https://docs.rs/i18n-embed/).

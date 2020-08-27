@@ -21,13 +21,15 @@ The [i18n-build](https://crates.io/crates/i18n-build) library contains most of t
 
 ## Usage with Fluent
 
-Fluent support is now available in [i18n-embed](./i18n-embed/README.md). See the examples for that crate for how to use it.
+Fluent support is now available in [i18n-embed](https://crates.io/crates/i18n-embed). See the examples for that crate, and the [documentation for i18n-embed](https://docs.rs/i18n-embed/) for example of how to use it.
 
-Currently there are no validations performed by `cargo-i18n` when using the `fluent` localization system (see tracking issue [#31](https://github.com/kellpossible/cargo-i18n/issues/31)).
+See also the [fl!() macro](https://crates.io/crates/i18n-embed-fl) for a convenient compile-time checked way to access fluent messages when using `i18n-embed`.
+
+Currently there are no validations performed by the `cargo-i18n` tool when using the `fluent` localization system, however there are some planned (see tracking issue [#31](https://github.com/kellpossible/cargo-i18n/issues/31)). If you have any more ideas for this, please feel free to contribute to the issue discussion.
 
 ## Usage with Gettext
 
-This is an example for how to use the `cargo-i18n` tool, and `i18n-embed` the `gettext` localization tool system. Please note that the `gettext` localization system is technically inferior to `fluent` [in a number of ways](https://github.com/projectfluent/fluent/wiki/Fluent-vs-gettext), however there are always legacy reasons, and the developer/translator ecosystem around `gettext` is mature.
+This is an example for how to use the `cargo-i18n` tool, and `i18n-embed` the `gettext` localization tool system. Please note that the `gettext` localization system is technically inferior to `fluent` [in a number of ways](https://github.com/projectfluent/fluent/wiki/Fluent-vs-gettext), however there are always legacy reasons, and the developer/translator ecosystem around `gettext` is more mature.
 
 Firstly, ensure you have the required utilities installed on your system. See [Gettext System Requirements](#Gettext-Requirements) and install the necessary utilities and commands for the localization system you will be using.
 

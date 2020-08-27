@@ -68,12 +68,11 @@
 //! [dependencies]
 //! i18n-embed = { version = "0.7", features = ["fluent-system", "desktop-requester"]}
 //! rust-embed = "5"
-//! unic-langid = "0.9"
 //! ```
 //!
 //! Next, you want to create your localization resources, per language
-//! fluent files. `lang_code` needs to conform to the [Unicode
-//! Language
+//! fluent (`.ftl`) files. `lang_code` needs to conform to the
+//! [Unicode Language
 //! Identifier](https://unicode.org/reports/tr35/tr35.html#Unicode_language_identifier)
 //! standard, and will be parsed via the [unic_langid
 //! crate](https://docs.rs/unic-langid/0.9.0/unic_langid/):
@@ -84,7 +83,7 @@
 //!   i18n.toml
 //!   src/
 //!   i18n/
-//!     lang_code/
+//!     {lang_code}/
 //!       my_crate.ftl
 //! ```
 //!
@@ -92,10 +91,9 @@
 //!
 //! ```
 //! use i18n_embed::{DesktopLanguageRequester, fluent::{
-//!     FluentLanguageLoader    
+//!     FluentLanguageLoader, fluent_language_loader
 //! }};
 //! use rust_embed::RustEmbed;
-//! use unic_langid::LanguageIdentifier;
 //!
 //! #[derive(RustEmbed)]
 //! #[folder = "i18n"] // path to the compiled localization resources
@@ -105,8 +103,7 @@
 //! fn main() {
 //!     let translations = Translations {};
 //!
-//!     let fallback_language: LanguageIdentifier = "en".parse().unwrap();
-//!     let language_loader = FluentLanguageLoader::new("my_crate", fallback_language);
+//!     let language_loader: FluentLanguageLoader = fluent_language_loader!();
 //!
 //!     // Use the language requester for the desktop platform (linux, windows, mac).
 //!     // There is also a requester available for the web-sys WASM platform called
@@ -120,13 +117,22 @@
 //! }
 //! ```
 //!
-//! You can also make use of the `i18n.toml` configuration file, and
-//! the [cargo i18n](https://crates.io/crates/cargo-i18n) tool to
-//! integrate with a code-base using `gettext`, and in the future to
-//! perform compile time checks, and use the
-//! `fluent::fluent_language_loader!()` macro to pull the
-//! configuration at compile time to create the
-//! `fluent::FluentLanguageLoader`.
+//! To access localizations, you can use `FluentLanguageLoader`'s
+//! methods directly, or, for added compile-time checks/safety, you
+//! can use the [fl!() macro](https://crates.io/crates/i18n-embed-fl).
+//!
+//! Having an `i18n.toml` configuration file enables you to do the
+//! following:
+//!
+//! + Use the [cargo i18n](https://crates.io/crates/cargo-i18n) tool
+//!   to perform validity checks (not yet implemented). 
+//! + Integrate with a code-base using the `gettext` localization
+//!   system.
+//! + Use the `fluent::fluent_language_loader!()` macro to pull the
+//!   configuration in at compile time to create the
+//!   `fluent::FluentLanguageLoader`.
+//! + Use the [fl!() macro](https://crates.io/crates/i18n-embed-fl) to
+//!   have added compile-time safety when accessing messages.
 //!
 //! ## Gettext Localization System
 //!
