@@ -33,7 +33,7 @@ rust-embed = "5"
 unic-langid = "0.9"
 ```
 
-Set up a minimal `i18n.toml` in your crate root to use with `cargo-i18n` (see [cargo i18n](https://github.com/kellpossible/cargo-i18n#configuration) for more information on the configuration file format):
+Set up a minimal `i18n.toml` in your crate root to use with `cargo-i18n` (see [cargo i18n](../README.md#configuration) for more information on the configuration file format):
 
 ```toml
 # (Required) The language identifier of the language used in the
