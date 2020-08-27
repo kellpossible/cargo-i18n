@@ -6,20 +6,30 @@ This crate provides a macro to perform compile time checks when using the [i18n-
 
 ## Example
 
-`i18n.toml`:
+Set up a minimal `i18n.toml` in your crate root to use with `cargo-i18n` (see [cargo i18n](https://crates.io/crates/cargo-i18n) for more information on the configuration file format):
 
 ```toml
+# (Required) The language identifier of the language used in the
+# source code for gettext system, and the primary fallback language
+# (for which all strings must be present) when using the fluent
+# system.
 fallback_language = "en-GB"
 
+# Use the fluent localization system.
 [fluent]
+# (Required) The path to the assets directory.
+# The paths inside the assets directory should be structured like so:
+# `assets_dir/{language}/{domain}.ftl`
 assets_dir = "i18n"
 ```
 
-`i18n/en-GB/my_crate.ftl`:
+Create a fluent localization file for the `en-GB` language in `i18n/en-GB/my_crate.ftl`:
 
 ```fluent
 hello-arg = Hello {$name}!
 ```
+
+Simple set up of the `FluentLanguageLoader`, and obtaining a message formatted with an argument:
 
 ```rust
 use i18n_embed::{

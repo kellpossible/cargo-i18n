@@ -231,6 +231,13 @@ po_dir = "i18n/po"
 # (Optional) Path to where the mo files will be written to by the `msgfmt`
 # command. By default this is `output_dir/mo`.
 mo_dir = "i18n/mo"
+
+# (Optional) Use the fluent localization system.
+[fluent]
+# (Required) The path to the assets directory.
+# The paths inside the assets directory should be structured like so:
+# `assets_dir/{language}/{domain}.ftl`
+assets_dir = "i18n"
 ```
 
 ## System Requirements

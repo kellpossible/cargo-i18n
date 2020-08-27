@@ -33,7 +33,26 @@ rust-embed = "5"
 unic-langid = "0.9"
 ```
 
-Next, you want to create your localization resources, per language fluent files. `lang_code` needs to conform to the [Unicode Language Identifier](https://unicode.org/reports/tr35/tr35.html#Unicode_language_identifier) standard, and will be parsed via the [unic_langid crate](https://docs.rs/unic-langid/0.9.0/unic_langid/):
+Set up a minimal `i18n.toml` in your crate root to use with `cargo-i18n` (see [cargo i18n](https://crates.io/crates/cargo-i18n) for more information on the configuration file format):
+
+```toml
+# (Required) The language identifier of the language used in the
+# source code for gettext system, and the primary fallback language
+# (for which all strings must be present) when using the fluent
+# system.
+fallback_language = "en-GB"
+
+# Use the fluent localization system.
+[fluent]
+# (Required) The path to the assets directory.
+# The paths inside the assets directory should be structured like so:
+# `assets_dir/{language}/{domain}.ftl`
+assets_dir = "i18n"
+```
+
+Next, you want to create your localization resources, per language fluent files. `lang_code` needs to conform to the [Unicode Language Identifier](https://unicode.org/reports/tr35/tr35.html#Unicode_language_identifier) standard, and will be parsed via the [unic_langid crate](https://docs.rs/unic-langid/0.9.0/unic_langid/).
+
+The directory structure should look like so:
 
 ```txt
 my_crate/
