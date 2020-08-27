@@ -1,6 +1,6 @@
 [package]
 authors = ["Luke Frisken <l.frisken@gmail.com>"]
-description = "Derive macros for the traits defined in i18n-embed"
+description = "Macro implementations for i18n-embed"
 edition = "2018"
 keywords = ["build", "i18n", "gettext", "locale", "fluent"]
 categories = ["localization", "internationalization"]
@@ -8,7 +8,7 @@ license = "MIT"
 name = "i18n-embed-impl"
 readme = "../README.md"
 repository = "https://github.com/kellpossible/cargo-i18n/tree/master/i18n-embed"
-version = "0.6.0"
+version = "0.6.1"
 
 [badges]
 maintenance = { status = "actively-developed" }
