@@ -1,5 +1,9 @@
 # Changelog for `i18n-embed`
 
+## v0.8.1
+
++ Update version reference to `i18n-embed` in README, and docs.
+
 ## v0.8.0
 
 Changes to support the new `i18n-embed-fl` crate's `fl!()` macro, and some major cleanup/refactoring/simplification.
