@@ -120,7 +120,9 @@ impl LanguageRequesterImpl {
 
     /// The languages reported to be available in the
     /// listener [Localizer](Localizer)s.
-    pub fn available_languages(&self) -> Result<Vec<unic_langid::LanguageIdentifier>, I18nEmbedError> {
+    pub fn available_languages(
+        &self,
+    ) -> Result<Vec<unic_langid::LanguageIdentifier>, I18nEmbedError> {
         let mut available_languages = std::collections::HashSet::new();
         for weak_listener in &self.listeners {
             if let Some(localizer) = weak_listener.upgrade() {
