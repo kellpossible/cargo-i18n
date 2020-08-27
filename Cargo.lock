@@ -218,8 +218,9 @@ dependencies = [
 
 [[package]]
 name = "find-crate"
-version = "0.5.0"
-source = "git+https://github.com/kellpossible/find-crate.git?branch=manifest-crate-package#699a45cea651c68d875f3bcf704fb63abcd43e48"
+version = "0.6.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a1f822feb0e409c1248bc9d84bea41f73bfb7114c4a57888599cff5ae5a67dfa"
 dependencies = [
  "toml",
 ]
