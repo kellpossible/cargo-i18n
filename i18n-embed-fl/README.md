@@ -6,7 +6,7 @@ This crate provides a macro to perform compile time checks when using the [i18n-
 
 ## Example
 
-Set up a minimal `i18n.toml` in your crate root to use with `cargo-i18n` (see [cargo i18n](https://crates.io/crates/cargo-i18n) for more information on the configuration file format):
+Set up a minimal `i18n.toml` in your crate root to use with `cargo-i18n` (see [cargo i18n](https://github.com/kellpossible/cargo-i18n#configuration) for more information on the configuration file format):
 
 ```toml
 # (Required) The language identifier of the language used in the
