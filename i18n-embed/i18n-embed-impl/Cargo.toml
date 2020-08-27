@@ -2,12 +2,13 @@
 authors = ["Luke Frisken <l.frisken@gmail.com>"]
 description = "Derive macros for the traits defined in i18n-embed"
 edition = "2018"
-keywords = ["embed", "build", "i18n", "gettext", "locale"]
+keywords = ["build", "i18n", "gettext", "locale", "fluent"]
+categories = ["localization", "internationalization"]
 license = "MIT"
 name = "i18n-embed-impl"
 readme = "../README.md"
 repository = "https://github.com/kellpossible/cargo-i18n/tree/master/i18n-embed"
-version = "0.5.1"
+version = "0.6.0"
 
 [badges]
 maintenance = { status = "actively-developed" }
@@ -17,7 +18,7 @@ proc-macro = true
 
 [dependencies]
 find-crate = { git = "https://github.com/kellpossible/find-crate.git", branch = "manifest-crate-package", version = "0.5", optional = true }
-i18n-config = { version = "0.3", path = "../../i18n-config", optional = true }
+i18n-config = { version = "0.4", path = "../../i18n-config", optional = true }
 proc-macro2 = "1.0"
 quote = { version = "1.0", optional = true }
 

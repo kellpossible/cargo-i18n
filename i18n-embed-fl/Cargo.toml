@@ -1,9 +1,11 @@
 [package]
 name = "i18n-embed-fl"
-description = "Macro for use with i18n-embed crate and the fluent localization system"
+description = "Macro to perform compile time checks when using the i18n-embed crate and the fluent localization system"
+categories = ["localization", "internationalization", "development-tools"]
 version = "0.1.0"
 authors = ["Luke Frisken <l.frisken@gmail.com>"]
 edition = "2018"
+license = "MIT"
 exclude = ["i18n.toml", "i18n/"]
 
 [lib]
@@ -14,8 +16,8 @@ dashmap = "4.0.0-rc6"
 find-crate = { git = "https://github.com/kellpossible/find-crate.git", branch = "manifest-crate-package", version = "0.5"}
 fluent = "0.12"
 fluent-syntax = "0.9"
-i18n-config = { path = "../i18n-config", version = "0.3" }
-i18n-embed = { path = "../i18n-embed", version = "0.7", features = ["fluent-system", "filesystem-assets"]}
+i18n-config = { path = "../i18n-config", version = "0.4" }
+i18n-embed = { path = "../i18n-embed", version = "0.8", features = ["fluent-system", "filesystem-assets"]}
 lazy_static = "1.4"
 proc-macro2 = "1.0"
 quote = "1.0"

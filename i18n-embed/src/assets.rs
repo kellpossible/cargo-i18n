@@ -2,7 +2,9 @@ use std::borrow::Cow;
 
 /// A trait to handle the retrieval of localization assets.
 pub trait I18nAssets {
-    /// Get a localization asset (returns `None` if the asset does not exist).
+    /// Get a localization asset (returns `None` if the asset does not
+    /// exist, or unable to obtain the asset due to a non-critical
+    /// error).
     fn get_file(&self, file_path: &str) -> Option<Cow<'_, [u8]>>;
     /// Get an iterator over the filenames of the localization assets.
     fn filenames_iter(&self) -> Box<dyn Iterator<Item = String>>;

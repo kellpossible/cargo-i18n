@@ -1,5 +1,30 @@
 # Changelog for `i18n-embed`
 
+## v0.8.0
+
+Changes to support the new `i18n-embed-fl` crate's `fl!()` macro, and some major cleanup/refactoring/simplification.
+
+### New Features
+
++ A new `I18nAssets` trait, to support situations where assets are not embedded.
++ Automatic implementation of the `I18nAssets` trait for types that implement `RustEmbed`.
++ A new `FileSystemAssets` type (which is enabled using the crate feature `filesystem-assets`), which implements `I18nAssets` for loading assets at runtime from the file system.
++ Implemented `Debug` trait on more types.
++ Added new `has()` and `with_fluent_message()` methods to `FluentLanguageLoader`.
++ Made `LanguageRequesterImpl` available on default crate features. No longer requires `gettext-system` or `fluent-system` to be enabled.
+
+### Breaking Changes
+
++ Removed `I18nEmbed` trait, and derive macro, it was replaced with the new `I18nAssets` trait.
++ Clarified the `domain` and `module` arguments/variable inputs to `FluentLanguageLoader` and `GettextLanguageLoader`, and in the `LanguageLoader` trait with some renaming.
++ Removed a bunch of unecessary lifetimes, and `'static` bounds on types, methods and arguments.
++ `LanguageRequester::current_languages()`'s return type now uses `String` as the `HashMap` key instead of `&'static str`.
++ `available_languages()` implementation moved from `I18nEmbed` to `LanguageLoader`.
+
+### Bug Fixes
+
++ Improved resolution of `i18n.toml` location in both the `gettext_language_loader!()` and `fluent_language_loader!()` macros using [find-crate](https://github.com/taiki-e/find-crate).
+
 ## v0.7.2
 
 + Fix broken documentation links when compiling with no features.

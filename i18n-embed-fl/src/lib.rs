@@ -12,6 +12,13 @@ use std::{
 use syn::{parse::Parse, parse_macro_input, spanned::Spanned};
 use unic_langid::LanguageIdentifier;
 
+#[cfg(doctest)]
+#[macro_use]
+extern crate doc_comment;
+
+#[cfg(doctest)]
+doctest!("../README.md");
+
 #[derive(Debug)]
 enum FlArgs {
     /// `fl!(LOADER, "message", args)` where `args` is a

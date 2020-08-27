@@ -1,6 +1,3 @@
-#![feature(proc_macro_diagnostic)]
-use proc_macro::TokenStream;
-
 /// A procedural macro to create a new `GettextLanguageLoader` using
 /// the current crate's `i18n.toml` configuration, and domain.
 ///
@@ -15,7 +12,7 @@ use proc_macro::TokenStream;
 /// ```
 #[proc_macro]
 #[cfg(feature = "gettext-system")]
-pub fn gettext_language_loader(_: TokenStream) -> TokenStream {
+pub fn gettext_language_loader(_: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let manifest = find_crate::Manifest::new().expect("Error reading Cargo.toml");
     let current_crate_package = manifest.crate_package().expect("Error reading Cargo.toml");
 
@@ -70,7 +67,7 @@ pub fn gettext_language_loader(_: TokenStream) -> TokenStream {
 /// ```
 #[proc_macro]
 #[cfg(feature = "fluent-system")]
-pub fn fluent_language_loader(_: TokenStream) -> TokenStream {
+pub fn fluent_language_loader(_: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let manifest = find_crate::Manifest::new().expect("Error reading Cargo.toml");
     let current_crate_package = manifest.crate_package().expect("Error reading Cargo.toml");
     let domain = syn::LitStr::new(&current_crate_package.name, proc_macro2::Span::call_site());

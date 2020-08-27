@@ -35,16 +35,3 @@ fn with_one_arg_lit() {
         fl!(loader, "hello-arg", name = "Bob")
     );
 }
-
-#[test]
-fn with_one_arg_expr() {
-    let loader: FluentLanguageLoader = fluent_language_loader!();
-    loader
-        .load_languages(&Localizations, &[loader.fallback_language()])
-        .unwrap();
-
-    pretty_assertions::assert_eq!(
-        "Hello \u{2068}Bob 23\u{2069}!",
-        fl!(loader, "hello-arg", name = format!("Bob {}", 23))
-    );
-}

@@ -303,7 +303,7 @@ dependencies = [
 
 [[package]]
 name = "i18n-build"
-version = "0.5.1"
+version = "0.5.2"
 dependencies = [
  "anyhow",
  "gettext",
@@ -320,7 +320,7 @@ dependencies = [
 
 [[package]]
 name = "i18n-config"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "log",
  "serde",
@@ -332,7 +332,7 @@ dependencies = [
 
 [[package]]
 name = "i18n-embed"
-version = "0.7.2"
+version = "0.8.0"
 dependencies = [
  "doc-comment",
  "env_logger",
@@ -378,7 +378,7 @@ dependencies = [
 
 [[package]]
 name = "i18n-embed-impl"
-version = "0.5.1"
+version = "0.6.0"
 dependencies = [
  "find-crate",
  "i18n-config",

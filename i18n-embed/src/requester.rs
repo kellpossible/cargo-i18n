@@ -52,7 +52,7 @@ impl LanguageRequesterImpl {
     /// Set an override for the requested language which is used when the
     /// [LanguageRequesterImpl#poll()](LanguageRequester#poll()) method
     /// is called. If `None`, then no override is used.
-    fn set_language_override(
+    pub fn set_language_override(
         &mut self,
         language_override: Option<unic_langid::LanguageIdentifier>,
     ) -> Result<(), I18nEmbedError> {
@@ -60,14 +60,16 @@ impl LanguageRequesterImpl {
         Ok(())
     }
 
-    fn add_listener(&mut self, localizer: Weak<dyn Localizer>) {
+    /// Add a weak reference to a [Localizer], which listens to
+    /// changes to the current language.
+    pub fn add_listener(&mut self, localizer: Weak<dyn Localizer>) {
         self.listeners.push(localizer);
     }
 
     /// With the provided `requested_languages` call
     /// [Localizer#select()](Localizer#select()) on each of the
     /// listeners.
-    fn poll_without_override(
+    pub fn poll_without_override(
         &mut self,
         requested_languages: Vec<unic_langid::LanguageIdentifier>,
     ) -> Result<(), I18nEmbedError> {
@@ -118,7 +120,7 @@ impl LanguageRequesterImpl {
 
     /// The languages reported to be available in the
     /// listener [Localizer](Localizer)s.
-    fn available_languages(&self) -> Result<Vec<unic_langid::LanguageIdentifier>, I18nEmbedError> {
+    pub fn available_languages(&self) -> Result<Vec<unic_langid::LanguageIdentifier>, I18nEmbedError> {
         let mut available_languages = std::collections::HashSet::new();
         for weak_listener in &self.listeners {
             if let Some(localizer) = weak_listener.upgrade() {
@@ -134,7 +136,9 @@ impl LanguageRequesterImpl {
         Ok(available_languages.into_iter().collect())
     }
 
-    fn current_languages(&self) -> HashMap<String, unic_langid::LanguageIdentifier> {
+    /// Gets a `HashMap` with what each language is currently set
+    /// (value) per domain (key).
+    pub fn current_languages(&self) -> HashMap<String, unic_langid::LanguageIdentifier> {
         let mut current_languages = HashMap::new();
         for weak_listener in &self.listeners {
             if let Some(localizer) = weak_listener.upgrade() {
