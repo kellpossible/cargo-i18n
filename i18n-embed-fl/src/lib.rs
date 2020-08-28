@@ -419,26 +419,26 @@ pub fn fl(input: TokenStream) -> TokenStream {
                     })
             };
 
-            if let Some(message_id_str) = &message_id_string {
-                if !checked_loader_has_message && !domain_data.loader.has(&message_id_str) {
-                    emit_error! {
-                        message_id,
-                        format!(
-                            "fl!() `message_id` validation failed. `message_id` \
-                            of \"{0}\" does not exist in the `fallback_language` (\"{1}\")",
-                            message_id_str,
-                            domain_data.loader.current_language(),
-                        );
-                        help = "Enter the correct `message_id` or create \
-                                the message in the localization file if the \
-                                intended message does not yet exist."
-                    };
-                }
-            }
-
             gen
         }
     };
+
+    if let Some(message_id_str) = &message_id_string {
+        if !checked_loader_has_message && !domain_data.loader.has(&message_id_str) {
+            emit_error! {
+                message_id,
+                format!(
+                    "fl!() `message_id` validation failed. `message_id` \
+                    of \"{0}\" does not exist in the `fallback_language` (\"{1}\")",
+                    message_id_str,
+                    domain_data.loader.current_language(),
+                );
+                help = "Enter the correct `message_id` or create \
+                        the message in the localization file if the \
+                        intended message does not yet exist."
+            };
+        }
+    }
 
     gen.into()
 }

@@ -1,5 +1,9 @@
 # Changelog for `i18n-embed-fl`
 
+## v0.1.3
+
++ Fix bug where message check wasn't occurring with no arguments or with hashmap arguments.
+
 ## v0.1.2
 
 + Change the `loader` argument to be an expression, instead of an ident, so it allows more use cases.
