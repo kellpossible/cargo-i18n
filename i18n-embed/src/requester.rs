@@ -298,6 +298,13 @@ impl WebLanguageRequester {
 }
 
 #[cfg(feature = "web-sys-requester")]
+impl Default for WebLanguageRequester {
+    fn default() -> Self {
+        WebLanguageRequester::new()
+    }
+}
+
+#[cfg(feature = "web-sys-requester")]
 impl LanguageRequester for WebLanguageRequester {
     fn requested_languages(&self) -> Vec<unic_langid::LanguageIdentifier> {
         Self::requested_languages()

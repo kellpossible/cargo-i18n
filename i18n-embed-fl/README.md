@@ -2,6 +2,8 @@
 
 This crate provides a macro to perform compile time checks when using the [i18n-embed](https://crates.io/crates/i18n-embed) crate and the [fluent](https://www.projectfluent.org/) localization system.
 
+See [docs](https://docs.rs/i18n-embed-fl/), and [i18n-embed](https://crates.io/crates/i18n-embed) for more information.
+
 **[Changelog](https://github.com/kellpossible/cargo-i18n/blob/master/i18n-embed-fl/CHANGELOG.md)**
 
 ## Example
@@ -57,4 +59,20 @@ assert_eq!(
 )
 ```
 
-See [docs](https://docs.rs/i18n-embed-fl/), and [i18n-embed](https://crates.io/crates/i18n-embed) for more information.
+## Convenience Macro
+
+You will notice that this macro requires `loader` to be specified in every call. For you project you may have access to a statically defined loader, and you can create a convenience macro wrapper so this doesn't need to be imported and specified every time.
+
+```rust
+macro_rules! fl {
+    ($message_id:literal) => {{
+        i18n_embed_fl::fl!($crate::YOUR_STATIC_LOADER, $message_id)
+    }};
+
+    ($message_id:literal, $($args:expr),*) => {{
+        i18n_embed_fl::fl!($crate::YOUR_STATIC_LOADER, $message_id, $($args), *)
+    }};
+}
+```
+
+This can now be invoked like so: `fl!("message-id")`, `fl!("message-id", args)` and `fl!("message-id", arg = "value")`.

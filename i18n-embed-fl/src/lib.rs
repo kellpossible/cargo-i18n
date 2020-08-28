@@ -425,6 +425,14 @@ pub fn fl(input: TokenStream) -> TokenStream {
 
     if let Some(message_id_str) = &message_id_string {
         if !checked_loader_has_message && !domain_data.loader.has(&message_id_str) {
+            let suggestions =
+                fuzzy_message_suggestions(&domain_data.loader, message_id_str, 5).join("\n");
+
+            let hint = format!(
+                "Perhaps you are looking for one of the following messages?\n\n{}",
+                suggestions
+            );
+
             emit_error! {
                 message_id,
                 format!(
@@ -435,12 +443,41 @@ pub fn fl(input: TokenStream) -> TokenStream {
                 );
                 help = "Enter the correct `message_id` or create \
                         the message in the localization file if the \
-                        intended message does not yet exist."
+                        intended message does not yet exist.";
+
+                hint = hint;
             };
         }
     }
 
     gen.into()
+}
+
+fn fuzzy_message_suggestions(
+    loader: &FluentLanguageLoader,
+    message_id_str: &str,
+    n_suggestions: usize,
+) -> Vec<String> {
+    let mut scored_messages: Vec<(String, usize)> =
+        loader.with_message_iter(loader.fallback_language(), |message_iter| {
+            message_iter
+                .map(|message| {
+                    (
+                        message.id.name.to_string(),
+                        strsim::levenshtein(message_id_str, message.id.name),
+                    )
+                })
+                .collect()
+        });
+
+    scored_messages.sort_by_key(|(_message, score)| *score);
+
+    scored_messages.truncate(n_suggestions);
+
+    scored_messages
+        .into_iter()
+        .map(|(message, _score)| message)
+        .collect()
 }
 
 fn check_message_args<'a>(

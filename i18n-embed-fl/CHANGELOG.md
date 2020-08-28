@@ -1,5 +1,12 @@
 # Changelog for `i18n-embed-fl`
 
+## v0.1.5
+
+### New Features
+
++ Updated readme with example convenience wrapper macro.
++ Added suggestions for message ids (ranked by levenshtein distance) to the error message when the current one fails to match.
+
 ## v0.1.4
 
 + Enable the args hashmap option `fl!(loader, "message_id", args())` to be parsed as an expression, instead of just an ident.

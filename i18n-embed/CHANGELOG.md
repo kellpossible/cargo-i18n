@@ -1,5 +1,12 @@
 # Changelog for `i18n-embed`
 
+## v0.8.3
+
+### New Features
+
++ Added a new `with_mesage_iter()` method to `FluentLanguageLoader`, to allow iterating over the messages available for a particular language.
++ Added `Default` implementation for `WebLanguageRequester`.
+
 ## v0.8.2
 
 + Fixed some mistakes in the docs.
