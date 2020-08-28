@@ -23,7 +23,7 @@ fallback_language = "en-GB"
 assets_dir = "i18n"
 ```
 
-Create a fluent localization file for the `en-GB` language in `i18n/en-GB/my_crate.ftl`:
+Create a fluent localization file for the `en-GB` language in `i18n/en-GB/{domain}.ftl`, where `domain` is the rust path of your crate (`_` instead of `-`):
 
 ```fluent
 hello-arg = Hello {$name}!

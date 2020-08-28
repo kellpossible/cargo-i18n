@@ -50,7 +50,7 @@ fallback_language = "en-GB"
 assets_dir = "i18n"
 ```
 
-Next, you want to create your localization resources, per language fluent files. `lang_code` needs to conform to the [Unicode Language Identifier](https://unicode.org/reports/tr35/tr35.html#Unicode_language_identifier) standard, and will be parsed via the [unic_langid crate](https://docs.rs/unic-langid/0.9.0/unic_langid/).
+Next, you want to create your localization resources, per language fluent files. `language` needs to conform to the [Unicode Language Identifier](https://unicode.org/reports/tr35/tr35.html#Unicode_language_identifier) standard, and will be parsed via the [unic_langid crate](https://docs.rs/unic-langid/0.9.0/unic_langid/).
 
 The directory structure should look like so:
 
@@ -60,8 +60,8 @@ my_crate/
   i18n.toml
   src/
   i18n/
-    lang_code/
-      my_crate.ftl
+    {language}/
+      {domain}.ftl
 ```
 
 Then you can instantiate your language loader and language requester:

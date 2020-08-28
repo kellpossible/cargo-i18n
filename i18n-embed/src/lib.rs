@@ -3,22 +3,17 @@
 //! [cargo-i18n](https://crates.io/crates/cargo_i18n) into your
 //! application binary in order to localize it at runtime.
 //!
-//! The core trait for this library is [I18nAssets](I18nAssets), which
-//! also has a derive macro to allow it to be easily implemented on a
-//! struct in your project.
-//!
-//! This library makes use of
+//! This library recommends tha you make use of
 //! [rust-embed](https://crates.io/crates/rust-embed) to perform the
 //! actual embedding of the language files, unfortunately using this
 //! currently requires you to manually add it as a dependency to your
 //! project and implement its trait on your struct in addition to
-//! [I18nAssets](I18nAssets). At some point in the future this library
-//! may incorperate the embedding process into the `I18nAssets` trait
-//! and remove this dependency. `RustEmbed` currently will not compile
-//! if the target `folder` path is invalid, so it is recommended to
-//! either run `cargo i18n` before building your project, or
-//! committing the compiled resources to ensure that the project can
-//! build without requiring `cargo i18n`.
+//! [I18nAssets](I18nAssets). `RustEmbed` will not compile if the
+//! target `folder` path is invalid, so it is recommended to either
+//! run `cargo i18n` before building your project, or committing the
+//! localization assets into source control to ensure that the the
+//! folder exists and project can build without requiring `cargo
+//! i18n`.
 //!
 //! # Optional Features
 //!
@@ -71,15 +66,27 @@
 //! ```
 //!
 //! Set up a minimal `i18n.toml` in your crate root to use with
-//! `cargo-i18n` (see
-//! [cargo i18n](https://github.com/kellpossible/cargo-i18n#configuration)
+//! `cargo-i18n` (see [cargo
+//! i18n](https://github.com/kellpossible/cargo-i18n#configuration)
 //! for more information on the configuration file format):
 //!
+//! ```toml
+//! # (Required) The language identifier of the language used in the
+//! # source code for gettext system, and the primary fallback language
+//! # (for which all strings must be present) when using the fluent
+//! # system.
+//! fallback_language = "en-GB"
 //!
-//!
+//! # Use the fluent localization system.
+//! [fluent]
+//! # (Required) The path to the assets directory.
+//! # The paths inside the assets directory should be structured like so:
+//! # `assets_dir/{language}/{domain}.ftl`
+//! assets_dir = "i18n"
+//! ```
 //!
 //! Next, you want to create your localization resources, per language
-//! fluent (`.ftl`) files. `lang_code` needs to conform to the
+//! fluent (`.ftl`) files. `language` needs to conform to the
 //! [Unicode Language
 //! Identifier](https://unicode.org/reports/tr35/tr35.html#Unicode_language_identifier)
 //! standard, and will be parsed via the [unic_langid
@@ -91,8 +98,8 @@
 //!   i18n.toml
 //!   src/
 //!   i18n/
-//!     {lang_code}/
-//!       my_crate.ftl
+//!     {language}/
+//!       {domain}.ftl
 //! ```
 //!
 //! Then in your Rust code:
@@ -168,8 +175,8 @@
 //! ```
 //!
 //! Set up a minimal `i18n.toml` in your crate root to use with
-//! `cargo-i18n` (see
-//! [cargo i18n](https://github.com/kellpossible/cargo-i18n#configuration)
+//! `cargo-i18n` (see [cargo
+//! i18n](https://github.com/kellpossible/cargo-i18n#configuration)
 //! for more information on the configuration file format):
 //!
 //! ```toml
