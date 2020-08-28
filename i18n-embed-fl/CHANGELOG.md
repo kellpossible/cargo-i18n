@@ -1,5 +1,9 @@
 # Changelog for `i18n-embed-fl`
 
+## v0.1.4
+
++ Enable the args hashmap option `fl!(loader, "message_id", args())` to be parsed as an expression, instead of just an ident.
+
 ## v0.1.3
 
 + Fix bug where message check wasn't occurring with no arguments or with hashmap arguments.

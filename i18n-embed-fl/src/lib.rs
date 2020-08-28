@@ -22,7 +22,7 @@ doctest!("../README.md");
 enum FlArgs {
     /// `fl!(LOADER, "message", args)` where `args` is a
     /// `HashMap<&'a str, FluentValue<'a>>`.
-    HashMap(syn::Ident),
+    HashMap(syn::Expr),
     /// ```ignore
     /// fl!(LOADER, "message",
     ///     arg1 = "value",
@@ -42,7 +42,7 @@ impl Parse for FlArgs {
             input.parse::<syn::Token![,]>()?;
 
             let lookahead = input.fork();
-            if lookahead.parse::<syn::Ident>().is_ok() && lookahead.is_empty() {
+            if lookahead.parse::<syn::ExprAssign>().is_err() {
                 let hash_map = input.parse()?;
                 return Ok(FlArgs::HashMap(hash_map));
             }

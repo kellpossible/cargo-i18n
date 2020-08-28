@@ -24,6 +24,25 @@ fn with_args_hashmap() {
 }
 
 #[test]
+fn with_args_hashmap_expr() {
+    let loader: FluentLanguageLoader = fluent_language_loader!();
+    loader
+        .load_languages(&Localizations, &[loader.fallback_language()])
+        .unwrap();
+
+    let args_expr = || {
+        let mut args: HashMap<&str, &str> = HashMap::new();
+        args.insert("name", "Bob");
+        args
+    };
+
+    pretty_assertions::assert_eq!(
+        "Hello \u{2068}Bob\u{2069}!",
+        fl!(loader, "hello-arg", args_expr())
+    );
+}
+
+#[test]
 fn with_loader_expr() {
     let loader = || {
         let loader: FluentLanguageLoader = fluent_language_loader!();
