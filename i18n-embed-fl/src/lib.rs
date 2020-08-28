@@ -107,7 +107,7 @@ impl Parse for FlArgs {
 
 /// Input for the [fl()] macro.
 struct FlMacroInput {
-    fluent_loader: syn::Ident,
+    fluent_loader: syn::Expr,
     message_id: syn::Lit,
     args: FlArgs,
 }

@@ -24,6 +24,19 @@ fn with_args_hashmap() {
 }
 
 #[test]
+fn with_loader_expr() {
+    let loader = || {
+        let loader: FluentLanguageLoader = fluent_language_loader!();
+        loader
+            .load_languages(&Localizations, &[loader.fallback_language()])
+            .unwrap();
+        loader
+    };
+
+    pretty_assertions::assert_eq!("Hello World!", fl!(loader(), "hello-world"));
+}
+
+#[test]
 fn with_one_arg_lit() {
     let loader: FluentLanguageLoader = fluent_language_loader!();
     loader
