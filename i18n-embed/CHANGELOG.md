@@ -1,5 +1,11 @@
 # Changelog for `i18n-embed`
 
+## v0.8.4
+
+### Bug Fixes
+
++ A workaround for the [fluent issue #191](https://github.com/projectfluent/fluent-rs/issues/191), where CRLF formatted localization files are not always successfully parsed by fluent.
+
 ## v0.8.3
 
 ### New Features
