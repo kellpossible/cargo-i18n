@@ -9,7 +9,7 @@ license = "MIT"
 name = "i18n-embed"
 readme = "README.md"
 repository = "https://github.com/kellpossible/cargo-i18n/tree/master/i18n-embed"
-version = "0.8.4"
+version = "0.8.5"
 
 [package.metadata.docs.rs]
 all-features = true
@@ -18,9 +18,9 @@ all-features = true
 maintenance = { status = "actively-developed" }
 
 [dependencies]
-fluent = { version = "0.12", optional = true }
+fluent = { version = "0.13", optional = true }
 fluent-langneg = "0.13"
-fluent-syntax = { version = "0.9", optional = true }
+fluent-syntax = { version = "0.10", optional = true }
 gettext_system = { package = "gettext", version = "0.4", optional = true }
 i18n-embed-impl = { version = "0.6", path = "./i18n-embed-impl", optional = true }
 lazy_static = "1.4"
@@ -36,7 +36,7 @@ web-sys = { version = "0.3", features = ["Window", "Navigator"], optional = true
 
 [dev-dependencies]
 doc-comment = "0.3"
-env_logger = "0.7"
+env_logger = "0.8"
 maplit = "1.0"
 pretty_assertions = "0.6"
 

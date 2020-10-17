@@ -1,5 +1,16 @@
 # Changelog for `i18n-embed`
 
+## v0.8.5
+
+### New Features
+
++ Add new `get_args_fluent()` method to `FluentLanguageLoader` to allow arguments to be specified using `fluent`'s new `FluentArgs` type.
+
+### Internal Changes
+
++ Update `fluent` to version `0.13`.
++ Fixes to address breaking changes in `fluent-syntax` version `0.10`.
+
 ## v0.8.4
 
 ### Bug Fixes

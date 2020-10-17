@@ -1,5 +1,12 @@
 # Changelog for `i18n-embed-fl`
 
+## v0.1.6
+
+### Internal Changes
+
++ Update to `fluent` version `0.13`.
++ Fixes to address breaking changes in `fluent-syntax` version `0.10`.
+
 ## v0.1.5
 
 ### New Features

@@ -66,7 +66,7 @@ dependencies = [
  "anyhow",
  "clap",
  "doc-comment",
- "env_logger",
+ "env_logger 0.7.1",
  "gettext",
  "i18n-build",
  "i18n-config",
@@ -210,7 +210,20 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "44533bbbb3bb3c1fa17d9f2e4e38bbbaf8396ba82193c4cb1b6445d711445d36"
 dependencies = [
  "atty",
- "humantime",
+ "humantime 1.3.0",
+ "log",
+ "regex",
+ "termcolor",
+]
+
+[[package]]
+name = "env_logger"
+version = "0.8.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "54532e3223c5af90a6a757c90b5c5521564b07e5e7a958681bcd2afad421cdcd"
+dependencies = [
+ "atty",
+ "humantime 2.0.1",
  "log",
  "regex",
  "termcolor",
@@ -227,9 +240,9 @@ dependencies = [
 
 [[package]]
 name = "fluent"
-version = "0.12.0"
+version = "0.13.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3c3b6132d1377d8776409a337c6851d342aee4e85277c96ecd2755c4e0efde1d"
+checksum = "ef9e54ec7b674ae3477d948ae790e90ae24d54fb31c2e7173252978d9b09bdfa"
 dependencies = [
  "fluent-bundle",
  "unic-langid",
@@ -237,9 +250,9 @@ dependencies = [
 
 [[package]]
 name = "fluent-bundle"
-version = "0.12.0"
+version = "0.13.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "01a094d494ab2ed06077e9a95f4e47f446c376de95f6c93045dd88c499bfcd70"
+checksum = "a79916560098f0a57215a489e37b7fc83088949eab7f7977dcc329b254d50c17"
 dependencies = [
  "fluent-langneg",
  "fluent-syntax",
@@ -261,9 +274,9 @@ dependencies = [
 
 [[package]]
 name = "fluent-syntax"
-version = "0.9.3"
+version = "0.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ac0f7e83d14cccbf26e165d8881dcac5891af0d85a88543c09dd72ebd31d91ba"
+checksum = "9389354f858e38f37d9a249133611a1fcaec469f44773b04ddbd82f4f08d49eb"
 
 [[package]]
 name = "fxhash"
@@ -303,6 +316,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "humantime"
+version = "2.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3c1ad908cc71012b7bea4d0c53ba96a8cba9962f048fa68d143376143d863b7a"
+
+[[package]]
 name = "i18n-build"
 version = "0.5.2"
 dependencies = [
@@ -333,10 +352,10 @@ dependencies = [
 
 [[package]]
 name = "i18n-embed"
-version = "0.8.4"
+version = "0.8.5"
 dependencies = [
  "doc-comment",
- "env_logger",
+ "env_logger 0.8.1",
  "fluent",
  "fluent-langneg",
  "fluent-syntax",
@@ -358,11 +377,11 @@ dependencies = [
 
 [[package]]
 name = "i18n-embed-fl"
-version = "0.1.5"
+version = "0.1.6"
 dependencies = [
  "dashmap",
  "doc-comment",
- "env_logger",
+ "env_logger 0.7.1",
  "find-crate",
  "fluent",
  "fluent-syntax",

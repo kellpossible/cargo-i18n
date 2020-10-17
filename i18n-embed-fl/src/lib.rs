@@ -480,8 +480,8 @@ fn fuzzy_message_suggestions(
         .collect()
 }
 
-fn check_message_args<'a>(
-    message: FluentMessage<'a>,
+fn check_message_args<'m>(
+    message: FluentMessage<'m>,
     specified_args: &HashMap<syn::LitStr, Box<syn::Expr>>,
 ) {
     if let Some(pattern) = message.value {
@@ -548,15 +548,15 @@ fn check_message_args<'a>(
     }
 }
 
-fn args_from_pattern<'a>(pattern: &'a Pattern, args: &mut Vec<&'a str>) {
+fn args_from_pattern<S: Copy>(pattern: &Pattern<S>, args: &mut Vec<S>) {
     pattern.elements.iter().for_each(|element| {
-        if let PatternElement::Placeable(expr) = element {
-            args_from_expression(expr, args)
+        if let PatternElement::Placeable { expression } = element {
+            args_from_expression(expression, args)
         }
     });
 }
 
-fn args_from_expression<'a>(expr: &'a Expression, args: &mut Vec<&'a str>) {
+fn args_from_expression<S: Copy>(expr: &Expression<S>, args: &mut Vec<S>) {
     match expr {
         Expression::InlineExpression(inline_expr) => {
             args_from_inline_expression(inline_expr, args);
@@ -571,7 +571,7 @@ fn args_from_expression<'a>(expr: &'a Expression, args: &mut Vec<&'a str>) {
     }
 }
 
-fn args_from_inline_expression<'a>(inline_expr: &'a InlineExpression, args: &mut Vec<&'a str>) {
+fn args_from_inline_expression<S: Copy>(inline_expr: &InlineExpression<S>, args: &mut Vec<S>) {
     match inline_expr {
         InlineExpression::FunctionReference { id: _, arguments } => {
             if let Some(call_args) = arguments {
@@ -593,7 +593,7 @@ fn args_from_inline_expression<'a>(inline_expr: &'a InlineExpression, args: &mut
     }
 }
 
-fn args_from_call_arguments<'a>(call_args: &'a CallArguments, args: &mut Vec<&'a str>) {
+fn args_from_call_arguments<S: Copy>(call_args: &CallArguments<S>, args: &mut Vec<S>) {
     call_args.positional.iter().for_each(|expr| {
         args_from_inline_expression(expr, args);
     });

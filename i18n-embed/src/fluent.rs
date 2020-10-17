@@ -9,10 +9,10 @@ use crate::{I18nAssets, I18nEmbedError, LanguageLoader};
 
 pub use i18n_embed_impl::fluent_language_loader;
 
-use fluent::{concurrent::FluentBundle, FluentMessage, FluentResource, FluentValue};
+use fluent::{concurrent::FluentBundle, FluentArgs, FluentMessage, FluentResource, FluentValue};
 use fluent_syntax::ast::{self, Pattern};
 use parking_lot::RwLock;
-use std::{borrow::Cow, collections::HashMap, fmt::Debug, sync::Arc};
+use std::{borrow::Cow, collections::HashMap, fmt::Debug, iter::FromIterator, sync::Arc};
 use unic_langid::LanguageIdentifier;
 
 lazy_static::lazy_static! {
@@ -99,21 +99,41 @@ impl FluentLanguageLoader {
     }
 
     /// A non-generic version of [FluentLanguageLoader::get_args()].
-    pub fn get_args_concrete<'a>(
+    pub fn get_args_concrete<'source>(
         &self,
         message_id: &str,
-        args: HashMap<&'a str, FluentValue<'a>>,
+        args: HashMap<&'source str, FluentValue<'source>>,
+    ) -> String {
+        let args_option = if args.is_empty() {
+            None
+        } else {
+            let mut fluent_args = FluentArgs::with_capacity(args.len());
+
+            for (key, value) in args {
+                fluent_args.add(key, value);
+            }
+
+            Some(fluent_args)
+        };
+
+        self.get_args_fluent(message_id, args_option.as_ref())
+    }
+
+    /// A non-generic version of [FluentLanguageLoader::get_args()]
+    /// accepting [FluentArgs] instead of a [HashMap].
+    pub fn get_args_fluent<'args>(
+        &self,
+        message_id: &str,
+        args: Option<&'args FluentArgs<'args>>,
     ) -> String {
         let config_lock = self.language_config.read();
-
-        let args = if args.is_empty() { None } else { Some(&args) };
 
         config_lock.language_bundles.iter().filter_map(|language_bundle| {
             language_bundle
                 .bundle
                 .get_message(message_id)
                 .and_then(|m: FluentMessage<'_>| m.value)
-                .map(|pattern: &Pattern<'_>| {
+                .map(|pattern: &Pattern<&str>| {
                     let mut errors = Vec::new();
                     let value = language_bundle.bundle.format_pattern(pattern, args, &mut errors);
                     if !errors.is_empty() {
@@ -217,7 +237,7 @@ impl FluentLanguageLoader {
     /// the language. Returns the result of the closure.
     pub fn with_message_iter<OUT, C>(&self, language: &LanguageIdentifier, closure: C) -> OUT
     where
-        C: Fn(&mut dyn Iterator<Item = &ast::Message<'_>>) -> OUT,
+        C: Fn(&mut dyn Iterator<Item = &ast::Message<&str>>) -> OUT,
     {
         let config_lock = self.language_config.read();
 
@@ -227,12 +247,9 @@ impl FluentLanguageLoader {
             .filter(|language_bundle| &language_bundle.language == language)
             .flat_map(|language_bundle| {
                 language_bundle.resources.iter().flat_map(|resource| {
-                    let ast: &ast::Resource<'_> = resource.ast();
+                    let ast: &ast::Resource<&str> = resource.ast();
                     ast.body.iter().filter_map(|entry| match entry {
-                        ast::ResourceEntry::Entry(entry) => match entry {
-                            ast::Entry::Message(message) => Some(message),
-                            _ => None,
-                        },
+                        ast::Entry::Message(message) => Some(message),
                         _ => None,
                     })
                 })
