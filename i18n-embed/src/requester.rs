@@ -16,6 +16,12 @@ pub trait LanguageRequester {
     /// Poll the system's currently selected language, and call
     /// [Localizer#select()](Localizer#select()) on each of the
     /// listeners.
+    ///
+    /// **NOTE:** Support for this across systems currently
+    /// varies, it may not change when the system requested language
+    /// changes during runtime without restarting your application. In
+    /// the future some platforms may also gain support for automatic
+    /// triggering when the requested display language changes.
     fn poll(&mut self) -> Result<(), I18nEmbedError>;
     /// Override the languages fed to the [Localizer](Localizer) listeners during
     /// a [#poll()](#poll()). Set this as `None` to disable the override.

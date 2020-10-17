@@ -12,7 +12,7 @@ pub use i18n_embed_impl::fluent_language_loader;
 use fluent::{concurrent::FluentBundle, FluentArgs, FluentMessage, FluentResource, FluentValue};
 use fluent_syntax::ast::{self, Pattern};
 use parking_lot::RwLock;
-use std::{borrow::Cow, collections::HashMap, fmt::Debug, iter::FromIterator, sync::Arc};
+use std::{borrow::Cow, collections::HashMap, fmt::Debug, sync::Arc};
 use unic_langid::LanguageIdentifier;
 
 lazy_static::lazy_static! {

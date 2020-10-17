@@ -86,8 +86,8 @@
 //! ```
 //!
 //! Next, you want to create your localization resources, per language
-//! fluent (`.ftl`) files. `language` needs to conform to the
-//! [Unicode Language
+//! fluent (`.ftl`) files. `language` needs to conform to the [Unicode
+//! Language
 //! Identifier](https://unicode.org/reports/tr35/tr35.html#Unicode_language_identifier)
 //! standard, and will be parsed via the [unic_langid
 //! crate](https://docs.rs/unic-langid/0.9.0/unic_langid/):
@@ -277,8 +277,11 @@
 //!     language_requester.add_listener(Rc::downgrade(&localizer_rc));
 //!
 //!     // Manually check the currently requested system language,
-//!     // and update the listeners. When the system language changes,
-//!     // this will automatically be triggered.
+//!     // and update the listeners. NOTE: Support for this across systems
+//!     // currently varies, it may not change when the system requested
+//!     // language changes during runtime without restarting your application.
+//!     // In the future some platforms may also gain support for
+//!     // automatic triggering when the requested display language changes.
 //!     language_requester.poll().unwrap();
 //!
 //!     // continue on with your application

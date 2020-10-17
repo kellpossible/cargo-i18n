@@ -1,5 +1,9 @@
 # Changelog for `i18n-embed`
 
+## v0.8.6
+
++ Update documentation and example to more accurately reflect the current state of `LangaugeRequester::poll()` on various systems.
+
 ## v0.8.5
 
 ### New Features
