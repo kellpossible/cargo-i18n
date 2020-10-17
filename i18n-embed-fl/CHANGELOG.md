@@ -1,5 +1,9 @@
 # Changelog for `i18n-embed-fl`
 
+## v0.2.0
+
++ Bumped version to reflect potential breaking changes present in the new version of `fluent`, `0.13` which is exposed in this crate's public API. And yanked previous version of `i18n-embed-fl`: `0.1.6`.
+
 ## v0.1.6
 
 ### Internal Changes

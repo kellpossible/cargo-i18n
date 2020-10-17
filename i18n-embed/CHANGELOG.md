@@ -1,5 +1,9 @@
 # Changelog for `i18n-embed`
 
+## v0.9.0
+
++ Bumped version to reflect potential breaking changes present in the new version of `fluent`, `0.13` which is exposed in this crate's public API. And yanked previous versions of `i18n-embed`: `0.8.6` and `0.8.5`.
+
 ## v0.8.6
 
 + Update documentation and example to more accurately reflect the current state of `LangaugeRequester::poll()` on various systems.

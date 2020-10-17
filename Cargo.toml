@@ -16,7 +16,7 @@ maintenance = { status = "actively-developed" }
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-i18n-embed = { version = "0.8", path = "./i18n-embed", features = ["desktop-requester", "gettext-system", "fluent-system"] }
+i18n-embed = { version = "0.9", path = "./i18n-embed", features = ["desktop-requester", "gettext-system", "fluent-system"] }
 i18n-build = { version = "0.5", path = "./i18n-build", features = ["localize"] }
 i18n-config = { version = "0.4", path = "./i18n-config" }
 anyhow = "1.0"
@@ -25,7 +25,7 @@ tr = { version = "0.1", default-features = false, features = ["gettext"] }
 clap = "2.33"
 rust-embed = "5"
 unic-langid = "0.9"
-env_logger = "0.7.1"
+env_logger = "0.8"
 log = "0.4"
 lazy_static = "1.4.0"
 

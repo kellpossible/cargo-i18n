@@ -1,5 +1,9 @@
 # Changelog for `i18n-build`
 
+## v0.5.3
+
++ Update `i18n-embed` to version `0.9.0`.
+
 ## v0.5.2
 
 + Update to `i18n-config` version `0.4.0`.
