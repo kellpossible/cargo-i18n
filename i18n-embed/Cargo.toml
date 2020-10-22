@@ -9,7 +9,7 @@ license = "MIT"
 name = "i18n-embed"
 readme = "README.md"
 repository = "https://github.com/kellpossible/cargo-i18n/tree/master/i18n-embed"
-version = "0.9.0"
+version = "0.9.1"
 
 [package.metadata.docs.rs]
 all-features = true

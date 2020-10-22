@@ -538,16 +538,16 @@ impl<'a> DefaultLocalizer<'a> {
 /// to be selected in order of preference.
 pub fn select(
     language_loader: &dyn LanguageLoader,
-    i18n_embed: &dyn I18nAssets,
+    i18n_assets: &dyn I18nAssets,
     requested_languages: &[unic_langid::LanguageIdentifier],
 ) -> Result<Vec<unic_langid::LanguageIdentifier>, I18nEmbedError> {
-    info!(
+    debug!(
         "Selecting translations for domain \"{0}\"",
         language_loader.domain()
     );
 
     let available_languages: Vec<unic_langid::LanguageIdentifier> =
-        language_loader.available_languages(i18n_embed)?;
+        language_loader.available_languages(i18n_assets)?;
     let default_language: &unic_langid::LanguageIdentifier = language_loader.fallback_language();
 
     let supported_languages = negotiate_languages(
@@ -557,12 +557,12 @@ pub fn select(
         NegotiationStrategy::Filtering,
     );
 
-    info!("Requested Languages: {:?}", requested_languages);
-    info!("Available Languages: {:?}", available_languages);
-    info!("Supported Languages: {:?}", supported_languages);
+    debug!("Requested Languages: {:?}", requested_languages);
+    debug!("Available Languages: {:?}", available_languages);
+    debug!("Supported Languages: {:?}", supported_languages);
 
     if !supported_languages.is_empty() {
-        language_loader.load_languages(i18n_embed, supported_languages.as_slice())?;
+        language_loader.load_languages(i18n_assets, supported_languages.as_slice())?;
     }
 
     Ok(supported_languages.into_iter().cloned().collect())

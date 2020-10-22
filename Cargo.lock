@@ -330,7 +330,7 @@ dependencies = [
 
 [[package]]
 name = "i18n-embed"
-version = "0.9.0"
+version = "0.9.1"
 dependencies = [
  "doc-comment",
  "env_logger",
