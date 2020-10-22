@@ -1,5 +1,11 @@
 # Changelog for `i18n-embed`
 
+## v0.9.2
+
+### Fixes
+
++ Remove compiler warning.
+
 ## v0.9.1
 
 ### Fixes

@@ -430,7 +430,7 @@ use std::{
 };
 
 use fluent_langneg::{negotiate_languages, NegotiationStrategy};
-use log::{debug, error, info};
+use log::{debug, error};
 use thiserror::Error;
 
 pub use unic_langid;
