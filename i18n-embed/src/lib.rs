@@ -531,11 +531,14 @@ impl<'a> DefaultLocalizer<'a> {
     }
 }
 
-/// Select the most suitable language currently requested by the
-/// system by the the [LanguageRequester], and load it using the
-/// provided [LanguageLoader] from the languages available in
-/// [I18nAssets]. Returns the available languages that were negotiated
-/// to be selected in order of preference.
+/// Select the most suitable available language in order of preference
+/// by `requested_languages`, and load it using the provided
+/// [LanguageLoader] from the languages available in [I18nAssets].
+/// Returns the available languages that were negotiated as being the
+/// most suitable to be selected, and were loaded by
+/// [LanguageLoader::load_languages()]. If there were no available
+/// languages, then no languages will be loaded and the returned
+/// `Vec` will be empty.
 pub fn select(
     language_loader: &dyn LanguageLoader,
     i18n_assets: &dyn I18nAssets,

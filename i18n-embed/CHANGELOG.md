@@ -1,5 +1,11 @@
 # Changelog for `i18n-embed`
 
+## v0.9.3
+
+### Fixes
+
++ Updated documentation for `select()` function.
+
 ## v0.9.2
 
 ### Fixes
