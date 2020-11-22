@@ -257,6 +257,19 @@ impl FluentLanguageLoader {
 
         (closure)(&mut iter)
     }
+
+    /// Set whether the underlying Fluent logic should insert Unicode
+    /// Directionality Isolation Marks around placeables.
+    ///
+    /// See [`fluent::bundle::FluentBundleBase::set_use_isolating`] for more
+    /// information.
+    ///
+    /// Default: `true`.
+    pub fn set_use_isolating(&self, value: bool) {
+        for bundle in self.language_config.write().language_bundles.as_mut_slice() {
+            bundle.bundle.set_use_isolating(value);
+        }
+    }
 }
 
 impl LanguageLoader for FluentLanguageLoader {
