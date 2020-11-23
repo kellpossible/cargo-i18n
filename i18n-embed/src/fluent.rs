@@ -93,6 +93,16 @@ impl FluentLanguageLoader {
         }
     }
 
+    /// The languages associated with each actual loaded language bundle.
+    pub fn current_languages(&self) -> Vec<unic_langid::LanguageIdentifier> {
+        self.language_config
+            .read()
+            .language_bundles
+            .iter()
+            .map(|b| b.language.clone())
+            .collect()
+    }
+
     /// Get a localized message referenced by the `message_id`.
     pub fn get(&self, message_id: &str) -> String {
         self.get_args_concrete(message_id, HashMap::new())
