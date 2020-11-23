@@ -82,6 +82,33 @@ mod fluent {
         assert!(loader.has("only-us"));
         assert!(!loader.has("non-existent-message"))
     }
+
+    #[test]
+    fn bidirectional_isolation_off() {
+        setup();
+        let en_us: LanguageIdentifier = "en-US".parse().unwrap();
+        let loader = FluentLanguageLoader::new("test", en_us.clone());
+        loader.load_languages(&Localizations, &[&en_us]).unwrap();
+        loader.set_use_isolating(false);
+        let args = maplit::hashmap! {
+            "thing" => "thing"
+        };
+        let msg = loader.get_args("isolation-chars", args);
+        assert_eq!("inject a thing here", msg);
+    }
+
+    #[test]
+    fn bidirectional_isolation_on() {
+        setup();
+        let en_us: LanguageIdentifier = "en-US".parse().unwrap();
+        let loader = FluentLanguageLoader::new("test", en_us.clone());
+        loader.load_languages(&Localizations, &[&en_us]).unwrap();
+        let args = maplit::hashmap! {
+            "thing" => "thing"
+        };
+        let msg = loader.get_args("isolation-chars", args);
+        assert_eq!("inject a \u{2068}thing\u{2069} here", msg);
+    }
 }
 
 #[cfg(feature = "gettext-system")]
