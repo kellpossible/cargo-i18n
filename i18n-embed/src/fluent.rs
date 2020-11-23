@@ -264,6 +264,9 @@ impl FluentLanguageLoader {
     /// See [`fluent::bundle::FluentBundleBase::set_use_isolating`] for more
     /// information.
     ///
+    /// **Note:** This function will have no effect if
+    /// [`LanguageLoader::load_languages`] has not been called first.
+    ///
     /// Default: `true`.
     pub fn set_use_isolating(&self, value: bool) {
         for bundle in self.language_config.write().language_bundles.as_mut_slice() {
