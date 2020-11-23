@@ -311,8 +311,7 @@ impl LanguageLoader for FluentLanguageLoader {
                 log::debug!(target:"i18n_embed::fluent", "Loaded language file: \"{0}\" for language: \"{1}\"", path, language);
 
                 let file_string = String::from_utf8(file.to_vec())
-                    .map_err(|err| I18nEmbedError::ErrorParsingFileUtf8(path.clone(), err))?
-                    .replace("\u{000D}\n", "\n"); // See #36 this solves a problem with CLRF not being parsed by fluent correctly.
+                    .map_err(|err| I18nEmbedError::ErrorParsingFileUtf8(path.clone(), err))?;
 
                 let resource = match FluentResource::try_new(file_string) {
                     Ok(resource) => resource,

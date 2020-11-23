@@ -1,5 +1,11 @@
 # Changelog for `i18n-embed`
 
+## Master
+
+### Internal Changes
+
++ Close #36, remove the now redundant CRLF fix.
+
 ## v0.9.3
 
 ### Fixes
