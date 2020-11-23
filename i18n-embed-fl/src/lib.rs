@@ -480,8 +480,8 @@ fn fuzzy_message_suggestions(
         .collect()
 }
 
-fn check_message_args<'m>(
-    message: FluentMessage<'m>,
+fn check_message_args(
+    message: FluentMessage<'_>,
     specified_args: &HashMap<syn::LitStr, Box<syn::Expr>>,
 ) {
     if let Some(pattern) = message.value {

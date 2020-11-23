@@ -147,7 +147,7 @@ pub fn run_xtr(
     Ok(())
 }
 
-fn crate_module_pot_file_path<'a, P: AsRef<Path>>(crt: &Crate<'a>, pot_dir: P) -> Result<PathBuf> {
+fn crate_module_pot_file_path<P: AsRef<Path>>(crt: &Crate<'_>, pot_dir: P) -> Result<PathBuf> {
     Ok(pot_dir
         .as_ref()
         .join(crt.module_name())
@@ -381,7 +381,7 @@ pub fn run_msgfmt(crt: &Crate, po_dir: &Path, mo_dir: &Path) -> Result<()> {
 /// crate must have an i18n config containing a gettext config.
 ///
 /// This function is recursively executed for each subcrate.
-pub fn run<'a>(crt: &'a Crate) -> Result<()> {
+pub fn run(crt: &Crate) -> Result<()> {
     info!(
         "Localizing crate \"{0}\" using the gettext system",
         crt.path.to_string_lossy()
@@ -398,10 +398,7 @@ pub fn run<'a>(crt: &'a Crate) -> Result<()> {
         .gettext_config_or_err()
         .expect("expected gettext config to be present");
 
-    let do_xtr = match config_crate.gettext_config_or_err()?.xtr {
-        Some(xtr_value) => xtr_value,
-        None => true,
-    };
+    let do_xtr = config_crate.gettext_config_or_err()?.xtr.unwrap_or(true);
 
     // We don't use the i18n_config (which potentially comes from the
     // parent crate )to get the subcrates, because this would result
