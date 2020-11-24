@@ -1,10 +1,14 @@
 # Changelog for `i18n-embed`
 
-## Master
+## v0.9.4
+
+### New Features
+
++ Functionality to disable bidirectional isolation in Fluent with `FluentLanguageLoader` with a new `set_use_isolating` method [#45](https://github.com/kellpossible/cargo-i18n/issues/45).
 
 ### Internal Changes
 
-+ Close #36, remove the now redundant CRLF fix.
++ Remove the now redundant CRLF fix [#36](https://github.com/kellpossible/cargo-i18n/issues/36).
 
 ## v0.9.3
 
