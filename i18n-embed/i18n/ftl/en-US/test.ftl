@@ -3,3 +3,4 @@ only-us = only US
 only-ru = only RU
 only-gb = only GB (US Version)
 different-args = this message has different {$arg}s in different languages
+isolation-chars = inject a { $thing } here
