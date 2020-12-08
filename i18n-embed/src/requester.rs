@@ -252,16 +252,33 @@ impl DesktopLanguageRequester {
 
         let ids: Vec<unic_langid::LanguageIdentifier> = current_locale
             .tags_for("messages")
-            .filter_map(|tag: LanguageRange<'_>| match tag.to_string().parse() {
-                Ok(tag) => Some(tag),
-                Err(err) => {
-                    log::error!("Unable to parse your locale: {:?}", err);
+            .filter_map(|tag: LanguageRange<'_>| {
+                let tag_string = tag.to_string();
+
+                if tag_string.is_empty() {
+                    log::debug!(
+                        "System has an empty requested locale for messages. \
+                    In this situation on Linux the `LANG` environment variable \
+                    may be empty."
+                    );
                     None
+                } else {
+                    match tag_string.parse() {
+                        Ok(tag) => Some(tag),
+                        Err(err) => {
+                            log::error!(
+                                "Unable to parse system's currently requested locale `{}`: {}",
+                                tag_string,
+                                err
+                            );
+                            None
+                        }
+                    }
                 }
             })
             .collect();
 
-        log::info!("Current Locale: {:?}", ids);
+        log::info!("System requested locales: {:?}", ids);
 
         ids
     }
