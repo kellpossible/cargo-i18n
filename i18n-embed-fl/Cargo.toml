@@ -12,7 +12,7 @@ exclude = ["i18n.toml", "i18n/"]
 proc-macro = true
 
 [dependencies]
-dashmap = "4.0.0-rc6"
+dashmap = "= 4.0.0-rc6"
 find-crate = "0.6"
 fluent = "0.13"
 fluent-syntax = "0.10"
