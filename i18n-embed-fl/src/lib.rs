@@ -357,7 +357,7 @@ pub fn fl(input: TokenStream) -> TokenStream {
             _assets: assets,
         };
 
-        DOMAINS.insert_and_get(domain.clone(), data)
+        DOMAINS.entry(domain.clone()).or_insert(data).downgrade()
     };
 
     let message_id_string = match &message_id {
