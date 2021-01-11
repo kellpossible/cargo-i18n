@@ -1,10 +1,14 @@
 # Changelog for `i18n-embed`
 
-## Master
+## v0.10.0
 
 ### Fixes
 
 + More gracefully handle the situation on Linux where LANG environment variable is not set due to [rust-locale/locale_config#6](https://github.com/rust-locale/locale_config/issues/6). Fixes [#49](https://github.com/kellpossible/cargo-i18n/issues/49).
+
+### Internal Changes
+
++ Update `fluent` dependency to version `0.14`.
 
 ## v0.9.4
 

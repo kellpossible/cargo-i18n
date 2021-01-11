@@ -1,5 +1,10 @@
 # Changelog for `i18n-embed-fl`
 
+## v0.3.0
+
++ Update `fluent` dependency to version `0.14`.
++ Update to `dashmap` version `4.0`, and fix breaking change.
+
 ## v0.2.0
 
 + Bumped version to reflect potential breaking changes present in the new version of `fluent`, `0.13` which is exposed in this crate's public API. And yanked previous version of `i18n-embed-fl`: `0.1.6`.

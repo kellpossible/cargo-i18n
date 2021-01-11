@@ -30,7 +30,7 @@ struct LanguageBundle {
 
 impl LanguageBundle {
     fn new(language: LanguageIdentifier, resources: Vec<Arc<FluentResource>>) -> Self {
-        let mut bundle = FluentBundle::new(&[language.clone()]);
+        let mut bundle = FluentBundle::new(vec![language.clone()]);
 
         for resource in &resources {
             if let Err(errors) = bundle.add_resource(Arc::clone(resource)) {
