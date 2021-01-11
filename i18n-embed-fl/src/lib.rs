@@ -357,9 +357,7 @@ pub fn fl(input: TokenStream) -> TokenStream {
             _assets: assets,
         };
 
-        DOMAINS.insert(domain.clone(), data);
-        DOMAINS.get(&domain)
-            .unwrap_or_else(|| panic!("Unable to get data for inserted domain: {:?}", domain))
+        DOMAINS.entry(domain.clone()).or_insert(data).downgrade()
     };
 
     let message_id_string = match &message_id {

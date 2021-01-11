@@ -1,5 +1,11 @@
 # Changelog for `i18n-embed-fl`
 
+## v0.3.1
+
+### Internal Changes
+
++ Safer use of DashMap's new `4.0` API thanks to [#56](https://github.com/kellpossible/cargo-i18n/pull/56).
+
 ## v0.3.0
 
 + Update `fluent` dependency to version `0.14`.
