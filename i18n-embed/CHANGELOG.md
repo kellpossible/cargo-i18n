@@ -1,5 +1,9 @@
 # Changelog for `i18n-embed`
 
+## v0.10.1
+
++ Update references to `i18n-embed` version in readme and source code examples.
+
 ## v0.10.0
 
 ### Fixes
