@@ -1,5 +1,9 @@
 # Changelog for `i18n-embed`
 
+## v0.10.2
+
++ Add workaround for [#57](https://github.com/kellpossible/cargo-i18n/issues/57) for until <https://github.com/projectfluent/fluent-rs/issues/213> is solved.
+
 ## v0.10.1
 
 + Update references to `i18n-embed` version in readme and source code examples.
