@@ -109,6 +109,84 @@ mod fluent {
         let msg = loader.get_args("isolation-chars", args);
         assert_eq!("inject a \u{2068}thing\u{2069} here", msg);
     }
+
+    #[test]
+    fn multiline_lf() {
+        setup();
+        let en_us: LanguageIdentifier = "en-US".parse().unwrap();
+        let loader = FluentLanguageLoader::new("test", en_us.clone());
+        loader.load_languages(&Localizations, &[&en_us]).unwrap();
+
+        let msg = loader.get("multi-line");
+        assert_eq!(
+            "This is a multi-line message.\n\n\
+            This is a multi-line message.\n\n\
+            Finished!",
+            msg
+        );
+    }
+
+    #[test]
+    fn multiline_crlf() {
+        setup();
+        let ru: LanguageIdentifier = "ru".parse().unwrap();
+        let loader = FluentLanguageLoader::new("test", ru.clone());
+        loader.load_languages(&Localizations, &[&ru]).unwrap();
+
+        let msg = loader.get("multi-line");
+        assert_eq!(
+            "Это многострочное сообщение.\n\n\
+            Это многострочное сообщение.\n\n\
+            Законченный!",
+            msg
+        );
+    }
+
+    #[test]
+    fn multiline_arguments_lf() {
+        setup();
+        let en_us: LanguageIdentifier = "en-US".parse().unwrap();
+        let loader = FluentLanguageLoader::new("test", en_us.clone());
+        loader.load_languages(&Localizations, &[&en_us]).unwrap();
+
+        let args = maplit::hashmap! {
+            "argOne" => "1",
+            "argTwo" => "2",
+        };
+
+        let msg = loader.get_args("multi-line-args", args);
+        assert_eq!(
+            "This is a multiline message with arguments.\n\n\
+            \u{2068}1\u{2069}\n\n\
+            This is a multiline message with arguments.\n\n\
+            \u{2068}2\u{2069}\n\n\
+            Finished!",
+            msg
+        );
+    }
+
+    #[test]
+    fn multiline_arguments_crlf() {
+        setup();
+        let ru: LanguageIdentifier = "ru".parse().unwrap();
+        let loader = FluentLanguageLoader::new("test", ru.clone());
+        loader.load_languages(&Localizations, &[&ru]).unwrap();
+
+        let args = maplit::hashmap! {
+            "argOne" => "1",
+            "argTwo" => "2",
+        };
+
+        let msg = loader.get_args("multi-line-args", args);
+        assert_eq!(
+            "Это многострочное сообщение с параметрами.\n\n\
+            \u{2068}1\u{2069}\n\n\
+            Это многострочное сообщение с параметрами.\n\n\
+            \u{2068}2\u{2069}\n\n\
+            Законченный!",
+            msg
+        );
+    }
 }
 
 #[cfg(feature = "gettext-system")]

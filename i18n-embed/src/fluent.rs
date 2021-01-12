@@ -337,7 +337,10 @@ impl LanguageLoader for FluentLanguageLoader {
                 log::debug!(target:"i18n_embed::fluent", "Loaded language file: \"{0}\" for language: \"{1}\"", path, language);
 
                 let file_string = String::from_utf8(file.to_vec())
-                    .map_err(|err| I18nEmbedError::ErrorParsingFileUtf8(path.clone(), err))?;
+                    .map_err(|err| I18nEmbedError::ErrorParsingFileUtf8(path.clone(), err))?
+                    // TODO: Workaround for https://github.com/kellpossible/cargo-i18n/issues/57
+                    // remove when https://github.com/projectfluent/fluent-rs/issues/213 is resolved.
+                    .replace("\u{000D}\n", "\n");
 
                 let resource = match FluentResource::try_new(file_string) {
                     Ok(resource) => resource,
