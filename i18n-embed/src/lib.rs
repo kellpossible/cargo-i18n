@@ -268,7 +268,7 @@
 //!     let localizer_arc: Arc<dyn Localizer> = Arc::new(localizer);
 //!
 //!     let mut language_requester = DesktopLanguageRequester::new();
-//!     language_requester.add_weak_listener(Arc::downgrade(&localizer_arc));
+//!     language_requester.add_listener(Arc::downgrade(&localizer_arc));
 //!
 //!     // Manually check the currently requested system language,
 //!     // and update the listeners. NOTE: Support for this across systems
