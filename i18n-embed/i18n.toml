@@ -16,4 +16,14 @@ target_languages = ["es", "ru", "fr"]
 # the crate being localized.
 output_dir = "i18n"
 
+# (Optional) The reporting address for msgid bugs. This is the email address or
+# URL to which the translators shall report bugs in the untranslated
+# strings.
 msgid_bugs_address = "l.frisken@gmail.com"
+
+# (Optional) Use the fluent localization system.
+[fluent]
+# (Required) The path to the assets directory.
+# The paths inside the assets directory should be structured like so:
+# `assets_dir/{language}/{domain}.ftl`
+assets_dir = "i18n"

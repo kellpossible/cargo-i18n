@@ -287,19 +287,16 @@ pub fn fl(input: TokenStream) -> TokenStream {
     let domain_data = if let Some(domain_data) = DOMAINS.get(&domain) {
         domain_data
     } else {
-        let crate_dir = std::env::var_os("CARGO_MANIFEST_DIR").unwrap_or_else(|| {
-            panic!(
-                "fl!() had a problem reading `CARGO_MANIFEST_DIR` \
-            environment variable"
-            )
-        });
-        let config_file_path = Path::new(&crate_dir).join("i18n.toml");
+        let crate_paths = i18n_config::locate_crate_paths()
+            .unwrap_or_else(|error| panic!("fl!() is unable to locate crate paths: {}", error));
+
+        let config_file_path = &crate_paths.i18n_config_file;
 
         let config = i18n_config::I18nConfig::from_file(&config_file_path).unwrap_or_else(|err| {
             abort! {
                 proc_macro2::Span::call_site(),
                 format!(
-                    "fl!() had a problem reading config file {0:?}: {1}",
+                    "fl!() had a problem reading i18n config file {0:?}: {1}",
                     config_file_path, err);
                 help = "Try creating the `i18n.toml` configuration file.";
             }
@@ -309,7 +306,7 @@ pub fn fl(input: TokenStream) -> TokenStream {
             abort! {
                 proc_macro2::Span::call_site(),
                 format!(
-                    "fl!() had a problem parsing config file {0:?}: \
+                    "fl!() had a problem parsing i18n config file {0:?}: \
                     there is no `[fluent]` subsection.",
                     config_file_path);
                 help = "Add the `[fluent]` subsection to `i18n.toml`, \
@@ -317,7 +314,7 @@ pub fn fl(input: TokenStream) -> TokenStream {
             }
         });
 
-        let assets_dir = Path::new(&crate_dir).join(fluent_config.assets_dir);
+        let assets_dir = Path::new(&crate_paths.crate_dir).join(fluent_config.assets_dir);
         let assets = FileSystemAssets::new(assets_dir);
 
         let fallback_language: LanguageIdentifier = config.fallback_language;

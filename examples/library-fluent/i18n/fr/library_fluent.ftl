@@ -1,0 +1,1 @@
+hello-world = Bonjour le monde!

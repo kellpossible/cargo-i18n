@@ -1,5 +1,11 @@
 # Changelog for `i18n-embed-fl`
 
+## master
+
+### Internal Changes
+
++ Refactoring during the fix for [#60](https://github.com/kellpossible/cargo-i18n/issues/60).
+
 ## v0.3.1
 
 ### Internal Changes
