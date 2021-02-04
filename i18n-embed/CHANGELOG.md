@@ -1,6 +1,6 @@
 # Changelog for `i18n-embed`
 
-## master
+## v0.11.0
 
 ### Documentation
 
@@ -19,6 +19,7 @@
 ### Internal Changes
 
 + Fix clippy warnings.
++ Update `i18-embed-impl` to version `0.7.0`.
 
 ## v0.10.2
 

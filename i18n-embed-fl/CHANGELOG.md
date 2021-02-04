@@ -1,6 +1,8 @@
 # Changelog for `i18n-embed-fl`
 
-## master
+## v0.4.0
+
++ Update `i18n-embed` to version `0.11`.
 
 ### Internal Changes
 
