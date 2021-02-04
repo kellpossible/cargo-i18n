@@ -1,3 +1,4 @@
+#[cfg(any(feature = "fluent-system", feature = "gettext-system"))]
 fn setup() {
     let _ = env_logger::try_init();
 }
