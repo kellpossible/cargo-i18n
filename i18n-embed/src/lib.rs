@@ -239,7 +239,7 @@
 //! update the selected language using a [Localizer](Localizer):
 //!
 //! ```
-//! use std::rc::Rc;
+//! use std::sync::Arc;
 //! use i18n_embed::{
 //!     DesktopLanguageRequester, LanguageRequester,
 //!     DefaultLocalizer, Localizer, fluent::FluentLanguageLoader     
@@ -265,10 +265,10 @@
 //! fn main() {
 //!     let localizer = DefaultLocalizer::new(&*LANGUAGE_LOADER, &Localizations);
 //!
-//!     let localizer_rc: Rc<dyn Localizer> = Rc::new(localizer);
+//!     let localizer_arc: Arc<dyn Localizer> = Arc::new(localizer);
 //!
 //!     let mut language_requester = DesktopLanguageRequester::new();
-//!     language_requester.add_listener(Rc::downgrade(&localizer_rc));
+//!     language_requester.add_weak_listener(Arc::downgrade(&localizer_arc));
 //!
 //!     // Manually check the currently requested system language,
 //!     // and update the listeners. NOTE: Support for this across systems
@@ -296,6 +296,7 @@
 //! you can follow this code pattern in the library itself:
 //!
 //! ```
+//! use std::sync::Arc;
 //! use i18n_embed::{
 //!     DefaultLocalizer, Localizer, LanguageLoader,
 //!     fluent::{
@@ -323,8 +324,8 @@
 //!
 //! // Get the `Localizer` to be used for localizing this library.
 //! # #[allow(unused)]
-//! pub fn localizer() -> Box<dyn Localizer> {
-//!     Box::from(DefaultLocalizer::new(&*LANGUAGE_LOADER, &Localizations))
+//! pub fn localizer() -> Arc<dyn Localizer> {
+//!     Arc::new(DefaultLocalizer::new(&*LANGUAGE_LOADER, &Localizations))
 //! }
 //! ```
 //!
@@ -340,6 +341,7 @@
 //! for the library:
 //!
 //! ```
+//! use std::sync::Arc;
 //! use i18n_embed::{
 //!     DefaultLocalizer, Localizer, gettext::{
 //!     gettext_language_loader, GettextLanguageLoader     
@@ -355,8 +357,8 @@
 //! /// Get the `Localizer` to be used for localizing this library,
 //! /// using the provided embeddes source of language files `embed`.
 //! # #[allow(unused)]
-//! pub fn localizer(embed: &dyn I18nAssets) -> Box<dyn Localizer + '_> {
-//!     Box::from(DefaultLocalizer::new(
+//! pub fn localizer(embed: &dyn I18nAssets) -> Arc<dyn Localizer + '_> {
+//!     Arc::new(DefaultLocalizer::new(
 //!         &*LANGUAGE_LOADER,
 //!         embed
 //!     ))

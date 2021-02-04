@@ -9,8 +9,7 @@ use i18n_embed::{
 };
 use lazy_static::lazy_static;
 use rust_embed::RustEmbed;
-use std::path::Path;
-use std::rc::Rc;
+use std::{path::Path, sync::Arc};
 use tr::tr;
 use unic_langid::LanguageIdentifier;
 
@@ -30,7 +29,7 @@ fn short_about() -> String {
     tr!("A Cargo sub-command to extract and build localization resources.")
 }
 
-fn available_languages(localizer: &Rc<dyn Localizer>) -> Result<Vec<String>> {
+fn available_languages(localizer: &Arc<dyn Localizer>) -> Result<Vec<String>> {
     Ok(localizer
         .available_languages()?
         .iter()
@@ -77,11 +76,11 @@ fn main() -> Result<()> {
     let cargo_i18n_localizer =
         DefaultLocalizer::new(&*LANGUAGE_LOADER, &TRANSLATIONS as &dyn I18nAssets);
 
-    let cargo_i18n_localizer_rc: Rc<dyn Localizer> = Rc::new(cargo_i18n_localizer);
-    let i18n_build_localizer_rc = Rc::new(i18n_build::localizer()) as Rc<dyn Localizer>;
+    let cargo_i18n_localizer_rc: Arc<dyn Localizer> = Arc::new(cargo_i18n_localizer);
+    let i18n_build_localizer_rc = Arc::new(i18n_build::localizer()) as Arc<dyn Localizer>;
 
-    language_requester.add_listener(Rc::downgrade(&cargo_i18n_localizer_rc));
-    language_requester.add_listener(Rc::downgrade(&i18n_build_localizer_rc));
+    language_requester.add_listener(Arc::downgrade(&cargo_i18n_localizer_rc));
+    language_requester.add_listener(Arc::downgrade(&i18n_build_localizer_rc));
     language_requester.poll()?;
 
     let fallback_locale = LANGUAGE_LOADER.fallback_language().to_string();
