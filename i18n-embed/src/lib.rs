@@ -623,12 +623,9 @@ pub trait LanguageLoader {
                 let components: Vec<Component<'_>> = path.components().collect();
 
                 let locale: Option<String> = match components.get(0) {
-                    Some(language_component) => match language_component {
-                        Component::Normal(s) => {
-                            Some(s.to_str().expect("path should be valid utf-8").to_string())
-                        }
-                        _ => None,
-                    },
+                    Some(Component::Normal(s)) => {
+                        Some(s.to_str().expect("path should be valid utf-8").to_string())
+                    }
                     _ => None,
                 };
 

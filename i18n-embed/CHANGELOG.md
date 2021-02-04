@@ -6,9 +6,13 @@
 
 + Updated/improved examples, including an improvement for how to expose localization from a library using the `fluent` system, ensuring that the fallback language is loaded by default.
 
-### Bug Fixes
+### Fixes
 
 + Fix for [#60](https://github.com/kellpossible/cargo-i18n/issues/60) where `i18n-embed-fl` loads `i18n.toml` from a different path to `fluent_language_loader!()`. For subcrates in a workspace previously `fluent_language_loader!()` and `gettext_language_loader!()` were searching for `i18n.toml` in the crate root of the workspace, rather than the current subcrate. This was not the expected behaviour. This fix could be considered a breaking change for libraries that inadvertently relied on that behaviour.
+
+### Internal Changes
+
++ Fix clippy warnings.
 
 ## v0.10.2
 

@@ -1,5 +1,11 @@
 # Changelog for `i18n-build`
 
+## master
+
+### Internal Changes
+
++ Fix clippy warnings.
+
 ## v0.5.4
 
 + Update `i18n-embed` to version `0.10`.
