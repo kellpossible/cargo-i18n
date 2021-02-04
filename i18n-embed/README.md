@@ -74,10 +74,9 @@ use rust_embed::RustEmbed;
 
 #[derive(RustEmbed)]
 #[folder = "i18n"] // path to the compiled localization resources
-struct Translations;
+struct Localizations;
 
 fn main() {
-    let translations = Translations {};
     let language_loader: FluentLanguageLoader = fluent_language_loader!();
 
     // Use the language requester for the desktop platform (linux, windows, mac).
@@ -85,7 +84,7 @@ fn main() {
     // WebLanguageRequester, or you can implement your own.
     let requested_languages = DesktopLanguageRequester::requested_languages();
     let _result = i18n_embed::select(
-        &language_loader, &translations, &requested_languages);
+        &language_loader, &Localizations, &requested_languages);
 
     // continue on with your application
 }

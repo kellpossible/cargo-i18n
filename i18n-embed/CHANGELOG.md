@@ -1,5 +1,25 @@
 # Changelog for `i18n-embed`
 
+## master
+
+### Documentation
+
++ Updated/improved examples, including an improvement for how to expose localization from a library using the `fluent` system, ensuring that the fallback language is loaded by default.
++ Updated examples with new `LanguageRequester::add_listener()` signature now using `std::sync::Arc` and `std::sync::Weak`.
+
+### Breaking Changes
+
++ Fix for [#60](https://github.com/kellpossible/cargo-i18n/issues/60) where `i18n-embed-fl` loads `i18n.toml` from a different path to `fluent_language_loader!()`. For subcrates in a workspace previously `fluent_language_loader!()` and `gettext_language_loader!()` were searching for `i18n.toml` in the crate root of the workspace, rather than the current subcrate. This was not the expected behaviour. This fix could be considered a breaking change for libraries that inadvertently relied on that behaviour.
++ For `LanguageRequester::add_listener()` change the `listener` type to `std::sync::Weak`, to better support temporary dependencies that may come from another thread. This should not be a performance bottleneck. This also affects `DesktopLanguageRequester` and `WebLanguageRequester`.
+
+### New Features
+
++ New `LanguageRequester::add_listener_ref()` method to add permenant listeners of type `&dyn Localizer`. This also affects `DesktopLanguageRequester` and `WebLanguageRequester`.
+
+### Internal Changes
+
++ Fix clippy warnings.
+
 ## v0.10.2
 
 + Add workaround for [#57](https://github.com/kellpossible/cargo-i18n/issues/57) for until <https://github.com/projectfluent/fluent-rs/issues/213> is solved.

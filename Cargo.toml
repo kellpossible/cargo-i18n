@@ -39,4 +39,7 @@ members = [
     "i18n-config",
     "i18n-embed",
     "i18n-embed-fl",
+
+    # Examples
+    "examples/library-fluent",
 ]

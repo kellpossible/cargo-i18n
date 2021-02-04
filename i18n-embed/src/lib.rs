@@ -112,12 +112,10 @@
 //!
 //! #[derive(RustEmbed)]
 //! #[folder = "i18n"] // path to the compiled localization resources
-//! struct Translations;
+//! struct Localizations;
 //!
 //!
 //! fn main() {
-//!     let translations = Translations {};
-//!
 //!     let language_loader: FluentLanguageLoader = fluent_language_loader!();
 //!
 //!     // Use the language requester for the desktop platform (linux, windows, mac).
@@ -126,7 +124,7 @@
 //!     let requested_languages = DesktopLanguageRequester::requested_languages();
 //!
 //!     let _result = i18n_embed::select(
-//!         &language_loader, &translations, &requested_languages);
+//!         &language_loader, &Localizations, &requested_languages);
 //!
 //!     // continue on with your application
 //! }
@@ -213,12 +211,10 @@
 //! // path to the compiled localization resources,
 //! // as determined by i18n.toml settings
 //! #[folder = "i18n/mo"]
-//! struct Translations;
+//! struct Localizations;
 //!
 //!
 //! fn main() {
-//!     let translations = Translations {};
-//!
 //!     // Create the GettextLanguageLoader, pulling in settings from `i18n.toml`
 //!     // at compile time using the macro.
 //!     let language_loader = gettext_language_loader!();
@@ -229,7 +225,7 @@
 //!     let requested_languages = DesktopLanguageRequester::requested_languages();
 //!
 //!     let _result = i18n_embed::select(
-//!         &language_loader, &translations, &requested_languages);
+//!         &language_loader, &Localizations, &requested_languages);
 //!
 //!     // continue on with your application
 //! }
@@ -243,7 +239,7 @@
 //! update the selected language using a [Localizer](Localizer):
 //!
 //! ```
-//! use std::rc::Rc;
+//! use std::sync::Arc;
 //! use i18n_embed::{
 //!     DesktopLanguageRequester, LanguageRequester,
 //!     DefaultLocalizer, Localizer, fluent::FluentLanguageLoader     
@@ -253,9 +249,7 @@
 //!
 //! #[derive(RustEmbed)]
 //! #[folder = "i18n/ftl"] // path to localization resources
-//! struct Translations;
-//!
-//! const TRANSLATIONS: Translations = Translations {};
+//! struct Localizations;
 //!
 //! lazy_static! {
 //!     static ref LANGUAGE_LOADER: FluentLanguageLoader = {
@@ -269,12 +263,12 @@
 //! }
 //!
 //! fn main() {
-//!     let localizer = DefaultLocalizer::new(&*LANGUAGE_LOADER, &TRANSLATIONS);
+//!     let localizer = DefaultLocalizer::new(&*LANGUAGE_LOADER, &Localizations);
 //!
-//!     let localizer_rc: Rc<dyn Localizer> = Rc::new(localizer);
+//!     let localizer_arc: Arc<dyn Localizer> = Arc::new(localizer);
 //!
 //!     let mut language_requester = DesktopLanguageRequester::new();
-//!     language_requester.add_listener(Rc::downgrade(&localizer_rc));
+//!     language_requester.add_listener(Arc::downgrade(&localizer_arc));
 //!
 //!     // Manually check the currently requested system language,
 //!     // and update the listeners. NOTE: Support for this across systems
@@ -302,27 +296,36 @@
 //! you can follow this code pattern in the library itself:
 //!
 //! ```
+//! use std::sync::Arc;
 //! use i18n_embed::{
-//!     DefaultLocalizer, Localizer,
-//!     gettext::{
-//!         gettext_language_loader, GettextLanguageLoader     
+//!     DefaultLocalizer, Localizer, LanguageLoader,
+//!     fluent::{
+//!         fluent_language_loader, FluentLanguageLoader     
 //! }};
 //! use rust_embed::RustEmbed; use lazy_static::lazy_static;
 //!
 //! #[derive(RustEmbed)]
 //! #[folder = "i18n/mo"] // path to the compiled localization resources
-//! struct Translations;
-//! const TRANSLATIONS: Translations = Translations {};
+//! struct Localizations;
 //!
 //! lazy_static! {
-//!     static ref LANGUAGE_LOADER: GettextLanguageLoader =
-//!         gettext_language_loader!();
+//!     static ref LANGUAGE_LOADER: FluentLanguageLoader = {
+//!         let loader = fluent_language_loader!();
+//!
+//!         // Load the fallback langauge by default so that users of the
+//!         // library don't need to if they don't care about localization.
+//!         // This isn't required for the `gettext` localization system.
+//!         loader.load_fallback_language(&Localizations)
+//!             .expect("Error while loading fallback language");
+//!
+//!         loader
+//!     };
 //! }
 //!
 //! // Get the `Localizer` to be used for localizing this library.
 //! # #[allow(unused)]
-//! pub fn localizer() -> Box<dyn Localizer> {
-//!     Box::from(DefaultLocalizer::new(&*LANGUAGE_LOADER, &TRANSLATIONS))
+//! pub fn localizer() -> Arc<dyn Localizer> {
+//!     Arc::new(DefaultLocalizer::new(&*LANGUAGE_LOADER, &Localizations))
 //! }
 //! ```
 //!
@@ -338,6 +341,7 @@
 //! for the library:
 //!
 //! ```
+//! use std::sync::Arc;
 //! use i18n_embed::{
 //!     DefaultLocalizer, Localizer, gettext::{
 //!     gettext_language_loader, GettextLanguageLoader     
@@ -353,8 +357,8 @@
 //! /// Get the `Localizer` to be used for localizing this library,
 //! /// using the provided embeddes source of language files `embed`.
 //! # #[allow(unused)]
-//! pub fn localizer(embed: &dyn I18nAssets) -> Box<dyn Localizer + '_> {
-//!     Box::from(DefaultLocalizer::new(
+//! pub fn localizer(embed: &dyn I18nAssets) -> Arc<dyn Localizer + '_> {
+//!     Arc::new(DefaultLocalizer::new(
 //!         &*LANGUAGE_LOADER,
 //!         embed
 //!     ))
@@ -621,12 +625,9 @@ pub trait LanguageLoader {
                 let components: Vec<Component<'_>> = path.components().collect();
 
                 let locale: Option<String> = match components.get(0) {
-                    Some(language_component) => match language_component {
-                        Component::Normal(s) => {
-                            Some(s.to_str().expect("path should be valid utf-8").to_string())
-                        }
-                        _ => None,
-                    },
+                    Some(Component::Normal(s)) => {
+                        Some(s.to_str().expect("path should be valid utf-8").to_string())
+                    }
                     _ => None,
                 };
 
@@ -682,6 +683,7 @@ pub trait LanguageLoader {
 
     /// Get the language which is currently loaded for this loader.
     fn current_language(&self) -> unic_langid::LanguageIdentifier;
+
     /// Load the languages `language_ids` using the resources packaged
     /// in the `i18n_embed` in order of fallback preference. This also
     /// sets the [LanguageLoader::current_language()] to the first in
@@ -693,6 +695,11 @@ pub trait LanguageLoader {
         i18n_assets: &dyn I18nAssets,
         language_ids: &[&unic_langid::LanguageIdentifier],
     ) -> Result<(), I18nEmbedError>;
+
+    /// Load the [LanguageLoader::fallback_language()].
+    fn load_fallback_language(&self, i18n_assets: &dyn I18nAssets) -> Result<(), I18nEmbedError> {
+        self.load_languages(i18n_assets, &[self.fallback_language()])
+    }
 }
 
 /// Populate gettext database with strings for use with tests.

@@ -1,4 +1,10 @@
-# v0.4.0
+# `i18n-config` Changelog
+
+## master
+
+### New Features
+
++ New `locate_crate_paths()` function for use in procedural macros.
 
 ## v0.4.0
 

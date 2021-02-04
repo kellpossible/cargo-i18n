@@ -43,6 +43,8 @@ pub enum I18nConfigError {
         "There is no i18n config file present for the parent crate of {0}. Required because {1}."
     )]
     NoParentI18nConfig(String, String),
+    #[error("Cannot read `CARGO_MANIFEST_DIR` environment variable.")]
+    CannotReadCargoManifestDir,
 }
 
 /// Represents a rust crate.
@@ -379,4 +381,30 @@ impl I18nConfig {
 
         Ok(config)
     }
+}
+
+/// Important i18n-config paths related to the current crate.
+pub struct CratePaths {
+    /// The current crate directory path (where the `Cargo.toml` is
+    /// located).
+    pub crate_dir: PathBuf,
+    /// The current i18n config file path
+    pub i18n_config_file: PathBuf,
+}
+
+/// Locate the current crate's directory and `i18n.toml` config file.
+/// This is intended to be called by a procedural macro during crate
+/// compilation.
+pub fn locate_crate_paths() -> Result<CratePaths, I18nConfigError> {
+    let crate_dir = Path::new(
+        &std::env::var_os("CARGO_MANIFEST_DIR")
+            .ok_or(I18nConfigError::CannotReadCargoManifestDir)?,
+    )
+    .to_path_buf();
+    let i18n_config_file = crate_dir.join("i18n.toml").to_path_buf();
+
+    Ok(CratePaths {
+        crate_dir,
+        i18n_config_file,
+    })
 }

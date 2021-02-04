@@ -139,7 +139,7 @@ pub fn run_xtr(
         msgcat_args.push(Box::from(path.as_os_str()));
     }
 
-    let combined_pot_file_path = crate_module_pot_file_path(crt, pot_dir)?;
+    let combined_pot_file_path = crate_module_pot_file_path(crt, pot_dir);
 
     run_msgcat(&pot_paths, &combined_pot_file_path)
         .context("There was a problem while trying to run the \"msgcat\" command.")?;
@@ -147,11 +147,11 @@ pub fn run_xtr(
     Ok(())
 }
 
-fn crate_module_pot_file_path<P: AsRef<Path>>(crt: &Crate<'_>, pot_dir: P) -> Result<PathBuf> {
-    Ok(pot_dir
+fn crate_module_pot_file_path<P: AsRef<Path>>(crt: &Crate<'_>, pot_dir: P) -> PathBuf {
+    pot_dir
         .as_ref()
         .join(crt.module_name())
-        .with_extension("pot"))
+        .with_extension("pot")
 }
 
 /// Run the gettext utils `msgcat` command to concatinate pot files
@@ -466,21 +466,19 @@ pub fn run(crt: &Crate) -> Result<()> {
         assert!(crt.gettext_config_or_err()?.collate_extracted_subcrates);
         concatinate_crates.insert(0, crt);
 
-        let concatinate_crate_paths_result: Result<Vec<PathBuf>, _> = concatinate_crates
+        let concatinate_crate_paths: Vec<PathBuf> = concatinate_crates
             .iter()
             .map(|concat_crt: &&Crate| crate_module_pot_file_path(concat_crt, &pot_dir))
             .collect();
 
-        let concatinate_crate_paths = concatinate_crate_paths_result?;
-
-        let output_pot_path = crate_module_pot_file_path(crt, &pot_dir)?;
+        let output_pot_path = crate_module_pot_file_path(crt, &pot_dir);
         run_msgcat(concatinate_crate_paths, output_pot_path)?;
 
         // remove this crate from the list because we don't want to delete it's pot file
         concatinate_crates.remove(0);
 
         for subcrate in concatinate_crates {
-            let subcrate_output_pot_path = crate_module_pot_file_path(subcrate, &pot_dir)?;
+            let subcrate_output_pot_path = crate_module_pot_file_path(subcrate, &pot_dir);
             util::remove_file_or_error(subcrate_output_pot_path)?;
         }
     }
