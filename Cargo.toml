@@ -41,5 +41,5 @@ members = [
     "i18n-embed-fl",
 
     # Examples
-    "examples/library-fluent",
+    "i18n-embed/examples/library-fluent",
 ]

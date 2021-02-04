@@ -97,4 +97,6 @@ To access localizations, you can use `FluentLanguageLoader`'s methods directly, 
 + Use the `fluent::fluent_language_loader!()` macro to pull the   configuration in at compile time to create the `fluent::FluentLanguageLoader`.
 + Use the [fl!() macro](https://crates.io/crates/i18n-embed-fl) to have added compile-time safety when accessing messages.
 
-For more examples, see the [documentation for i18n-embed](https://docs.rs/i18n-embed/).
+Example projects can be found in [examples](./examples).
+
+For more explained examples, see the [documentation for i18n-embed](https://docs.rs/i18n-embed/).
