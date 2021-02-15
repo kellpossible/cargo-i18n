@@ -407,6 +407,9 @@ mod util;
 #[cfg(feature = "fluent-system")]
 pub mod fluent;
 
+#[cfg(feature = "fluent-system")]
+pub mod fluent_multi;
+
 #[cfg(feature = "gettext-system")]
 pub mod gettext;
 
