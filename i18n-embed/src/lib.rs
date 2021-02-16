@@ -400,6 +400,22 @@
     unreachable_pub
 )]
 
+use std::{
+    borrow::Cow,
+    fmt::Debug,
+    path::{Component, Path},
+    string::FromUtf8Error,
+};
+
+use fluent_langneg::{negotiate_languages, NegotiationStrategy};
+use log::{debug, error};
+use thiserror::Error;
+pub use unic_langid;
+
+pub use assets::*;
+pub use requester::*;
+pub use util::*;
+
 mod assets;
 mod requester;
 mod util;
@@ -407,15 +423,8 @@ mod util;
 #[cfg(feature = "fluent-system")]
 pub mod fluent;
 
-#[cfg(feature = "fluent-system")]
-pub mod fluent_multi;
-
 #[cfg(feature = "gettext-system")]
 pub mod gettext;
-
-pub use assets::*;
-pub use requester::*;
-pub use util::*;
 
 #[cfg(doctest)]
 #[macro_use]
@@ -428,19 +437,6 @@ doctest!("../README.md");
 #[allow(unused_imports)]
 #[macro_use]
 extern crate i18n_embed_impl;
-
-use std::{
-    borrow::Cow,
-    fmt::Debug,
-    path::{Component, Path},
-    string::FromUtf8Error,
-};
-
-use fluent_langneg::{negotiate_languages, NegotiationStrategy};
-use log::{debug, error};
-use thiserror::Error;
-
-pub use unic_langid;
 
 /// An error that occurs in this library.
 #[derive(Error, Debug)]

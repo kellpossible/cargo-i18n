@@ -5,12 +5,13 @@ fn setup() {
 
 #[cfg(feature = "fluent-system")]
 mod fluent {
-    use super::setup;
-    use i18n_embed::{
-        fluent::FluentLanguageLoader, fluent_multi::FluentMultiLanguageLoader, LanguageLoader,
-    };
     use rust_embed::RustEmbed;
     use unic_langid::LanguageIdentifier;
+
+    use i18n_embed::{fluent::FluentLanguageLoader, LanguageLoader};
+
+    use super::setup;
+    use i18n_embed::fluent::FluentMultiLanguageLoader;
 
     #[derive(RustEmbed)]
     #[folder = "i18n/ftl"]
@@ -284,11 +285,13 @@ mod fluent {
 
 #[cfg(feature = "gettext-system")]
 mod gettext {
-    use super::setup;
-    use i18n_embed::{gettext::GettextLanguageLoader, LanguageLoader};
     use rust_embed::RustEmbed;
     use tr::internal::with_translator;
     use unic_langid::LanguageIdentifier;
+
+    use i18n_embed::{gettext::GettextLanguageLoader, LanguageLoader};
+
+    use super::setup;
 
     /// Custom version of the tr! macro function, without the runtime
     /// formatting, with the module set to `i18n_embed` where the
