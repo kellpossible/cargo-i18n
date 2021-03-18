@@ -14,8 +14,8 @@ proc-macro = true
 [dependencies]
 dashmap = "4.0"
 find-crate = "0.6"
-fluent = "0.14"
-fluent-syntax = "0.10"
+fluent = "0.15"
+fluent-syntax = "0.11"
 i18n-config = { path = "../i18n-config", version = "0.4" }
 i18n-embed = { path = "../i18n-embed", version = "0.11", features = ["fluent-system", "filesystem-assets"]}
 lazy_static = "1.4"
@@ -33,5 +33,5 @@ features = ["derive", "proc-macro", "parsing", "printing", "extra-traits"]
 [dev-dependencies]
 doc-comment = "0.3"
 env_logger = "0.8"
-pretty_assertions = "0.6"
+pretty_assertions = "0.7"
 rust-embed = "5"
