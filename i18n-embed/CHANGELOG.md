@@ -1,5 +1,9 @@
 # Changelog for `i18n-embed`
 
+## master
+
++ Added [`bin`](./examples/bin/) example which explains how to consume the [`lib-fluent`](./examples/lib-fluent) example library in a desktop CLI application.
+
 ## v0.11.0
 
 ### Documentation
