@@ -31,12 +31,12 @@ fn test_available_languages() {
 #[test]
 fn test_select_english() {
     localizer().select(&["en".parse().unwrap()]).unwrap();
-    assert_eq!(&hello_world(), "Hello World!")
+    assert_eq!("Hello World!", &hello_world())
 }
 
 /// Test loading the `fr` language.
 #[test]
 fn test_select_french() {
     localizer().select(&["fr".parse().unwrap()]).unwrap();
-    assert_eq!(&hello_world(), "Bonjour le monde!")
+    assert_eq!("Bonjour le monde!", &hello_world())
 }
