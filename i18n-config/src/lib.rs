@@ -401,7 +401,7 @@ pub fn locate_crate_paths() -> Result<CratePaths, I18nConfigError> {
             .ok_or(I18nConfigError::CannotReadCargoManifestDir)?,
     )
     .to_path_buf();
-    let i18n_config_file = crate_dir.join("i18n.toml").to_path_buf();
+    let i18n_config_file = crate_dir.join("i18n.toml");
 
     Ok(CratePaths {
         crate_dir,

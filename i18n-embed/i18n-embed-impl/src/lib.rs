@@ -41,15 +41,15 @@ pub fn gettext_language_loader(_: proc_macro::TokenStream) -> proc_macro::TokenS
     let config = i18n_config::I18nConfig::from_file(&config_file_path).unwrap_or_else(|err| {
         panic!(
             "gettext_language_loader!() had a problem reading i18n config file {0:?}: {1}",
-            std::fs::canonicalize(&config_file_path).unwrap_or(config_file_path.clone()),
+            std::fs::canonicalize(&config_file_path).unwrap_or_else(|_| config_file_path.clone()),
             err
         )
     });
 
-    if !config.gettext.is_some() {
+    if config.gettext.is_none() {
         panic!(
             "gettext_language_loader!() had a problem parsing i18n config file {0:?}: there is no `[gettext]` section",
-            std::fs::canonicalize(&config_file_path).unwrap_or(config_file_path.clone())
+            std::fs::canonicalize(&config_file_path).unwrap_or(config_file_path)
         )
     }
 
@@ -112,15 +112,15 @@ pub fn fluent_language_loader(_: proc_macro::TokenStream) -> proc_macro::TokenSt
     let config = i18n_config::I18nConfig::from_file(&config_file_path).unwrap_or_else(|err| {
         panic!(
             "fluent_language_loader!() had a problem reading i18n config file {0:?}: {1}",
-            std::fs::canonicalize(&config_file_path).unwrap_or(config_file_path.clone()),
+            std::fs::canonicalize(&config_file_path).unwrap_or_else(|_| config_file_path.clone()),
             err
         )
     });
 
-    if !config.fluent.is_some() {
+    if config.fluent.is_none() {
         panic!(
             "fluent_language_loader!() had a problem parsing i18n config file {0:?}: there is no `[fluent]` section",
-            std::fs::canonicalize(&config_file_path).unwrap_or(config_file_path.clone())
+            std::fs::canonicalize(&config_file_path).unwrap_or(config_file_path)
         )
     }
 
