@@ -2,7 +2,17 @@
 
 ## master
 
+### Documentation
+
 + Added [`bin`](./examples/bin/) example which explains how to consume the [`lib-fluent`](./examples/lib-fluent) example library in a desktop CLI application.
+
+### Breaking Changes
+
++ Updated `fluent` to version `0.15`.
+
+### Internal Changes
+
++ Updated `FluentLanguageLoader` to use a thread safe [IntlLangMemoizer](https://docs.rs/intl-memoizer/0.5.1/intl_memoizer/concurrent/struct.IntlLangMemoizer.html) as per the notes on [FluentBundle's concurrency](https://docs.rs/fluent-bundle/0.15.0/fluent_bundle/bundle/struct.FluentBundle.html#concurrency). This was required to solve a compilation error in `i18n-embed-fl` and may also fix problems for other downstream users who were expecting `FluentLangaugeLoader` to be `Send + Sync`. It might impact performance for those who are not using this in multi-threaded context, please report this, and in which case support for switching the `IntlLangMemoizer` added.
 
 ## v0.11.0
 

@@ -9,8 +9,9 @@ use crate::{I18nAssets, I18nEmbedError, LanguageLoader};
 
 pub use i18n_embed_impl::fluent_language_loader;
 
-use fluent::{FluentArgs, FluentBundle, FluentMessage, FluentResource, FluentValue};
+use fluent::{bundle::FluentBundle, FluentArgs, FluentMessage, FluentResource, FluentValue};
 use fluent_syntax::ast::{self, Pattern};
+use intl_memoizer::concurrent::IntlLangMemoizer;
 use parking_lot::RwLock;
 use std::{borrow::Cow, collections::HashMap, fmt::Debug, sync::Arc};
 use unic_langid::LanguageIdentifier;
@@ -24,13 +25,13 @@ lazy_static::lazy_static! {
 
 struct LanguageBundle {
     language: LanguageIdentifier,
-    bundle: FluentBundle<Arc<FluentResource>>,
+    bundle: FluentBundle<Arc<FluentResource>, IntlLangMemoizer>,
     resources: Vec<Arc<FluentResource>>,
 }
 
 impl LanguageBundle {
     fn new(language: LanguageIdentifier, resources: Vec<Arc<FluentResource>>) -> Self {
-        let mut bundle = FluentBundle::new(vec![language.clone()]);
+        let mut bundle = FluentBundle::new_concurrent(vec![language.clone()]);
 
         for resource in &resources {
             if let Err(errors) = bundle.add_resource(Arc::clone(resource)) {

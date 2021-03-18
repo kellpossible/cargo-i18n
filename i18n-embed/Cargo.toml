@@ -23,6 +23,7 @@ fluent-langneg = "0.13"
 fluent-syntax = { version = "0.11", optional = true }
 gettext_system = { package = "gettext", version = "0.4", optional = true }
 i18n-embed-impl = { version = "0.7", path = "./i18n-embed-impl", optional = true }
+intl-memoizer = "0.5"
 lazy_static = "1.4"
 locale_config = { version = "0.3", optional = true }
 log = "0.4"

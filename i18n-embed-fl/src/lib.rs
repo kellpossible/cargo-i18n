@@ -481,7 +481,7 @@ fn check_message_args(
     message: FluentMessage<'_>,
     specified_args: &HashMap<syn::LitStr, Box<syn::Expr>>,
 ) {
-    if let Some(pattern) = message.value {
+    if let Some(pattern) = message.value() {
         let mut args = Vec::new();
         args_from_pattern(pattern, &mut args);
 
@@ -555,10 +555,10 @@ fn args_from_pattern<S: Copy>(pattern: &Pattern<S>, args: &mut Vec<S>) {
 
 fn args_from_expression<S: Copy>(expr: &Expression<S>, args: &mut Vec<S>) {
     match expr {
-        Expression::InlineExpression(inline_expr) => {
+        Expression::Inline(inline_expr) => {
             args_from_inline_expression(inline_expr, args);
         }
-        Expression::SelectExpression { selector, variants } => {
+        Expression::Select { selector, variants } => {
             args_from_inline_expression(selector, args);
 
             variants.iter().for_each(|variant| {
@@ -570,10 +570,11 @@ fn args_from_expression<S: Copy>(expr: &Expression<S>, args: &mut Vec<S>) {
 
 fn args_from_inline_expression<S: Copy>(inline_expr: &InlineExpression<S>, args: &mut Vec<S>) {
     match inline_expr {
-        InlineExpression::FunctionReference { id: _, arguments } => {
-            if let Some(call_args) = arguments {
-                args_from_call_arguments(call_args, args);
-            }
+        InlineExpression::FunctionReference {
+            id: _,
+            arguments: call_args,
+        } => {
+            args_from_call_arguments(call_args, args);
         }
         InlineExpression::TermReference {
             id: _,

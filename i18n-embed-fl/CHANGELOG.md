@@ -1,6 +1,14 @@
 # Changelog for `i18n-embed-fl`
 
+## master
+
+### Breaking Changes
+
++ Updated `fluent` to version `0.15`.
+
 ## v0.4.0
+
+### Breaking Changes
 
 + Update `i18n-embed` to version `0.11`.
 

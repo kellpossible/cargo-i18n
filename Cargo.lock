@@ -355,6 +355,7 @@ dependencies = [
  "fluent-syntax",
  "gettext",
  "i18n-embed-impl",
+ "intl-memoizer",
  "lazy_static",
  "locale_config",
  "log",
