@@ -1,6 +1,6 @@
 # Changelog for `i18n-embed-fl`
 
-## master
+## v0.5.0
 
 ### Breaking Changes
 
