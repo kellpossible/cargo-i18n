@@ -17,7 +17,8 @@ fn test_available_languages() {
         .map(|id| id.to_string())
         .collect();
 
-    let expected_available_ids: Vec<String> = vec!["en".to_string(), "fr".to_string()];
+    let expected_available_ids: Vec<String> =
+        vec!["en".to_string(), "fr".to_string(), "eo".to_string()];
 
     assert_eq!(available_ids, expected_available_ids)
 }
