@@ -51,6 +51,11 @@ pub struct GettextConfig {
     /// Path to where the mo files will be written to by the
     /// `msgfmt` command.
     mo_dir: Option<PathBuf>,
+    /// Enable the `--use-fuzzy` option for the `msgfmt` command.
+    ///
+    /// By default this is **false**.
+    #[serde(default)]
+    pub use_fuzzy: bool,
 }
 
 impl GettextConfig {

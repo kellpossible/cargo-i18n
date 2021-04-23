@@ -358,18 +358,22 @@ pub fn run_msgfmt(crt: &Crate, po_dir: &Path, mo_dir: &Path) -> Result<()> {
         let mo_file_path = mo_locale_dir.join(crt.module_name()).with_extension("mo");
 
         let mut msgfmt = Command::new(msgfmt_command_name);
-        msgfmt.args(&[
-            format!(
-                "--output-file={}",
-                mo_file_path
-                    .to_str()
-                    .expect("mo file path is not valid utf-8")
-            )
-            .as_str(),
+        let msgfmt_arg_output_file = format!(
+            "--output-file={}",
+            mo_file_path
+                .to_str()
+                .expect("mo file path is not valid utf-8")
+        );
+        let mut msgfmt_args = vec![
+            msgfmt_arg_output_file.as_str(),
             po_file_path
                 .to_str()
                 .expect("po file path is not valid utf-8"),
-        ]);
+        ];
+        if gettext_config.use_fuzzy {
+            msgfmt_args.push("--use-fuzzy");
+        }
+        msgfmt.args(&msgfmt_args);
 
         util::run_command_and_check_success(msgfmt_command_name, msgfmt)?;
     }
