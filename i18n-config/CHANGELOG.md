@@ -1,5 +1,11 @@
 # `i18n-config` Changelog
 
+## v0.4.2
+
+### New Features
+
++ Add the `use_fuzzy` option for the `gettext` system. [#68](https://github.com/kellpossible/cargo-i18n/pull/68) thanks to [@vkill](https://github.com/vkill).
+
 ## v0.4.1
 
 ### New Features
