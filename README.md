@@ -232,6 +232,11 @@ po_dir = "i18n/po"
 # command. By default this is `output_dir/mo`.
 mo_dir = "i18n/mo"
 
+# (Optional) Enable the `--use-fuzzy` option for the `msgfmt` command. By
+# default this is false. If your .po file are copied from another project, you
+# may need to enable it.
+use_fuzzy = false
+
 # (Optional) Use the fluent localization system.
 [fluent]
 # (Required) The path to the assets directory.

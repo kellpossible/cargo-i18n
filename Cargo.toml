@@ -8,7 +8,7 @@ license = "MIT"
 name = "cargo-i18n"
 readme = "README.md"
 repository = "https://github.com/kellpossible/cargo-i18n"
-version = "0.2.4"
+version = "0.2.5"
 
 [badges]
 maintenance = { status = "actively-developed" }
@@ -42,4 +42,5 @@ members = [
 
     # Examples
     "i18n-embed/examples/library-fluent",
+    "i18n-embed/examples/bin",
 ]
