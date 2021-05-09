@@ -141,7 +141,7 @@ impl FluentMultiLanguageLoader {
             let mut fluent_args = FluentArgs::with_capacity(args.len());
 
             for (key, value) in args {
-                fluent_args.add(key, value);
+                fluent_args.set(key, value);
             }
 
             Some(fluent_args)
@@ -170,7 +170,7 @@ impl FluentMultiLanguageLoader {
                 .get(language_id)
                 .and_then(|language_bundle| {
                     language_bundle.bundle.get_message(message_id)
-                    .and_then(|m: FluentMessage<'_>| m.value)
+                    .and_then(|m: FluentMessage<'_>| m.value())
                         .map(|pattern: &Pattern<&str>| {
                             let mut errors = Vec::new();
                             let value = language_bundle.bundle.format_pattern(pattern, args, &mut errors);
@@ -223,16 +223,12 @@ impl FluentMultiLanguageLoader {
     {
         let config_lock = self.language_config.read();
 
-        if let Some(message) = config_lock
+        config_lock
             .language_bundles
             .iter()
             .filter_map(|(_, language_bundle)| language_bundle.bundle.get_message(message_id))
             .next()
-        {
-            Some((closure)(message))
-        } else {
-            None
-        }
+            .map(closure)
     }
 
     /// Runs the provided `closure` with an iterator over the messages
@@ -251,8 +247,7 @@ impl FluentMultiLanguageLoader {
             .filter(|(_, language_bundle)| &language_bundle.language == language)
             .flat_map(|(_, language_bundle)| {
                 language_bundle.resources.iter().flat_map(|resource| {
-                    let ast: &ast::Resource<&str> = resource.ast();
-                    ast.body.iter().filter_map(|entry| match entry {
+                    resource.entries().filter_map(|entry| match entry {
                         ast::Entry::Message(message) => Some(message),
                         _ => None,
                     })

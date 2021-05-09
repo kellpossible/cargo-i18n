@@ -213,16 +213,12 @@ impl FluentLanguageLoader {
     {
         let config_lock = self.language_config.read();
 
-        if let Some(message) = config_lock
+        config_lock
             .language_bundles
             .iter()
             .filter_map(|language_bundle| language_bundle.bundle.get_message(message_id))
             .next()
-        {
-            Some((closure)(message))
-        } else {
-            None
-        }
+            .map(closure)
     }
 
     /// Runs the provided `closure` with an iterator over the messages
@@ -355,8 +351,8 @@ fn files_to_fluent_bundle(
             }
         };
 
-        let mut resources = Vec::new();
-        resources.push(Arc::new(resource));
+        let arc = Arc::new(resource);
+        let resources = vec![arc];
         Ok(LanguageBundle::new(language.clone(), resources))
     } else {
         log::debug!(target:"i18n_embed::fluent", "Unable to find language file: \"{0}\" for language: \"{1}\"", path, language);
