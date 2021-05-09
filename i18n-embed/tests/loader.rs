@@ -5,10 +5,13 @@ fn setup() {
 
 #[cfg(feature = "fluent-system")]
 mod fluent {
-    use super::setup;
-    use i18n_embed::{fluent::FluentLanguageLoader, LanguageLoader};
     use rust_embed::RustEmbed;
     use unic_langid::LanguageIdentifier;
+
+    use i18n_embed::{fluent::FluentLanguageLoader, LanguageLoader};
+
+    use super::setup;
+    use i18n_embed::fluent::FluentMultiLanguageLoader;
 
     #[derive(RustEmbed)]
     #[folder = "i18n/ftl"]
@@ -29,7 +32,7 @@ mod fluent {
         let en_us: LanguageIdentifier = "en-US".parse().unwrap();
         let en_gb: LanguageIdentifier = "en-GB".parse().unwrap();
 
-        let loader = FluentLanguageLoader::new("test", en_us.clone());
+        let loader = FluentLanguageLoader::new("test", en_us);
         loader.load_languages(&Localizations, &[&en_gb]).unwrap();
         pretty_assertions::assert_eq!("Hello World Localisation!", loader.get("hello-world"));
         pretty_assertions::assert_eq!("only US", loader.get("only-us"));
@@ -42,7 +45,7 @@ mod fluent {
         let en_us: LanguageIdentifier = "en-US".parse().unwrap();
         let en_gb: LanguageIdentifier = "en-GB".parse().unwrap();
 
-        let loader = FluentLanguageLoader::new("test", en_us.clone());
+        let loader = FluentLanguageLoader::new("test", en_us);
         loader
             .load_languages(&Localizations, &[&ru, &en_gb])
             .unwrap();
@@ -58,7 +61,7 @@ mod fluent {
         let en_us: LanguageIdentifier = "en-US".parse().unwrap();
         let ru: LanguageIdentifier = "ru".parse().unwrap();
 
-        let loader = FluentLanguageLoader::new("test", en_us.clone());
+        let loader = FluentLanguageLoader::new("test", en_us);
         loader.load_languages(&Localizations, &[&ru]).unwrap();
 
         let args = maplit::hashmap! {
@@ -76,7 +79,7 @@ mod fluent {
         let en_us: LanguageIdentifier = "en-US".parse().unwrap();
         let ru: LanguageIdentifier = "ru".parse().unwrap();
 
-        let loader = FluentLanguageLoader::new("test", en_us.clone());
+        let loader = FluentLanguageLoader::new("test", en_us);
         loader.load_languages(&Localizations, &[&ru]).unwrap();
 
         assert!(loader.has("only-ru-args"));
@@ -188,15 +191,107 @@ mod fluent {
             msg
         );
     }
+
+    #[test]
+    fn multi_lang_fallback_to_en_us() {
+        setup();
+        let ru: LanguageIdentifier = "ru".parse().unwrap();
+        let en_gb: LanguageIdentifier = "en-GB".parse().unwrap();
+        let en_us: LanguageIdentifier = "en-US".parse().unwrap();
+        let loader = FluentMultiLanguageLoader::new("test", en_us);
+
+        loader
+            .load_languages(&Localizations, &[&ru, &en_gb])
+            .unwrap();
+
+        let msg = loader.get_with_locale(&ru, "only-ru");
+        assert_eq!("только русский", msg);
+
+        let msg = loader.get_with_locale(&ru, "only-gb");
+        assert_eq!("only GB (US Version)", msg);
+    }
+
+    #[test]
+    fn multi_lang_fallback_to_en_us_args() {
+        setup();
+        let ru: LanguageIdentifier = "ru".parse().unwrap();
+        let en_gb: LanguageIdentifier = "en-GB".parse().unwrap();
+        let en_us: LanguageIdentifier = "en-US".parse().unwrap();
+        let loader = FluentMultiLanguageLoader::new("test", en_us);
+
+        loader
+            .load_languages(&Localizations, &[&ru, &en_gb])
+            .unwrap();
+
+        let args = maplit::hashmap! {
+            "argOne" => "1",
+            "argTwo" => "2",
+        };
+
+        let msg = loader.get_with_locale_and_args(&ru, "multi-line-args", args);
+        assert_eq!(
+            "Это многострочное сообщение с параметрами.\n\n\
+            \u{2068}1\u{2069}\n\n\
+            Это многострочное сообщение с параметрами.\n\n\
+            \u{2068}2\u{2069}\n\n\
+            Законченный!",
+            msg
+        );
+    }
+
+    #[test]
+    fn multi_lang_custom_fallback() {
+        setup();
+        let ru: LanguageIdentifier = "ru".parse().unwrap();
+        let en_gb: LanguageIdentifier = "en-GB".parse().unwrap();
+        let en_us: LanguageIdentifier = "en-US".parse().unwrap();
+        let loader = FluentMultiLanguageLoader::new("test", en_us);
+
+        loader
+            .load_languages(&Localizations, &[&ru, &en_gb])
+            .unwrap();
+
+        let msg = loader.get_with_custom_fallback(&[&ru, &en_gb], "only-gb");
+        assert_eq!("only GB", msg);
+
+        let msg = loader.get_with_custom_fallback(&[&ru, &en_gb], "only-us");
+        assert_eq!("only US", msg);
+    }
+
+    #[test]
+    fn multi_lang_custom_fallback_args() {
+        setup();
+        let ru: LanguageIdentifier = "ru".parse().unwrap();
+        let en_gb: LanguageIdentifier = "en-GB".parse().unwrap();
+        let en_us: LanguageIdentifier = "en-US".parse().unwrap();
+        let loader = FluentMultiLanguageLoader::new("test", en_us);
+
+        loader
+            .load_languages(&Localizations, &[&ru, &en_gb])
+            .unwrap();
+
+        let args = maplit::hashmap! {
+            "userName" => "username",
+        };
+
+        let msg = loader.get_with_locale_and_args(&ru, "only-gb-args", args.clone());
+        assert_eq!("Hello \u{2068}username\u{2069}! (US Version)", msg);
+
+        let msg =
+            loader.get_with_custom_fallback_and_args(&[&ru, &en_gb], "only-gb-args", args.clone());
+        assert_eq!("Hello \u{2068}username\u{2069}!", msg);
+    }
 }
 
 #[cfg(feature = "gettext-system")]
 mod gettext {
-    use super::setup;
-    use i18n_embed::{gettext::GettextLanguageLoader, LanguageLoader};
     use rust_embed::RustEmbed;
     use tr::internal::with_translator;
     use unic_langid::LanguageIdentifier;
+
+    use i18n_embed::{gettext::GettextLanguageLoader, LanguageLoader};
+
+    use super::setup;
 
     /// Custom version of the tr! macro function, without the runtime
     /// formatting, with the module set to `i18n_embed` where the

@@ -5,16 +5,21 @@
 //!
 //! ⚠️ *This module requires the following crate features to be activated: `fluent-system`.*
 
-use crate::{I18nAssets, I18nEmbedError, LanguageLoader};
-
-pub use i18n_embed_impl::fluent_language_loader;
+use std::{borrow::Cow, collections::HashMap, fmt::Debug, sync::Arc};
 
 use fluent::{bundle::FluentBundle, FluentArgs, FluentMessage, FluentResource, FluentValue};
 use fluent_syntax::ast::{self, Pattern};
 use intl_memoizer::concurrent::IntlLangMemoizer;
 use parking_lot::RwLock;
-use std::{borrow::Cow, collections::HashMap, fmt::Debug, sync::Arc};
 use unic_langid::LanguageIdentifier;
+
+pub use i18n_embed_impl::fluent_language_loader;
+pub use multi::FluentMultiLanguageLoader;
+
+use crate::I18nEmbedError::LanguageNotAvailable;
+use crate::{I18nAssets, I18nEmbedError, LanguageLoader};
+
+mod multi;
 
 lazy_static::lazy_static! {
     static ref CURRENT_LANGUAGE: RwLock<LanguageIdentifier> = {
@@ -113,7 +118,7 @@ impl FluentLanguageLoader {
     pub fn get_args_concrete<'source>(
         &self,
         message_id: &str,
-        args: HashMap<&'source str, FluentValue<'source>>,
+        args: HashMap<Cow<'source, str>, FluentValue<'source>>,
     ) -> String {
         let args_option = if args.is_empty() {
             None
@@ -177,28 +182,7 @@ impl FluentLanguageLoader {
         S: Into<Cow<'a, str>> + Clone,
         V: Into<FluentValue<'a>> + Clone,
     {
-        let mut keys: Vec<Cow<'a, str>> = Vec::new();
-
-        let mut map: HashMap<&str, FluentValue<'_>> = HashMap::with_capacity(args.len());
-
-        let mut values = Vec::new();
-
-        for (key, value) in args.into_iter() {
-            keys.push(key.into());
-            values.push(value.into());
-        }
-
-        for (i, key) in keys.iter().rev().enumerate() {
-            let value = values.pop().unwrap_or_else(|| {
-                panic!(
-                    "expected a value corresponding with key \"{}\" at position {}",
-                    key, i
-                )
-            });
-
-            map.insert(&*key, value);
-        }
-
+        let map = prepare_args_map(args);
         self.get_args_concrete(id, map)
     }
 
@@ -230,16 +214,12 @@ impl FluentLanguageLoader {
     {
         let config_lock = self.language_config.read();
 
-        if let Some(message) = config_lock
+        config_lock
             .language_bundles
             .iter()
             .filter_map(|language_bundle| language_bundle.bundle.get_message(message_id))
             .next()
-        {
-            Some((closure)(message))
-        } else {
-            None
-        }
+            .map(closure)
     }
 
     /// Runs the provided `closure` with an iterator over the messages
@@ -329,40 +309,14 @@ impl LanguageLoader for FluentLanguageLoader {
         }
 
         let mut language_bundles = Vec::with_capacity(language_ids.len());
-
         for language in load_language_ids {
-            let (path, file) = self.language_file(&language, i18n_assets);
-
-            if let Some(file) = file {
-                log::debug!(target:"i18n_embed::fluent", "Loaded language file: \"{0}\" for language: \"{1}\"", path, language);
-
-                let file_string = String::from_utf8(file.to_vec())
-                    .map_err(|err| I18nEmbedError::ErrorParsingFileUtf8(path.clone(), err))?
-                    // TODO: Workaround for https://github.com/kellpossible/cargo-i18n/issues/57
-                    // remove when https://github.com/projectfluent/fluent-rs/issues/213 is resolved.
-                    .replace("\u{000D}\n", "\n");
-
-                let resource = match FluentResource::try_new(file_string) {
-                    Ok(resource) => resource,
-                    Err((resource, errors)) => {
-                        errors.iter().for_each(|err| {
-                            log::error!(target: "i18n_embed::fluent", "Error while parsing fluent language file \"{0}\": \"{1:?}\".", path, err);
-                        });
-                        resource
-                    }
-                };
-
-                let mut resources = Vec::new();
-                resources.push(Arc::new(resource));
-                let language_bundle = LanguageBundle::new(language.clone(), resources);
-
-                language_bundles.push(language_bundle);
-            } else {
-                log::debug!(target:"i18n_embed::fluent", "Unable to find language file: \"{0}\" for language: \"{1}\"", path, language);
-                if language == &self.fallback_language {
-                    return Err(I18nEmbedError::LanguageNotAvailable(path, language.clone()));
-                }
-            }
+            let fluent_bundle = files_to_fluent_bundle(self, i18n_assets, language)
+                .transpose()
+                .unwrap_or_else(|| {
+                    let (lang_path, _) = self.language_file(language, i18n_assets);
+                    Err(LanguageNotAvailable(lang_path, language.clone()))
+                })?;
+            language_bundles.push(fluent_bundle);
         }
 
         let mut config_lock = self.language_config.write();
@@ -372,4 +326,67 @@ impl LanguageLoader for FluentLanguageLoader {
 
         Ok(())
     }
+}
+
+/// Load the translation file for the designated `LanguageIdentifier`.
+/// Returns a `Ok(LanguageBundle)` if the language is bundled.
+/// Or a `Ok(None)` if the language file is not found.
+fn files_to_fluent_bundle(
+    loader: &dyn LanguageLoader,
+    i18n_assets: &dyn I18nAssets,
+    language: &LanguageIdentifier,
+) -> Result<Option<LanguageBundle>, I18nEmbedError> {
+    let (path, file) = loader.language_file(&language, i18n_assets);
+
+    if let Some(file) = file {
+        log::debug!(target:"i18n_embed::fluent", "Loaded language file: \"{0}\" for language: \"{1}\"", path, language);
+
+        let file_string = String::from_utf8(file.to_vec())
+            .map_err(|err| I18nEmbedError::ErrorParsingFileUtf8(path.clone(), err))?;
+
+        let resource = match FluentResource::try_new(file_string) {
+            Ok(resource) => resource,
+            Err((resource, errors)) => {
+                errors.iter().for_each(|err| {
+                    log::error!(target: "i18n_embed::fluent", "Error while parsing fluent language file \"{0}\": \"{1:?}\".", path, err);
+                });
+                resource
+            }
+        };
+
+        let arc = Arc::new(resource);
+        let resources = vec![arc];
+        Ok(Some(LanguageBundle::new(language.clone(), resources)))
+    } else {
+        log::debug!(target:"i18n_embed::fluent", "Unable to find language file: \"{0}\" for language: \"{1}\"", path, language);
+        Ok(None)
+    }
+}
+
+/// Transforms a regular hashmap into Fluent ready args map.
+fn prepare_args_map<'a, S, V>(args: HashMap<S, V>) -> HashMap<Cow<'a, str>, FluentValue<'a>>
+where
+    S: Into<Cow<'a, str>> + Clone,
+    V: Into<FluentValue<'a>> + Clone,
+{
+    let mut keys: Vec<Cow<'a, str>> = Vec::new();
+    let mut map: HashMap<Cow<'a, str>, FluentValue<'_>> = HashMap::with_capacity(args.len());
+    let mut values = Vec::new();
+
+    for (key, value) in args.into_iter() {
+        keys.push(key.into());
+        values.push(value.into());
+    }
+
+    for (i, key) in keys.into_iter().rev().enumerate() {
+        let value = values.pop().unwrap_or_else(|| {
+            panic!(
+                "expected a value corresponding with key \"{}\" at position {}",
+                key, i
+            )
+        });
+
+        map.insert(key, value);
+    }
+    map
 }

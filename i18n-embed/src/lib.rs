@@ -400,6 +400,22 @@
     unreachable_pub
 )]
 
+use std::{
+    borrow::Cow,
+    fmt::Debug,
+    path::{Component, Path},
+    string::FromUtf8Error,
+};
+
+use fluent_langneg::{negotiate_languages, NegotiationStrategy};
+use log::{debug, error};
+use thiserror::Error;
+pub use unic_langid;
+
+pub use assets::*;
+pub use requester::*;
+pub use util::*;
+
 mod assets;
 mod requester;
 mod util;
@@ -409,10 +425,6 @@ pub mod fluent;
 
 #[cfg(feature = "gettext-system")]
 pub mod gettext;
-
-pub use assets::*;
-pub use requester::*;
-pub use util::*;
 
 #[cfg(doctest)]
 #[macro_use]
@@ -426,19 +438,6 @@ doctest!("../README.md");
 #[macro_use]
 extern crate i18n_embed_impl;
 
-use std::{
-    borrow::Cow,
-    fmt::Debug,
-    path::{Component, Path},
-    string::FromUtf8Error,
-};
-
-use fluent_langneg::{negotiate_languages, NegotiationStrategy};
-use log::{debug, error};
-use thiserror::Error;
-
-pub use unic_langid;
-
 /// An error that occurs in this library.
 #[derive(Error, Debug)]
 #[allow(missing_docs)]
@@ -451,6 +450,8 @@ pub enum I18nEmbedError {
     RequestedLanguagesEmpty,
     #[error("The language file \"{0}\" for the language \"{1}\" is not available.")]
     LanguageNotAvailable(String, unic_langid::LanguageIdentifier),
+    #[error("The fallback language file \"{0}\" for the language \"{1}\" is not available.")]
+    FallbackLanguageNotAvailable(String, unic_langid::LanguageIdentifier),
     #[error("There are multiple errors: {}", error_vec_to_string(.0))]
     Multiple(Vec<I18nEmbedError>),
     #[cfg(feature = "gettext-system")]
