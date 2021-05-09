@@ -16,6 +16,7 @@ use unic_langid::LanguageIdentifier;
 pub use i18n_embed_impl::fluent_language_loader;
 pub use multi::FluentMultiLanguageLoader;
 
+use crate::I18nEmbedError::LanguageNotAvailable;
 use crate::{I18nAssets, I18nEmbedError, LanguageLoader};
 
 mod multi;
@@ -309,8 +310,12 @@ impl LanguageLoader for FluentLanguageLoader {
 
         let mut language_bundles = Vec::with_capacity(language_ids.len());
         for language in load_language_ids {
-            let fluent_bundle =
-                files_to_fluent_bundle(self, i18n_assets, language, &self.fallback_language)?;
+            let fluent_bundle = files_to_fluent_bundle(self, i18n_assets, language)
+                .transpose()
+                .unwrap_or_else(|| {
+                    let (lang_path, _) = self.language_file(language, i18n_assets);
+                    Err(LanguageNotAvailable(lang_path, language.clone()))
+                })?;
             language_bundles.push(fluent_bundle);
         }
 
@@ -323,13 +328,14 @@ impl LanguageLoader for FluentLanguageLoader {
     }
 }
 
-/// Retrieve and load the file for the designated `LanguageIdentifier`
+/// Load the translation file for the designated `LanguageIdentifier`.
+/// Returns a `Ok(LanguageBundle)` if the language is bundled.
+/// Or a `Ok(None)` if the language file is not found.
 fn files_to_fluent_bundle(
     loader: &dyn LanguageLoader,
     i18n_assets: &dyn I18nAssets,
     language: &LanguageIdentifier,
-    fallback_language: &LanguageIdentifier,
-) -> Result<LanguageBundle, I18nEmbedError> {
+) -> Result<Option<LanguageBundle>, I18nEmbedError> {
     let (path, file) = loader.language_file(&language, i18n_assets);
 
     if let Some(file) = file {
@@ -350,10 +356,10 @@ fn files_to_fluent_bundle(
 
         let arc = Arc::new(resource);
         let resources = vec![arc];
-        Ok(LanguageBundle::new(language.clone(), resources))
+        Ok(Some(LanguageBundle::new(language.clone(), resources)))
     } else {
         log::debug!(target:"i18n_embed::fluent", "Unable to find language file: \"{0}\" for language: \"{1}\"", path, language);
-        Err(I18nEmbedError::LanguageNotAvailable(path, language.clone()))
+        Ok(None)
     }
 }
 

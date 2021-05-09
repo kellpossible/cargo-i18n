@@ -450,6 +450,8 @@ pub enum I18nEmbedError {
     RequestedLanguagesEmpty,
     #[error("The language file \"{0}\" for the language \"{1}\" is not available.")]
     LanguageNotAvailable(String, unic_langid::LanguageIdentifier),
+    #[error("The fallback language file \"{0}\" for the language \"{1}\" is not available.")]
+    FallbackLanguageNotAvailable(String, unic_langid::LanguageIdentifier),
     #[error("There are multiple errors: {}", error_vec_to_string(.0))]
     Multiple(Vec<I18nEmbedError>),
     #[cfg(feature = "gettext-system")]

@@ -315,9 +315,19 @@ impl LanguageLoader for FluentMultiLanguageLoader {
         let mut language_spec_bundles = HashMap::with_capacity(language_ids.len());
 
         for language in load_language_ids {
-            let fluent_bundle =
-                files_to_fluent_bundle(self, i18n_assets, language, &self.fallback_language)?;
-            language_spec_bundles.insert(language.clone(), fluent_bundle);
+            let fluent_bundle = files_to_fluent_bundle(self, i18n_assets, language)?;
+
+            // FluentMultiLang requires a fallback language
+            if language == &self.fallback_language && fluent_bundle.is_none() {
+                let (lang_path, _) = self.language_file(language, i18n_assets);
+                return Err(I18nEmbedError::FallbackLanguageNotAvailable(
+                    lang_path,
+                    language.clone(),
+                ));
+            } else if fluent_bundle.is_none() {
+                continue;
+            }
+            language_spec_bundles.insert(language.clone(), fluent_bundle.unwrap());
         }
 
         let mut config_lock = self.language_config.write();
