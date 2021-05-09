@@ -32,7 +32,7 @@ mod fluent {
         let en_us: LanguageIdentifier = "en-US".parse().unwrap();
         let en_gb: LanguageIdentifier = "en-GB".parse().unwrap();
 
-        let loader = FluentLanguageLoader::new("test", en_us.clone());
+        let loader = FluentLanguageLoader::new("test", en_us);
         loader.load_languages(&Localizations, &[&en_gb]).unwrap();
         pretty_assertions::assert_eq!("Hello World Localisation!", loader.get("hello-world"));
         pretty_assertions::assert_eq!("only US", loader.get("only-us"));
@@ -45,7 +45,7 @@ mod fluent {
         let en_us: LanguageIdentifier = "en-US".parse().unwrap();
         let en_gb: LanguageIdentifier = "en-GB".parse().unwrap();
 
-        let loader = FluentLanguageLoader::new("test", en_us.clone());
+        let loader = FluentLanguageLoader::new("test", en_us);
         loader
             .load_languages(&Localizations, &[&ru, &en_gb])
             .unwrap();
@@ -61,7 +61,7 @@ mod fluent {
         let en_us: LanguageIdentifier = "en-US".parse().unwrap();
         let ru: LanguageIdentifier = "ru".parse().unwrap();
 
-        let loader = FluentLanguageLoader::new("test", en_us.clone());
+        let loader = FluentLanguageLoader::new("test", en_us);
         loader.load_languages(&Localizations, &[&ru]).unwrap();
 
         let args = maplit::hashmap! {
@@ -79,7 +79,7 @@ mod fluent {
         let en_us: LanguageIdentifier = "en-US".parse().unwrap();
         let ru: LanguageIdentifier = "ru".parse().unwrap();
 
-        let loader = FluentLanguageLoader::new("test", en_us.clone());
+        let loader = FluentLanguageLoader::new("test", en_us);
         loader.load_languages(&Localizations, &[&ru]).unwrap();
 
         assert!(loader.has("only-ru-args"));
@@ -198,7 +198,7 @@ mod fluent {
         let ru: LanguageIdentifier = "ru".parse().unwrap();
         let en_gb: LanguageIdentifier = "en-GB".parse().unwrap();
         let en_us: LanguageIdentifier = "en-US".parse().unwrap();
-        let loader = FluentMultiLanguageLoader::new("test", en_us.clone());
+        let loader = FluentMultiLanguageLoader::new("test", en_us);
 
         loader
             .load_languages(&Localizations, &[&ru, &en_gb])
@@ -217,7 +217,7 @@ mod fluent {
         let ru: LanguageIdentifier = "ru".parse().unwrap();
         let en_gb: LanguageIdentifier = "en-GB".parse().unwrap();
         let en_us: LanguageIdentifier = "en-US".parse().unwrap();
-        let loader = FluentMultiLanguageLoader::new("test", en_us.clone());
+        let loader = FluentMultiLanguageLoader::new("test", en_us);
 
         loader
             .load_languages(&Localizations, &[&ru, &en_gb])
@@ -245,7 +245,7 @@ mod fluent {
         let ru: LanguageIdentifier = "ru".parse().unwrap();
         let en_gb: LanguageIdentifier = "en-GB".parse().unwrap();
         let en_us: LanguageIdentifier = "en-US".parse().unwrap();
-        let loader = FluentMultiLanguageLoader::new("test", en_us.clone());
+        let loader = FluentMultiLanguageLoader::new("test", en_us);
 
         loader
             .load_languages(&Localizations, &[&ru, &en_gb])
@@ -264,7 +264,7 @@ mod fluent {
         let ru: LanguageIdentifier = "ru".parse().unwrap();
         let en_gb: LanguageIdentifier = "en-GB".parse().unwrap();
         let en_us: LanguageIdentifier = "en-US".parse().unwrap();
-        let loader = FluentMultiLanguageLoader::new("test", en_us.clone());
+        let loader = FluentMultiLanguageLoader::new("test", en_us);
 
         loader
             .load_languages(&Localizations, &[&ru, &en_gb])
