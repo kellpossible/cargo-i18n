@@ -317,7 +317,7 @@ checksum = "9a3a5bfb195931eeb336b2a7b4d761daec841b97f947d34394601737a7bba5e4"
 
 [[package]]
 name = "i18n-build"
-version = "0.6.1"
+version = "0.7.0"
 dependencies = [
  "anyhow",
  "gettext",
@@ -346,7 +346,7 @@ dependencies = [
 
 [[package]]
 name = "i18n-embed"
-version = "0.11.0"
+version = "0.12.0"
 dependencies = [
  "doc-comment",
  "env_logger",
@@ -372,7 +372,7 @@ dependencies = [
 
 [[package]]
 name = "i18n-embed-fl"
-version = "0.4.0"
+version = "0.5.0"
 dependencies = [
  "dashmap",
  "doc-comment",

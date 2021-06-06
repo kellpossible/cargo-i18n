@@ -1,14 +1,19 @@
 # Changelog for `i18n-build`
 
+## v0.7.0
+
++ Update `i18n-embed` to version `0.12`.
+
 ## v0.6.1
 
 ### New Features
 
 + Add the `use_fuzzy` option for the `gettext` system. [#68](https://github.com/kellpossible/cargo-i18n/pull/68) thanks to [@vkill](https://github.com/vkill).
++ Update to `i18n-embed` version `0.12`.
 
 ## v0.6.0
 
-+ Update `i18n-embed` to version `0.11`.
++ Update to `i18n-embed` version `0.11`.
 
 ### Internal Changes
 
