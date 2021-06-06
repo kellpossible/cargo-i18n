@@ -1,7 +1,7 @@
 [package]
 authors = ["Luke Frisken <l.frisken@gmail.com>"]
 categories = ["localization", "internationalization", "development-tools::build-utils", "wasm"]
-description = "Traits and macros to conveniently embed the output of cargo-i18n into your application binary in order to localize it at runtime."
+description = "Traits and macros to conveniently embed localization assets into your application binary or library in order to localize it at runtime."
 edition = "2018"
 exclude = ["i18n/", "i18n.toml"]
 keywords = ["embed", "macro", "i18n", "gettext", "fluent"]
@@ -9,7 +9,7 @@ license = "MIT"
 name = "i18n-embed"
 readme = "README.md"
 repository = "https://github.com/kellpossible/cargo-i18n/tree/master/i18n-embed"
-version = "0.12.0"
+version = "0.12.1"
 
 [package.metadata.docs.rs]
 all-features = true

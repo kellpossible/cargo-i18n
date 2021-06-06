@@ -1,9 +1,10 @@
 # Changelog for `i18n-embed`
 
-## master
+## v0.12.1
 
 ### Documentation
 
++ Updated crate description.
 + Don't reference specific `i18n-embed` version number.
 
 ## v0.12.0

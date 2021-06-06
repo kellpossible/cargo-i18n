@@ -1,7 +1,8 @@
 #![allow(clippy::needless_doctest_main)]
-//! Traits and macros to conveniently embed the output of
-//! [cargo-i18n](https://crates.io/crates/cargo_i18n) into your
-//! application binary in order to localize it at runtime.
+//! Traits and macros to conveniently embed localization assets into
+//! your application binary or library in order to localize it at
+//! runtime. Works in unison with
+//! [cargo-i18n](https://crates.io/crates/cargo_i18n).
 //!
 //! This library recommends tha you make use of
 //! [rust-embed](https://crates.io/crates/rust-embed) to perform the

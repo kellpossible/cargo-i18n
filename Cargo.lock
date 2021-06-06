@@ -346,7 +346,7 @@ dependencies = [
 
 [[package]]
 name = "i18n-embed"
-version = "0.12.0"
+version = "0.12.1"
 dependencies = [
  "doc-comment",
  "env_logger",
