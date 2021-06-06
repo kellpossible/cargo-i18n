@@ -103,7 +103,7 @@ Add the following to your `Cargo.toml` dependencies:
 
 ```toml
 [dependencies]
-i18n-embed = "0.10"
+i18n-embed = "VERSION"
 ```
 
 A minimal example for how to embed the compiled translations into your application could be:

@@ -1,5 +1,11 @@
 # Changelog for `i18n-embed`
 
+## master
+
+### Documentation
+
++ Don't reference specific `i18n-embed` version number.
+
 ## v0.12.0
 
 ### Documentation

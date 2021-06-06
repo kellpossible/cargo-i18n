@@ -61,7 +61,7 @@
 //!
 //! ```toml
 //! [dependencies]
-//! i18n-embed = { version = "0.11", features = ["fluent-system", "desktop-requester"]}
+//! i18n-embed = { version = "VERSION", features = ["fluent-system", "desktop-requester"]}
 //! rust-embed = "5"
 //! ```
 //!
@@ -168,7 +168,7 @@
 //!
 //! ```toml
 //! [dependencies]
-//! i18n-embed = { version = "0.10", features = ["gettext-system", "desktop-requester"]}
+//! i18n-embed = { version = "VERSION", features = ["gettext-system", "desktop-requester"]}
 //! rust-embed = "5"
 //! ```
 //!

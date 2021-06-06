@@ -28,7 +28,7 @@ First you need to compile `i18n-embed` in your `Cargo.toml` with the `fluent-sys
 
 ```toml
 [dependencies]
-i18n-embed = { version = "0.11", features = ["fluent-system", "desktop-requester"]}
+i18n-embed = { version = "VERSION", features = ["fluent-system", "desktop-requester"]}
 rust-embed = "5"
 unic-langid = "0.9"
 ```
