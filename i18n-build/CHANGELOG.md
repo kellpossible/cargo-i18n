@@ -1,5 +1,10 @@
 # Changelog for `i18n-build`
 
+## v0.8.0
+
++ Update `i18n-embed` to version `0.13`.
++ Update `rust-embed` to version `6`.
+
 ## v0.7.0
 
 + Update `i18n-embed` to version `0.12`.

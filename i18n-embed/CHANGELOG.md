@@ -1,5 +1,12 @@
 # Changelog for `i18n-embed`
 
+## v0.13.0
+
+### Breaking Changes
+
++ Update `rust-embed` to version `6`.
++ Update `fluent` to version `0.16`.
+
 ## v0.12.1
 
 ### Documentation

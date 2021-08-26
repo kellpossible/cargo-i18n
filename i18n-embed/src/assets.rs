@@ -16,7 +16,7 @@ where
     T: rust_embed::RustEmbed + 'static,
 {
     fn get_file(&self, file_path: &str) -> Option<Cow<'_, [u8]>> {
-        Self::get(file_path)
+        Self::get(file_path).map(|file| file.data)
     }
 
     fn filenames_iter(&self) -> Box<dyn Iterator<Item = String>> {

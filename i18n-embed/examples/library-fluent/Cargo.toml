@@ -1,6 +1,6 @@
 [package]
 name = "library-fluent"
-version = "0.1.0"
+version = "0.2.0"
 authors = ["Luke Frisken <l.frisken@gmail.com>"]
 edition = "2018"
 
@@ -10,4 +10,4 @@ edition = "2018"
 i18n-embed = { path = "../../", features = ["fluent-system"] }
 i18n-embed-fl = { path = "../../../i18n-embed-fl/" }
 once_cell = "1.5"
-rust-embed = "5.9"
+rust-embed = "6"

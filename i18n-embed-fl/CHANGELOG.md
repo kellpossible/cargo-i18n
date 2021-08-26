@@ -1,10 +1,16 @@
 # Changelog for `i18n-embed-fl`
 
-## master
+## v0.6.0
 
 ### Documentation
 
 + Don't reference specific `i18n-embed` version number.
+
+### Breaking Changes
+
++ Update `i18n-embed` to version `0.13`.
++ Update `rust-embed` to version `6`.
++ Update `fluent` to version `0.16`.
 
 ## v0.5.0
 

@@ -63,7 +63,7 @@
 //! ```toml
 //! [dependencies]
 //! i18n-embed = { version = "VERSION", features = ["fluent-system", "desktop-requester"]}
-//! rust-embed = "5"
+//! rust-embed = "6"
 //! ```
 //!
 //! Set up a minimal `i18n.toml` in your crate root to use with
@@ -170,7 +170,7 @@
 //! ```toml
 //! [dependencies]
 //! i18n-embed = { version = "VERSION", features = ["gettext-system", "desktop-requester"]}
-//! rust-embed = "5"
+//! rust-embed = "6"
 //! ```
 //!
 //! Set up a minimal `i18n.toml` in your crate root to use with
