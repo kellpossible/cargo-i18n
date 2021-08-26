@@ -1,0 +1,79 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: cargo-i18n\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2021-08-26 12:51+0000\n"
+"Language: de\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: POEditor.com\n"
+
+#. The help message displayed when running `cargo i18n -h`.
+#: src/main.rs:29
+msgid "A Cargo sub-command to extract and build localization resources."
+msgstr ""
+"Ein Cargo-Unterbefehl zur Extrahierung und Erstellung von "
+"Lokalisierungsressourcen."
+
+#. The help message displayed when running `cargo i18n --help`.
+#. {0} is the short about message.
+#. {1} is a list of available languages. e.g. "en", "ru", etc
+#: src/main.rs:46
+msgid ""
+"{0}\n"
+"\n"
+"This command reads a configuration file (typically called \"i18n.toml\") in "
+"the root directory of your crate, and then proceeds to extract localization "
+"resources from your source files, and build them.\n"
+"\n"
+"If you are using the gettext localization system, you will need to have the "
+"following gettext tools installed: \"msgcat\", \"msginit\", \"msgmerge\" and "
+"\"msgfmt\". You will also need to have the \"xtr\" tool installed, which can "
+"be installed using \"cargo install xtr\".\n"
+"\n"
+"You can the \"i18n-embed\" library to conveniently embed the localizations "
+"inside your application.\n"
+"\n"
+"The display language used for this command is selected automatically using "
+"your system settings (as described at \n"
+"https://github.com/rust-locale/locale_config#supported-systems ) however you "
+"can override it using the -l, --language option.\n"
+"\n"
+"Logging for this command is available using the \"env_logger\" crate. You "
+"can enable debug logging using \"RUST_LOG=debug cargo i18n\"."
+msgstr ""
+
+#. The message displayed when running the binary outside of cargo using `cargo-18n`.
+#: src/main.rs:97
+msgid ""
+"This binary is designed to be executed as a cargo subcommand using \"cargo "
+"i18n\"."
+msgstr ""
+"Diese Binary ist für die Ausführung als Cargo-Unterbefehl mit \"cargo i18n\" "
+"vorgesehen."
+
+#. The help message for the `--path` command line argument.
+#: src/main.rs:109
+msgid ""
+"Path to the crate you want to localize (if not the current directory). The "
+"crate needs to contain \"i18n.toml\" in its root."
+msgstr ""
+"Pfad zum Crate, welches Du lokalisieren möchtest (wenn nicht das aktuelle "
+"Verzeichnis verwendet werden soll). Das Crate muss \"i18n.toml\" in seinem "
+"Stammverzeichnis enthalten."
+
+#. The help message for the `-c`, `--config-file-name` command line argument.
+#: src/main.rs:118
+msgid "The name of the i18n config file for this crate"
+msgstr "Der Name der i18n Konfigurationsdatei für dieses Crate"
+
+#. The help message for the `-l`, `--language` command line argument.
+#: src/main.rs:129
+msgid ""
+"Set the language to use for this application. Overrides the language "
+"selected automatically by your operating system."
+msgstr ""
+"Setze die Sprache, welche für die Applikation verwendet werden soll.  Die "
+"gesetzte Sprache überschreibt die Sprache, welche vom Betriebssystem gesetzt "
+"worden ist."
