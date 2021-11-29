@@ -1,0 +1,93 @@
+# French translations for i18n-build package.
+# Copyright (C) 2021 Luke Frisken
+# This file is distributed under the same license as the i18n-build package.
+#  <luke@luke-omen>, 2021.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: i18n-build 0.8.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2021-11-29 17:22+0000\n"
+"PO-Revision-Date: 2021-11-29 20:22+0300\n"
+"Last-Translator:  <luke@luke-omen>\n"
+"Language-Team: French <traduc@traduc.org>\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+#. {0} is the file path, {1} is the item which it is for, {2} is the type of item (file, directory, etc)
+#: i18n-build/src/error.rs:140
+msgid "The path (\"{0}\") for {1} {2} does not have valid a utf-8 encoding."
+msgstr "Le chemin (\"{0}\") pour {1} {2} n'a pas un encodage utf-8 valide."
+
+#. {0} can be either "file", or "directory", or "symlink"
+#. {1} is a file path
+#. {2} is more detailed information about the error
+#. Example: Cannot create the file "i18n/ru/something.pot" because "some error occurred"
+#: i18n-build/src/error.rs:155
+msgid "Cannot create the {0} \"{1}\" because: \"{2}\"."
+msgstr "Impossible de créer le {0} \"{1}\" car : \"{2}\"."
+
+#. {0} can be either "file", or "directory", or "symlink"
+#. {1} is a file path
+#. {2} is more detailed information about the error
+#. Example: Cannot delete the file "i18n/ru/something.pot" because "some error occurred"
+#: i18n-build/src/error.rs:165
+msgid "Cannot delete the {0} \"{1}\" because: \"{2}\"."
+msgstr "Impossible de supprimer le {0} \"{1}\" car : \"{2}\"."
+
+#. {0} can be either "file", or "directory", or "symlink"
+#. {1} is the name of the file to be renamed
+#. {2} is the new file name
+#. {3} is more detailed information about the error
+#. Example: Cannot rename the file "old.pot" to "new.pot" because "some error occurred"
+#: i18n-build/src/error.rs:176
+msgid "Cannot rename the {0} \"{1}\" to \"{2}\" because {3}."
+msgstr "Impossible de renommer le {0} \"{1}\" en \"{2}\" car {3}."
+
+#: i18n-build/src/gettext_impl/mod.rs:208
+msgid "There was a problem executing the \"{0}\" command"
+msgstr "Il y a eu un problème lors de l'exécution de la commande \"{0}\""
+
+#: i18n-build/src/gettext_impl/mod.rs:432
+msgid "There was a problem parsing one of the subcrates: \"{0}\"."
+msgstr "Un problème est survenu lors de l'analyse de l'une des sous-caisse : \"{0}\"."
+
+#: i18n-build/src/util.rs:17
+msgid "The \"{0}\" command was unable to start."
+msgstr "La commande \"{0}\" n'a pas pu démarrer."
+
+#: i18n-build/src/util.rs:21
+msgid "The \"{0}\" command had a problem waiting for output."
+msgstr "La commande \"{0}\" a rencontré un problème d'attente en sortie."
+
+#: i18n-build/src/util.rs:29
+msgid "The \"{0}\" command reported that it was unsuccessful."
+msgstr "La commande \"{0}\" a signalé un échec."
+
+#. {0} is a directory path
+#. {1} is the name of the parent directory
+#. {2} is the expected parent of the directory in {0}
+#. Example: The path "i18n/src/po" is not inside the "src" directory: "i18n/src"."
+#: i18n-build/src/error.rs:187
+msgid "The path \"{0}\" is not inside the \"{1}\" directory: \"{2}\"."
+msgstr "Le chemin \"{0}\" n'est pas dans le répertoire \"{1}\": \"{2}\"."
+
+#: i18n-build/src/error.rs:147
+msgid "The path \"{0}\" does not exist on the filesystem."
+msgstr "Le chemin \"{0}\" n'existe pas sur le système de fichiers."
+
+#: i18n-build/src/error.rs:20
+msgid "file"
+msgstr "fichier"
+
+#: i18n-build/src/error.rs:21
+msgid "directory"
+msgstr "annuaire"
+
+#: i18n-build/src/error.rs:22
+msgid "symbolic link"
+msgstr "lien symbolique"
+

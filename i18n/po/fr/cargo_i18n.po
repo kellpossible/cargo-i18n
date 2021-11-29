@@ -7,10 +7,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: cargo-i18n 0.2.7\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-11-29 17:06+0000\n"
+"POT-Creation-Date: 2021-11-29 17:21+0000\n"
 "PO-Revision-Date: 2021-11-29 20:06+0300\n"
-"Last-Translator:  <l.frisken@gmail.com>\n"
-"Language-Team: French <traduc@traduc.org>\n"
+"Last-Translator:  Christophe. chauvet\n"
 "Language: fr\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -21,6 +20,7 @@ msgstr ""
 #: src/main.rs:29
 msgid "A Cargo sub-command to extract and build localization resources."
 msgstr ""
+"Une sous-commande Cargo pour extraire et créer des ressources de traduction."
 
 #. The help message displayed when running `cargo i18n --help`.
 #. {0} is the short about message.
@@ -49,6 +49,29 @@ msgid ""
 "Logging for this command is available using the \"env_logger\" crate. You "
 "can enable debug logging using \"RUST_LOG=debug cargo i18n\"."
 msgstr ""
+"{0}\n"
+"\n"
+"Cette commande lit le fichier de configuration (généralement appelé \"i18n."
+"toml\") dans le répertoire racine de votre caisse, puis procède à "
+"l'extraction des ressources de traduction de vos fichiers sources et à leur "
+"construction.\n"
+"\n"
+"Si vous utilisez le système de localisation gettext, vous aurez besoin des "
+"outils gettext suivants installés : \"msgcat\", \"msginit\", \"msgmerge\" et "
+"\"msgfmt\". Vous aurez également besoin d'avoir installé l'outil \"xtr\", "
+"qui peut être installé à l'aide de la commande \"cargo install xtr\".\n"
+"\n"
+"Vous pouvez utiliser la bibliothèque \"i18n-embed\" pour intégrer facilement "
+"les localisations dans votre application.\n"
+"\n"
+"La langue d'affichage utilisée pour cette commande est sélectionnée "
+"automatiquement à l'aide des paramètres de votre système (comme décrit dans\n"
+"https://github.com/rust-locale/locale_config#supported-systems ) mais vous "
+"pouvez le remplacer en utilisant l'option -l, --language.\n"
+"\n"
+"La journalisation de cette commande est disponible à l'aide de la caisse "
+"\"env_logger\". Vous pouvez activer la journalisation de débogage en "
+"utilisant \"RUST_LOG=debug cargo i18n\"."
 
 #. The message displayed when running the binary outside of cargo using `cargo-18n`.
 #: src/main.rs:97
@@ -56,6 +79,8 @@ msgid ""
 "This binary is designed to be executed as a cargo subcommand using \"cargo "
 "i18n\"."
 msgstr ""
+"Ce binaire est conçu pour être exécuté en tant que sous-commande cargo en "
+"utilisant la commande \"cargo i18n\"."
 
 #. The help message for the `--path` command line argument.
 #: src/main.rs:109
@@ -63,11 +88,14 @@ msgid ""
 "Path to the crate you want to localize (if not the current directory). The "
 "crate needs to contain \"i18n.toml\" in its root."
 msgstr ""
+"Chemin d'accès à la caisse que vous souhaitez localiser (s'il ne s'agit pas "
+"du répertoire actuel). La caisse doit contenir un fichier \"i18n.toml\" à la "
+"racine."
 
 #. The help message for the `-c`, `--config-file-name` command line argument.
 #: src/main.rs:118
 msgid "The name of the i18n config file for this crate"
-msgstr ""
+msgstr "Le nom du fichier de configuration i18n pour cette caisse"
 
 #. The help message for the `-l`, `--language` command line argument.
 #: src/main.rs:129
@@ -75,3 +103,5 @@ msgid ""
 "Set the language to use for this application. Overrides the language "
 "selected automatically by your operating system."
 msgstr ""
+"Définissez la langue à utiliser pour cette application. Remplace la langue "
+"sélectionnée automatiquement par le système d'exploitation."
