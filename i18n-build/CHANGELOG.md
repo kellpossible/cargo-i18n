@@ -1,5 +1,9 @@
 # Changelog for `i18n-build`
 
+## v0.8.1
+
++ French translations provided by Christophe Chauvet.
+
 ## v0.8.0
 
 + Update `i18n-embed` to version `0.13`.
