@@ -1,5 +1,9 @@
 # Changelog for `i18n-embed-fl`
 
+## v0.6.1
+
++ Fix for #76, add missing `syn` dependency with `full` feature flag specified.
+
 ## v0.6.0
 
 ### Documentation

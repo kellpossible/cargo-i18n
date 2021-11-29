@@ -2,7 +2,7 @@
 name = "i18n-embed-fl"
 description = "Macro to perform compile time checks when using the i18n-embed crate and the fluent localization system"
 categories = ["localization", "internationalization", "development-tools"]
-version = "0.6.0"
+version = "0.6.1"
 authors = ["Luke Frisken <l.frisken@gmail.com>"]
 edition = "2018"
 license = "MIT"
@@ -28,7 +28,7 @@ unic-langid = "0.9"
 [dependencies.syn]
 version = "1.0"
 default-features = false
-features = ["derive", "proc-macro", "parsing", "printing", "extra-traits"]
+features = ["derive", "proc-macro", "parsing", "printing", "extra-traits", "full"]
 
 [dev-dependencies]
 doc-comment = "0.3"
