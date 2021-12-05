@@ -279,8 +279,19 @@ impl FluentLanguageLoader {
     ///
     /// Default: `true`.
     pub fn set_use_isolating(&self, value: bool) {
+        self.with_bundles_mut(|bundle| bundle.set_use_isolating(value));
+    }
+
+    /// Apply some configuration to each budle in this loader.
+    ///
+    /// **Note:** This function will have no effect if
+    /// [`LanguageLoader::load_languages`] has not been called first.
+    pub fn with_bundles_mut<F>(&self, f: F)
+    where
+        F: Fn(&mut FluentBundle<Arc<FluentResource>, IntlLangMemoizer>),
+    {
         for bundle in self.language_config.write().language_bundles.as_mut_slice() {
-            bundle.bundle.set_use_isolating(value);
+            f(&mut bundle.bundle);
         }
     }
 }
