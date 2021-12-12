@@ -559,7 +559,7 @@ pub fn select(
     let default_language: &unic_langid::LanguageIdentifier = language_loader.fallback_language();
 
     let supported_languages = negotiate_languages(
-        &requested_languages,
+        requested_languages,
         &available_languages,
         Some(default_language),
         NegotiationStrategy::Filtering,

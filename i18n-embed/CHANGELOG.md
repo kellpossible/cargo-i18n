@@ -1,5 +1,16 @@
 # Changelog for `i18n-embed`
 
+## v0.13.1
+
+### New Features
+
++ New `FluentLanguageLoader::with_bundles_mut()` method to allow mutable access to bundles.
+
+### Internal Changes
+
++ Bumped `pretty_assertions` version `1.0`.
++ Fixed clippy lints.
+
 ## v0.13.0
 
 ### Breaking Changes

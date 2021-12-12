@@ -193,7 +193,7 @@ impl<'a> Crate<'a> {
                     }
                 }
 
-                Ok(Some((self, &config)))
+                Ok(Some((self, config)))
             }
             None => {
                 debug!(

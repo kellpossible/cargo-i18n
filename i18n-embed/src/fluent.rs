@@ -230,16 +230,11 @@ impl FluentLanguageLoader {
     {
         let config_lock = self.language_config.read();
 
-        if let Some(message) = config_lock
+        config_lock
             .language_bundles
             .iter()
-            .filter_map(|language_bundle| language_bundle.bundle.get_message(message_id))
-            .next()
-        {
-            Some((closure)(message))
-        } else {
-            None
-        }
+            .find_map(|language_bundle| language_bundle.bundle.get_message(message_id))
+            .map(closure)
     }
 
     /// Runs the provided `closure` with an iterator over the messages
@@ -342,7 +337,7 @@ impl LanguageLoader for FluentLanguageLoader {
         let mut language_bundles = Vec::with_capacity(language_ids.len());
 
         for language in load_language_ids {
-            let (path, file) = self.language_file(&language, i18n_assets);
+            let (path, file) = self.language_file(language, i18n_assets);
 
             if let Some(file) = file {
                 log::debug!(target:"i18n_embed::fluent", "Loaded language file: \"{0}\" for language: \"{1}\"", path, language);
@@ -363,8 +358,7 @@ impl LanguageLoader for FluentLanguageLoader {
                     }
                 };
 
-                let mut resources = Vec::new();
-                resources.push(Arc::new(resource));
+                let resources = vec![Arc::new(resource)];
                 let language_bundle = LanguageBundle::new(language.clone(), resources);
 
                 language_bundles.push(language_bundle);
