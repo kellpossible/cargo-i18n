@@ -1,5 +1,10 @@
 # Changelog for `i18n-embed-fl`
 
+## v0.6.4
+
++ Update `dashmap` to version `5.1`.
++ Update `rust-embed` to `6.3` to address [RUSTSEC-2021-0126](https://rustsec.org/advisories/RUSTSEC-2021-0126.html).
+
 ## v0.6.3
 
 + Revert `dashmap` back to `4.0` due to [security warning](https://rustsec.org/advisories/RUSTSEC-2022-0002.html)

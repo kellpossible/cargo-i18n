@@ -1,5 +1,9 @@
 # Changelog for `i18n-build`
 
+## v0.8.2
+
++ Update `rust-embed` to `6.3` to address [RUSTSEC-2021-0126](https://rustsec.org/advisories/RUSTSEC-2021-0126.html).
+
 ## v0.8.1
 
 + French translations provided by Christophe Chauvet.
