@@ -1,5 +1,13 @@
 # Changelog for `i18n-embed-fl`
 
+## v0.6.3
+
++ Revert `dashmap` back to `4.0` due to [security warning](https://rustsec.org/advisories/RUSTSEC-2022-0002.html)
+
+## v0.6.2
+
++ Update `dashmap` to version `5.1`.
+
 ## v0.6.1
 
 + Fix for #76, add missing `syn` dependency with `full` feature flag specified.
