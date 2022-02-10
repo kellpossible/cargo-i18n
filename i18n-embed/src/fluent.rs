@@ -13,7 +13,7 @@ use fluent::{bundle::FluentBundle, FluentArgs, FluentMessage, FluentResource, Fl
 use fluent_syntax::ast::{self, Pattern};
 use intl_memoizer::concurrent::IntlLangMemoizer;
 use parking_lot::RwLock;
-use std::{borrow::Cow, collections::HashMap, fmt::Debug, sync::Arc};
+use std::{borrow::Cow, collections::HashMap, fmt::Debug, sync::Arc, iter::FromIterator};
 use unic_langid::LanguageIdentifier;
 
 struct LanguageBundle {
@@ -423,18 +423,14 @@ impl LanguageLoader for FluentLanguageLoader {
     }
 }
 
-fn hash_map_to_fluent_args<'args, S, V>(map: HashMap<S, V>) -> Option<FluentArgs<'args>>
+fn hash_map_to_fluent_args<'args, K, V>(map: HashMap<K, V>) -> Option<FluentArgs<'args>>
 where
-    S: Into<Cow<'args, str>> + Clone,
-    V: Into<FluentValue<'args>> + Clone,
+    K: Into<Cow<'args, str>>,
+    V: Into<FluentValue<'args>>,
 {
     if map.is_empty() {
         None
     } else {
-        let mut args = FluentArgs::with_capacity(map.len());
-        for (key, value) in map {
-            args.set(key, value);
-        }
-        Some(args)
+        Some(FluentArgs::from_iter(map))
     }
 }
