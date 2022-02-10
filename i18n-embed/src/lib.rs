@@ -106,6 +106,8 @@
 //! Then in your Rust code:
 //!
 //! ```
+//! # #[cfg(all(feature = "desktop-requester", feature = "fluent-system"))]
+//! # {
 //! use i18n_embed::{DesktopLanguageRequester, fluent::{
 //!     FluentLanguageLoader, fluent_language_loader
 //! }};
@@ -115,7 +117,7 @@
 //! #[folder = "i18n"] // path to the compiled localization resources
 //! struct Localizations;
 //!
-//!
+//! # #[allow(dead_code)]
 //! fn main() {
 //!     let language_loader: FluentLanguageLoader = fluent_language_loader!();
 //!
@@ -129,6 +131,7 @@
 //!
 //!     // continue on with your application
 //! }
+//! # }
 //! ```
 //!
 //! To access localizations, you can use `FluentLanguageLoader`'s
@@ -203,6 +206,8 @@
 //! Then in your Rust code:
 //!
 //! ```
+//! # #[cfg(all(feature = "gettext-system", feature = "desktop-requester"))]
+//! # {
 //! use i18n_embed::{DesktopLanguageRequester, gettext::{
 //!     gettext_language_loader
 //! }};
@@ -214,7 +219,7 @@
 //! #[folder = "i18n/mo"]
 //! struct Localizations;
 //!
-//!
+//! # #[allow(dead_code)]
 //! fn main() {
 //!     // Create the GettextLanguageLoader, pulling in settings from `i18n.toml`
 //!     // at compile time using the macro.
@@ -230,6 +235,7 @@
 //!
 //!     // continue on with your application
 //! }
+//! # }
 //! ```
 //!
 //! ## Automatic Updating Selection
@@ -240,6 +246,8 @@
 //! update the selected language using a [Localizer](Localizer):
 //!
 //! ```
+//! # #[cfg(all(feature = "fluent-system", feature = "desktop-requester"))]
+//! # {
 //! use std::sync::Arc;
 //! use i18n_embed::{
 //!     DesktopLanguageRequester, LanguageRequester,
@@ -263,6 +271,7 @@
 //!     };
 //! }
 //!
+//! # #[allow(dead_code)]
 //! fn main() {
 //!     let localizer = DefaultLocalizer::new(&*LANGUAGE_LOADER, &Localizations);
 //!
@@ -281,6 +290,7 @@
 //!
 //!     // continue on with your application
 //! }
+//! # }
 //! ```
 //!
 //! The above example makes use of the
@@ -297,6 +307,8 @@
 //! you can follow this code pattern in the library itself:
 //!
 //! ```
+//! # #[cfg(feature = "fluent-system")]
+//! # {
 //! use std::sync::Arc;
 //! use i18n_embed::{
 //!     DefaultLocalizer, Localizer, LanguageLoader,
@@ -328,6 +340,7 @@
 //! pub fn localizer() -> Arc<dyn Localizer> {
 //!     Arc::new(DefaultLocalizer::new(&*LANGUAGE_LOADER, &Localizations))
 //! }
+//! # }
 //! ```
 //!
 //! People using this library can call `localize()` to obtain a
@@ -342,6 +355,8 @@
 //! for the library:
 //!
 //! ```
+//! # #[cfg(feature = "gettext-system")]
+//! # {
 //! use std::sync::Arc;
 //! use i18n_embed::{
 //!     DefaultLocalizer, Localizer, gettext::{
@@ -364,6 +379,7 @@
 //!         embed
 //!     ))
 //! }
+//! # }
 //! ```
 //!
 //! For the above example, you can enable the following options in the
@@ -419,7 +435,7 @@ pub use util::*;
 #[macro_use]
 extern crate doc_comment;
 
-#[cfg(doctest)]
+#[cfg(all(doctest, feature = "desktop-requester", feature = "fluent-system"))]
 doctest!("../README.md");
 
 #[cfg(any(feature = "gettext-system", feature = "fluent-system"))]

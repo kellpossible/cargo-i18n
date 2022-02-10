@@ -1,5 +1,11 @@
 # Changelog for `i18n-embed`
 
+## master
+
+### Fixes
+
++ Use conditional compilation correctly for doctests.
+
 ## v0.13.1
 
 ### New Features
