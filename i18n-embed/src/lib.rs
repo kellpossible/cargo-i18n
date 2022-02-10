@@ -117,7 +117,7 @@
 //! #[folder = "i18n"] // path to the compiled localization resources
 //! struct Localizations;
 //!
-//!
+//! # #[allow(dead_code)]
 //! fn main() {
 //!     let language_loader: FluentLanguageLoader = fluent_language_loader!();
 //!
@@ -219,7 +219,7 @@
 //! #[folder = "i18n/mo"]
 //! struct Localizations;
 //!
-//!
+//! # #[allow(dead_code)]
 //! fn main() {
 //!     // Create the GettextLanguageLoader, pulling in settings from `i18n.toml`
 //!     // at compile time using the macro.
@@ -271,6 +271,7 @@
 //!     };
 //! }
 //!
+//! # #[allow(dead_code)]
 //! fn main() {
 //!     let localizer = DefaultLocalizer::new(&*LANGUAGE_LOADER, &Localizations);
 //!
