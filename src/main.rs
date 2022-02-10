@@ -1,5 +1,5 @@
 use anyhow::Result;
-use clap::{crate_authors, crate_version, App, Arg, SubCommand};
+use clap::{crate_authors, crate_version, App, Arg};
 use i18n_build::run;
 use i18n_config::Crate;
 use i18n_embed::{
@@ -90,7 +90,7 @@ fn main() -> Result<()> {
 
     let matches = App::new("cargo-i18n")
         .bin_name("cargo")
-        .set_term_width(80)
+        .term_width(80)
         .about(
             tr!(
                 // The message displayed when running the binary outside of cargo using `cargo-18n`.
@@ -98,12 +98,12 @@ fn main() -> Result<()> {
         )
         .version(crate_version!())
         .author(crate_authors!())
-        .subcommand(SubCommand::with_name("i18n")
+        .subcommand(App::new("i18n")
             .about(short_about().as_str())
             .long_about(long_about().as_str())
             .version(crate_version!())
             .author(crate_authors!())
-            .arg(Arg::with_name("path")
+            .arg(Arg::new("path")
                 .help(
                     // The help message for the `--path` command line argument.
                     tr!("Path to the crate you want to localize (if not the current directory). The crate needs to contain \"i18n.toml\" in its root.").as_str()
@@ -111,18 +111,18 @@ fn main() -> Result<()> {
                 .long("path")
                 .takes_value(true)
             )
-            .arg(Arg::with_name("config file name")
+            .arg(Arg::new("config file name")
                 .help(
                     tr!(
                         // The help message for the `-c`, `--config-file-name` command line argument.
                         "The name of the i18n config file for this crate").as_str()
                 )
                 .long("config-file-name")
-                .short("c")
+                .short('c')
                 .takes_value(true)
                 .default_value("i18n.toml")
             )
-            .arg(Arg::with_name("language")
+            .arg(Arg::new("language")
                 .help(
                     tr!(
                         // The help message for the `-l`, `--language` command line argument.
@@ -130,7 +130,7 @@ fn main() -> Result<()> {
                     ).as_str()
                 )
                 .long("--language")
-                .short("-l")
+                .short('l')
                 .takes_value(true)
                 .default_value(&fallback_locale)
                 .possible_values(&available_languages_slice)

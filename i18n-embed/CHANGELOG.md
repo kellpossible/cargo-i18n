@@ -1,10 +1,11 @@
 # Changelog for `i18n-embed`
 
-## master
+## v0.13.2
 
-### Fixes
+### Internal
 
 + Use conditional compilation correctly for doctests.
++ Update `parking_lot` to version `0.12`.
 
 ## v0.13.1
 
