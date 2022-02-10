@@ -209,21 +209,19 @@ mod gettext {
     #[folder = "i18n/mo"]
     struct Localizations;
 
-    lazy_static::lazy_static! {
-        static ref LOADER: GettextLanguageLoader = GettextLanguageLoader::new("i18n_embed", "en".parse().unwrap());
-    }
-
     #[test]
     fn only_en() {
         setup();
 
+        let loader = GettextLanguageLoader::new("i18n_embed", "en".parse().unwrap());
+
         let ru: LanguageIdentifier = "ru".parse().unwrap();
         let en: LanguageIdentifier = "en".parse().unwrap();
 
-        LOADER.load_languages(&Localizations, &[&ru]).unwrap();
+        loader.load_languages(&Localizations, &[&ru]).unwrap();
 
         // It should replace the ru with en
-        LOADER.load_languages(&Localizations, &[&en]).unwrap();
+        loader.load_languages(&Localizations, &[&en]).unwrap();
 
         pretty_assertions::assert_eq!("only en", tr("only en"));
         pretty_assertions::assert_eq!("only ru", tr("only ru"));
@@ -233,10 +231,12 @@ mod gettext {
     fn fallback_ru_to_en() {
         setup();
 
+        let loader = GettextLanguageLoader::new("i18n_embed", "en".parse().unwrap());
+
         let ru: LanguageIdentifier = "ru".parse().unwrap();
 
         assert!(Localizations::get("ru/i18n_embed.mo").is_some());
-        LOADER.load_languages(&Localizations, &[&ru]).unwrap();
+        loader.load_languages(&Localizations, &[&ru]).unwrap();
 
         pretty_assertions::assert_eq!("только ру", tr("only ru"));
         pretty_assertions::assert_eq!("only en", tr("only en"));
