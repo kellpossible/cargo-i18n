@@ -13,7 +13,7 @@ use fluent::{bundle::FluentBundle, FluentArgs, FluentMessage, FluentResource, Fl
 use fluent_syntax::ast::{self, Pattern};
 use intl_memoizer::concurrent::IntlLangMemoizer;
 use parking_lot::RwLock;
-use std::{borrow::Cow, collections::HashMap, fmt::Debug, sync::Arc, iter::FromIterator};
+use std::{borrow::Cow, collections::HashMap, fmt::Debug, iter::FromIterator, sync::Arc};
 use unic_langid::LanguageIdentifier;
 
 struct LanguageBundle {
