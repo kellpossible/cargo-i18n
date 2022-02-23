@@ -50,7 +50,6 @@ impl Debug for LanguageBundle {
 
 #[derive(Debug)]
 struct LanguageConfig {
-    current_language: LanguageIdentifier,
     language_bundles: Vec<LanguageBundle>,
     /// This maps a `LanguageIdentifier` to the index inside the
     /// `language_bundles` vector.
@@ -79,7 +78,6 @@ impl FluentLanguageLoader {
         fallback_language: unic_langid::LanguageIdentifier,
     ) -> Self {
         let config = LanguageConfig {
-            current_language: fallback_language.clone(),
             language_bundles: Vec::new(),
             language_map: HashMap::new(),
         };
@@ -125,7 +123,7 @@ impl FluentLanguageLoader {
         let language_config = self.language_config.read();
         self._get(
             language_config.language_bundles.iter(),
-            &language_config.current_language,
+            &self.current_language(),
             message_id,
             args,
         )
@@ -347,7 +345,11 @@ impl LanguageLoader for FluentLanguageLoader {
 
     /// Get the language which is currently loaded for this loader.
     fn current_language(&self) -> unic_langid::LanguageIdentifier {
-        self.language_config.read().current_language.clone()
+        let config_lock = self.language_config.read();
+        config_lock.language_bundles.first().map_or_else(
+            || self.fallback_language.clone(),
+            |bundle| bundle.language.clone(),
+        )
     }
 
     /// Load the languages `language_ids` using the resources packaged
@@ -361,8 +363,8 @@ impl LanguageLoader for FluentLanguageLoader {
         i18n_assets: &dyn I18nAssets,
         language_ids: &[&unic_langid::LanguageIdentifier],
     ) -> Result<(), I18nEmbedError> {
-        let current_language = *language_ids
-            .get(0)
+        language_ids
+            .first()
             .ok_or(I18nEmbedError::RequestedLanguagesEmpty)?;
 
         // The languages to load
@@ -409,7 +411,6 @@ impl LanguageLoader for FluentLanguageLoader {
         }
 
         let mut config_lock = self.language_config.write();
-        config_lock.current_language = current_language.clone();
         config_lock.language_bundles = language_bundles;
         config_lock.language_map = config_lock
             .language_bundles
