@@ -13,15 +13,8 @@ use fluent::{bundle::FluentBundle, FluentArgs, FluentMessage, FluentResource, Fl
 use fluent_syntax::ast::{self, Pattern};
 use intl_memoizer::concurrent::IntlLangMemoizer;
 use parking_lot::RwLock;
-use std::{borrow::Cow, collections::HashMap, fmt::Debug, sync::Arc};
+use std::{borrow::Cow, collections::HashMap, fmt::Debug, iter::FromIterator, sync::Arc};
 use unic_langid::LanguageIdentifier;
-
-lazy_static::lazy_static! {
-    static ref CURRENT_LANGUAGE: RwLock<LanguageIdentifier> = {
-        let language = LanguageIdentifier::default();
-        RwLock::new(language)
-    };
-}
 
 struct LanguageBundle {
     language: LanguageIdentifier,
@@ -59,6 +52,9 @@ impl Debug for LanguageBundle {
 struct LanguageConfig {
     current_language: LanguageIdentifier,
     language_bundles: Vec<LanguageBundle>,
+    /// This maps a `LanguageIdentifier` to the index inside the
+    /// `language_bundles` vector.
+    language_map: HashMap<LanguageIdentifier, usize>,
 }
 
 /// [LanguageLoader] implemenation for the `fluent` localization
@@ -85,6 +81,7 @@ impl FluentLanguageLoader {
         let config = LanguageConfig {
             current_language: fallback_language.clone(),
             language_bundles: Vec::new(),
+            language_map: HashMap::new(),
         };
 
         Self {
@@ -106,28 +103,16 @@ impl FluentLanguageLoader {
 
     /// Get a localized message referenced by the `message_id`.
     pub fn get(&self, message_id: &str) -> String {
-        self.get_args_concrete(message_id, HashMap::new())
+        self.get_args_fluent(message_id, None)
     }
 
     /// A non-generic version of [FluentLanguageLoader::get_args()].
-    pub fn get_args_concrete<'source>(
+    pub fn get_args_concrete<'args>(
         &self,
         message_id: &str,
-        args: HashMap<&'source str, FluentValue<'source>>,
+        args: HashMap<&'args str, FluentValue<'args>>,
     ) -> String {
-        let args_option = if args.is_empty() {
-            None
-        } else {
-            let mut fluent_args = FluentArgs::with_capacity(args.len());
-
-            for (key, value) in args {
-                fluent_args.set(key, value);
-            }
-
-            Some(fluent_args)
-        };
-
-        self.get_args_fluent(message_id, args_option.as_ref())
+        self.get_args_fluent(message_id, hash_map_to_fluent_args(args).as_ref())
     }
 
     /// A non-generic version of [FluentLanguageLoader::get_args()]
@@ -137,9 +122,95 @@ impl FluentLanguageLoader {
         message_id: &str,
         args: Option<&'args FluentArgs<'args>>,
     ) -> String {
-        let config_lock = self.language_config.read();
+        let language_config = self.language_config.read();
+        self._get(
+            language_config.language_bundles.iter(),
+            &language_config.current_language,
+            message_id,
+            args,
+        )
+    }
 
-        config_lock.language_bundles.iter().filter_map(|language_bundle| {
+    /// Get a localized message referenced by the `message_id`, and
+    /// formatted with the specified `args`.
+    pub fn get_args<'a, S, V>(&self, id: &str, args: HashMap<S, V>) -> String
+    where
+        S: Into<Cow<'a, str>> + Clone,
+        V: Into<FluentValue<'a>> + Clone,
+    {
+        self.get_args_fluent(id, hash_map_to_fluent_args(args).as_ref())
+    }
+
+    /// Get a localized message referenced by the `message_id`.
+    pub fn get_lang(&self, lang: &[&LanguageIdentifier], message_id: &str) -> String {
+        self.get_lang_args_fluent(lang, message_id, None)
+    }
+
+    /// A non-generic version of [FluentLanguageLoader::get_lang_args()].
+    pub fn get_lang_args_concrete<'source>(
+        &self,
+        lang: &[&LanguageIdentifier],
+        message_id: &str,
+        args: HashMap<&'source str, FluentValue<'source>>,
+    ) -> String {
+        self.get_lang_args_fluent(lang, message_id, hash_map_to_fluent_args(args).as_ref())
+    }
+
+    /// A non-generic version of [FluentLanguageLoader::get_lang_args()]
+    /// accepting [FluentArgs] instead of a [HashMap].
+    pub fn get_lang_args_fluent<'args>(
+        &self,
+        lang: &[&LanguageIdentifier],
+        message_id: &str,
+        args: Option<&'args FluentArgs<'args>>,
+    ) -> String {
+        let current_language = if lang.is_empty() {
+            &self.fallback_language
+        } else {
+            lang[0]
+        };
+        let fallback_language = if lang.contains(&&self.fallback_language) {
+            None
+        } else {
+            Some(&self.fallback_language)
+        };
+        let config_lock = self.language_config.read();
+        let language_bundles = lang
+            .iter()
+            .chain(fallback_language.as_ref().into_iter())
+            .filter_map(|id| {
+                config_lock
+                    .language_map
+                    .get(id)
+                    .map(|idx| &config_lock.language_bundles[*idx])
+            });
+        self._get(language_bundles, current_language, message_id, args)
+    }
+
+    /// Get a localized message for the given language identifiers, referenced
+    /// by the `message_id` and formatted with the specified `args`.
+    pub fn get_lang_args<'a, S, V>(
+        &self,
+        lang: &[&LanguageIdentifier],
+        id: &str,
+        args: HashMap<S, V>,
+    ) -> String
+    where
+        S: Into<Cow<'a, str>> + Clone,
+        V: Into<FluentValue<'a>> + Clone,
+    {
+        let fluent_args = hash_map_to_fluent_args(args);
+        self.get_lang_args_fluent(lang, id, fluent_args.as_ref())
+    }
+
+    fn _get<'a, 'args>(
+        &'a self,
+        language_bundles: impl Iterator<Item = &'a LanguageBundle>,
+        current_language: &LanguageIdentifier,
+        message_id: &str,
+        args: Option<&'args FluentArgs<'args>>,
+    ) -> String {
+        language_bundles.filter_map(|language_bundle| {
             language_bundle
                 .bundle
                 .get_message(message_id)
@@ -151,55 +222,22 @@ impl FluentLanguageLoader {
                         log::error!(
                             target:"i18n_embed::fluent",
                             "Failed to format a message for language \"{}\" and id \"{}\".\nErrors\n{:?}.",
-                            &config_lock.current_language, message_id, errors
+                            current_language, message_id, errors
                         )
                     }
-
                     value.into()
-                    })
+                })
             })
             .next()
             .unwrap_or_else(|| {
                 log::error!(
                     target:"i18n_embed::fluent",
                     "Unable to find localization for language \"{}\" and id \"{}\".",
-                    config_lock.current_language,
+                    current_language,
                     message_id
                 );
                 format!("No localization for id: \"{}\"", message_id)
             })
-    }
-
-    /// Get a localized message referenced by the `message_id`, and
-    /// formatted with the specified `args`.
-    pub fn get_args<'a, S, V>(&self, id: &str, args: HashMap<S, V>) -> String
-    where
-        S: Into<Cow<'a, str>> + Clone,
-        V: Into<FluentValue<'a>> + Clone,
-    {
-        let mut keys: Vec<Cow<'a, str>> = Vec::new();
-
-        let mut map: HashMap<&str, FluentValue<'_>> = HashMap::with_capacity(args.len());
-
-        let mut values = Vec::new();
-
-        for (key, value) in args.into_iter() {
-            keys.push(key.into());
-            values.push(value.into());
-        }
-
-        for (i, key) in keys.iter().rev().enumerate() {
-            let value = values.pop().unwrap_or_else(|| {
-                panic!(
-                    "expected a value corresponding with key \"{}\" at position {}",
-                    key, i
-                )
-            });
-
-            map.insert(&*key, value);
-        }
-
-        self.get_args_concrete(id, map)
     }
 
     /// Returns true if a message with the specified `message_id` is
@@ -371,10 +409,28 @@ impl LanguageLoader for FluentLanguageLoader {
         }
 
         let mut config_lock = self.language_config.write();
-        config_lock.language_bundles = language_bundles;
         config_lock.current_language = current_language.clone();
+        config_lock.language_bundles = language_bundles;
+        config_lock.language_map = config_lock
+            .language_bundles
+            .iter()
+            .enumerate()
+            .map(|(i, language_bundle)| (language_bundle.language.clone(), i))
+            .collect();
         drop(config_lock);
 
         Ok(())
+    }
+}
+
+fn hash_map_to_fluent_args<'args, K, V>(map: HashMap<K, V>) -> Option<FluentArgs<'args>>
+where
+    K: Into<Cow<'args, str>>,
+    V: Into<FluentValue<'args>>,
+{
+    if map.is_empty() {
+        None
+    } else {
+        Some(FluentArgs::from_iter(map))
     }
 }

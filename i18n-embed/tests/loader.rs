@@ -188,6 +188,95 @@ mod fluent {
             msg
         );
     }
+
+    #[test]
+    fn get_lang_default_fallback() {
+        setup();
+        let ru: LanguageIdentifier = "ru".parse().unwrap();
+        let en_gb: LanguageIdentifier = "en-GB".parse().unwrap();
+        let en_us: LanguageIdentifier = "en-US".parse().unwrap();
+        let loader = FluentLanguageLoader::new("test", en_us);
+
+        loader
+            .load_languages(&Localizations, &[&ru, &en_gb])
+            .unwrap();
+
+        let msg = loader.get_lang(&[&ru], "only-ru");
+        assert_eq!("только русский", msg);
+
+        let msg = loader.get_lang(&[&ru], "only-gb");
+        assert_eq!("only GB (US Version)", msg);
+    }
+
+    #[test]
+    fn get_lang_args_default_fallback() {
+        setup();
+        let ru: LanguageIdentifier = "ru".parse().unwrap();
+        let en_gb: LanguageIdentifier = "en-GB".parse().unwrap();
+        let en_us: LanguageIdentifier = "en-US".parse().unwrap();
+        let loader = FluentLanguageLoader::new("test", en_us);
+
+        loader
+            .load_languages(&Localizations, &[&ru, &en_gb])
+            .unwrap();
+
+        let args = maplit::hashmap! {
+            "argOne" => "1",
+            "argTwo" => "2",
+        };
+
+        let msg = loader.get_lang_args(&[&ru], "multi-line-args", args);
+        assert_eq!(
+            "Это многострочное сообщение с параметрами.\n\n\
+            \u{2068}1\u{2069}\n\n\
+            Это многострочное сообщение с параметрами.\n\n\
+            \u{2068}2\u{2069}\n\n\
+            Законченный!",
+            msg
+        );
+    }
+
+    #[test]
+    fn get_lang_custom_fallback() {
+        setup();
+        let ru: LanguageIdentifier = "ru".parse().unwrap();
+        let en_gb: LanguageIdentifier = "en-GB".parse().unwrap();
+        let en_us: LanguageIdentifier = "en-US".parse().unwrap();
+        let loader = FluentLanguageLoader::new("test", en_us);
+
+        loader
+            .load_languages(&Localizations, &[&ru, &en_gb])
+            .unwrap();
+
+        let msg = loader.get_lang(&[&ru, &en_gb], "only-gb");
+        assert_eq!("only GB", msg);
+
+        let msg = loader.get_lang(&[&ru, &en_gb], "only-us");
+        assert_eq!("only US", msg);
+    }
+
+    #[test]
+    fn get_lang_args_custom_fallback() {
+        setup();
+        let ru: LanguageIdentifier = "ru".parse().unwrap();
+        let en_gb: LanguageIdentifier = "en-GB".parse().unwrap();
+        let en_us: LanguageIdentifier = "en-US".parse().unwrap();
+        let loader = FluentLanguageLoader::new("test", en_us);
+
+        loader
+            .load_languages(&Localizations, &[&ru, &en_gb])
+            .unwrap();
+
+        let args = maplit::hashmap! {
+            "userName" => "username",
+        };
+
+        let msg = loader.get_lang_args(&[&ru], "only-gb-args", args.clone());
+        assert_eq!("Hello \u{2068}username\u{2069}! (US Version)", msg);
+
+        let msg = loader.get_lang_args(&[&ru, &en_gb], "only-gb-args", args.clone());
+        assert_eq!("Hello \u{2068}username\u{2069}!", msg);
+    }
 }
 
 #[cfg(feature = "gettext-system")]
