@@ -135,16 +135,38 @@ impl FluentLanguageLoader {
     ) -> String {
         let inner = self.inner.load();
         let language_config = inner.language_config.read();
-        self._get(
-            inner
-                .current_language
-                .indices
-                .iter()
-                .map(|&idx| &language_config.language_bundles[idx]),
-            &self.current_language(),
-            message_id,
-            args,
-        )
+        inner
+            .current_language
+            .indices
+            .iter()
+            .map(|&idx| &language_config.language_bundles[idx])
+            .filter_map(|language_bundle| language_bundle
+                .bundle
+                .get_message(message_id)
+                .and_then(|m: FluentMessage<'_>| m.value())
+                .map(|pattern: &Pattern<&str>| {
+                    let mut errors = Vec::new();
+                    let value = language_bundle.bundle.format_pattern(pattern, args, &mut errors);
+                    if !errors.is_empty() {
+                        log::error!(
+                            target:"i18n_embed::fluent",
+                            "Failed to format a message for language \"{}\" and id \"{}\".\nErrors\n{:?}.",
+                            inner.current_language.languages.first().unwrap_or(&self.fallback_language), message_id, errors
+                        )
+                    }
+                    value.into()
+                })
+            )
+            .next()
+            .unwrap_or_else(|| {
+                log::error!(
+                    target:"i18n_embed::fluent",
+                    "Unable to find localization for language \"{}\" and id \"{}\".",
+                    inner.current_language.languages.first().unwrap_or(&self.fallback_language),
+                    message_id
+                );
+                format!("No localization for id: \"{}\"", message_id)
+            })
     }
 
     /// Get a localized message referenced by the `message_id`, and
@@ -158,54 +180,46 @@ impl FluentLanguageLoader {
     }
 
     /// Get a localized message referenced by the `message_id`.
+    #[deprecated(since = "0.2.11", note = "Please use `lang(...).get(...)` instead")]
     pub fn get_lang(&self, lang: &[&LanguageIdentifier], message_id: &str) -> String {
-        self.get_lang_args_fluent(lang, message_id, None)
+        self.lang(lang).get(message_id)
     }
 
     /// A non-generic version of [FluentLanguageLoader::get_lang_args()].
+    #[deprecated(
+        since = "0.2.11",
+        note = "Please use `lang(...).get_args_concrete(...)` instead"
+    )]
     pub fn get_lang_args_concrete<'source>(
         &self,
         lang: &[&LanguageIdentifier],
         message_id: &str,
         args: HashMap<&'source str, FluentValue<'source>>,
     ) -> String {
-        self.get_lang_args_fluent(lang, message_id, hash_map_to_fluent_args(args).as_ref())
+        self.lang(lang).get_args_concrete(message_id, args)
     }
 
     /// A non-generic version of [FluentLanguageLoader::get_lang_args()]
     /// accepting [FluentArgs] instead of a [HashMap].
+    #[deprecated(
+        since = "0.2.11",
+        note = "Please use `lang(...).get_args_fluent(...)` instead"
+    )]
     pub fn get_lang_args_fluent<'args>(
         &self,
         lang: &[&LanguageIdentifier],
         message_id: &str,
         args: Option<&'args FluentArgs<'args>>,
     ) -> String {
-        let current_language = if lang.is_empty() {
-            &self.fallback_language
-        } else {
-            lang[0]
-        };
-        let fallback_language = if lang.contains(&&self.fallback_language) {
-            None
-        } else {
-            Some(&self.fallback_language)
-        };
-        let inner = self.inner.load();
-        let config_lock = inner.language_config.read();
-        let language_bundles = lang
-            .iter()
-            .chain(fallback_language.as_ref().into_iter())
-            .filter_map(|id| {
-                config_lock
-                    .language_map
-                    .get(id)
-                    .map(|idx| &config_lock.language_bundles[*idx])
-            });
-        self._get(language_bundles, current_language, message_id, args)
+        self.lang(lang).get_args_fluent(message_id, args)
     }
 
     /// Get a localized message for the given language identifiers, referenced
     /// by the `message_id` and formatted with the specified `args`.
+    #[deprecated(
+        since = "0.2.11",
+        note = "Please use `lang(...).get_args(...)` instead"
+    )]
     pub fn get_lang_args<'a, S, V>(
         &self,
         lang: &[&LanguageIdentifier],
@@ -216,45 +230,7 @@ impl FluentLanguageLoader {
         S: Into<Cow<'a, str>> + Clone,
         V: Into<FluentValue<'a>> + Clone,
     {
-        let fluent_args = hash_map_to_fluent_args(args);
-        self.get_lang_args_fluent(lang, id, fluent_args.as_ref())
-    }
-
-    fn _get<'a, 'args>(
-        &'a self,
-        language_bundles: impl Iterator<Item = &'a LanguageBundle>,
-        current_language: &LanguageIdentifier,
-        message_id: &str,
-        args: Option<&'args FluentArgs<'args>>,
-    ) -> String {
-        language_bundles.filter_map(|language_bundle| {
-            language_bundle
-                .bundle
-                .get_message(message_id)
-                .and_then(|m: FluentMessage<'_>| m.value())
-                .map(|pattern: &Pattern<&str>| {
-                    let mut errors = Vec::new();
-                    let value = language_bundle.bundle.format_pattern(pattern, args, &mut errors);
-                    if !errors.is_empty() {
-                        log::error!(
-                            target:"i18n_embed::fluent",
-                            "Failed to format a message for language \"{}\" and id \"{}\".\nErrors\n{:?}.",
-                            current_language, message_id, errors
-                        )
-                    }
-                    value.into()
-                })
-            })
-            .next()
-            .unwrap_or_else(|| {
-                log::error!(
-                    target:"i18n_embed::fluent",
-                    "Unable to find localization for language \"{}\" and id \"{}\".",
-                    current_language,
-                    message_id
-                );
-                format!("No localization for id: \"{}\"", message_id)
-            })
+        self.lang(lang).get_args(id, args)
     }
 
     /// Returns true if a message with the specified `message_id` is

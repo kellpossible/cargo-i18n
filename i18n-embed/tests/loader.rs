@@ -201,10 +201,10 @@ mod fluent {
             .load_languages(&Localizations, &[&ru, &en_gb])
             .unwrap();
 
-        let msg = loader.get_lang(&[&ru], "only-ru");
+        let msg = loader.lang(&[&ru]).get("only-ru");
         assert_eq!("только русский", msg);
 
-        let msg = loader.get_lang(&[&ru], "only-gb");
+        let msg = loader.lang(&[&ru]).get("only-gb");
         assert_eq!("only GB (US Version)", msg);
     }
 
@@ -225,7 +225,7 @@ mod fluent {
             "argTwo" => "2",
         };
 
-        let msg = loader.get_lang_args(&[&ru], "multi-line-args", args);
+        let msg = loader.lang(&[&ru]).get_args("multi-line-args", args);
         assert_eq!(
             "Это многострочное сообщение с параметрами.\n\n\
             \u{2068}1\u{2069}\n\n\
@@ -248,10 +248,10 @@ mod fluent {
             .load_languages(&Localizations, &[&ru, &en_gb])
             .unwrap();
 
-        let msg = loader.get_lang(&[&ru, &en_gb], "only-gb");
+        let msg = loader.lang(&[&ru, &en_gb]).get("only-gb");
         assert_eq!("only GB", msg);
 
-        let msg = loader.get_lang(&[&ru, &en_gb], "only-us");
+        let msg = loader.lang(&[&ru, &en_gb]).get("only-us");
         assert_eq!("only US", msg);
     }
 
@@ -271,10 +271,12 @@ mod fluent {
             "userName" => "username",
         };
 
-        let msg = loader.get_lang_args(&[&ru], "only-gb-args", args.clone());
+        let msg = loader.lang(&[&ru]).get_args("only-gb-args", args.clone());
         assert_eq!("Hello \u{2068}username\u{2069}! (US Version)", msg);
 
-        let msg = loader.get_lang_args(&[&ru, &en_gb], "only-gb-args", args.clone());
+        let msg = loader
+            .lang(&[&ru, &en_gb])
+            .get_args("only-gb-args", args.clone());
         assert_eq!("Hello \u{2068}username\u{2069}!", msg);
     }
 }
