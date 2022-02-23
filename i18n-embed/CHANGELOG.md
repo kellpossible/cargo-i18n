@@ -1,5 +1,11 @@
 # Changelog for `i18n-embed`
 
+## v0.13.4 
+
+### New Features
+
++ Implement `FluentLanguageLoader::get_lang(...)` methods. This enables the use of the fluent language loader without using the global current language setting, which is useful for web servers. Closes [#59](https://github.com/kellpossible/cargo-i18n/issues/59).
+
 ## v0.13.3
 
 + Update `rust-embed` to `6.3` to address [RUSTSEC-2021-0126](https://rustsec.org/advisories/RUSTSEC-2021-0126.html).
