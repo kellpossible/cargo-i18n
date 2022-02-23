@@ -1,0 +1,76 @@
+use std::sync::Arc;
+
+use fluent::FluentArgs;
+use unic_langid::{LanguageIdentifier, subtags::Language};
+
+use crate::I18nEmbedError;
+
+pub trait Loader {
+    fn reload(&self) -> Result<(), Box<I18nEmbedError>>;
+}
+
+pub trait CurrentLanguage {
+
+}
+
+pub trait IntoCurrentLanguage {
+    fn into_current_language(self) -> Box<dyn CurrentLanguage>;
+}
+
+pub struct LanguageSelection {
+    loader: Arc<dyn Loader>,
+    loader_rev: usize,
+    language_idents: Vec<LanguageIdentifier>,
+    language_indices: Vec<usize>,
+}
+
+pub struct StaticCurrentLanguage {   
+    selection: LanguageSelection;
+}
+
+impl StaticCurrentLanguage {
+    pub fn new(lang: &[&LanguageIdentifier]) -> Self {
+        // FIXME implement
+        unimplemented!()
+    }
+}
+
+impl CurrentLanguage for StaticCurrentLanguage {
+}
+
+impl IntoCurrentLanguage for &[&LanguageIdentifier] {
+    fn into_current_language(self) -> Box<dyn CurrentLanguage> {
+        Box::new(StaticCurrentLanguage::new(self))
+    }
+}
+
+
+pub struct Translator {
+}
+
+impl Translator {
+    pub fn new(&self, loader: Arc<dyn Loader>, lang: impl IntoCurrentLanguage) -> Self {
+        Self {
+            loader: 
+            language_idents: lang.iter().cloned().collect(),
+            language_indices: Vec::new(),
+            current_language: 
+        }
+    }
+    fn get(&self, message_id: &str, args: Option<FluentArgs>) {
+
+    }
+    /**
+     * Create a new translator with a different list of languages.
+     */
+    fn lang(&self, lang: impl IntoCurrentLanguage) -> Self {
+    }
+}
+
+
+
+/*
+
+    let loader = FluentLoader::new();
+    let translator = loader.translator(&["de", "en"]);
+*/

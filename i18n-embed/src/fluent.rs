@@ -9,6 +9,7 @@ use crate::{I18nAssets, I18nEmbedError, LanguageLoader};
 
 pub use i18n_embed_impl::fluent_language_loader;
 
+use arc_swap::ArcSwap;
 use fluent::{bundle::FluentBundle, FluentArgs, FluentMessage, FluentResource, FluentValue};
 use fluent_syntax::ast::{self, Pattern};
 use intl_memoizer::concurrent::IntlLangMemoizer;
@@ -55,6 +56,18 @@ struct LanguageConfig {
     language_map: HashMap<LanguageIdentifier, usize>,
 }
 
+#[derive(Debug)]
+struct CurrentLanguage {
+    languages: Vec<LanguageIdentifier>,
+    indices: Vec<usize>,
+}
+
+#[derive(Debug)]
+struct FluentLanguageLoaderInner {
+    language_config: Arc<RwLock<LanguageConfig>>,
+    current_language: CurrentLanguage,
+}
+
 /// [LanguageLoader] implemenation for the `fluent` localization
 /// system. Also provides methods to access localizations which have
 /// been loaded.
@@ -62,7 +75,7 @@ struct LanguageConfig {
 /// ⚠️ *This API requires the following crate features to be activated: `fluent-system`.*
 #[derive(Debug)]
 pub struct FluentLanguageLoader {
-    language_config: RwLock<LanguageConfig>,
+    inner: ArcSwap<FluentLanguageLoaderInner>,
     domain: String,
     fallback_language: unic_langid::LanguageIdentifier,
 }
@@ -82,7 +95,13 @@ impl FluentLanguageLoader {
         };
 
         Self {
-            language_config: RwLock::new(config),
+            inner: ArcSwap::new(Arc::new(FluentLanguageLoaderInner {
+                language_config: Arc::new(RwLock::new(config)),
+                current_language: CurrentLanguage {
+                    languages: vec![fallback_language.clone()],
+                    indices: vec![],
+                },
+            })),
             domain: domain.into(),
             fallback_language,
         }
@@ -90,12 +109,7 @@ impl FluentLanguageLoader {
 
     /// The languages associated with each actual loaded language bundle.
     pub fn current_languages(&self) -> Vec<unic_langid::LanguageIdentifier> {
-        self.language_config
-            .read()
-            .language_bundles
-            .iter()
-            .map(|b| b.language.clone())
-            .collect()
+        self.inner.load().current_language.languages.clone()
     }
 
     /// Get a localized message referenced by the `message_id`.
@@ -119,9 +133,14 @@ impl FluentLanguageLoader {
         message_id: &str,
         args: Option<&'args FluentArgs<'args>>,
     ) -> String {
-        let language_config = self.language_config.read();
+        let inner = self.inner.load();
+        let language_config = inner.language_config.read();
         self._get(
-            language_config.language_bundles.iter(),
+            inner
+                .current_language
+                .indices
+                .iter()
+                .map(|&idx| &language_config.language_bundles[idx]),
             &self.current_language(),
             message_id,
             args,
@@ -171,7 +190,8 @@ impl FluentLanguageLoader {
         } else {
             Some(&self.fallback_language)
         };
-        let config_lock = self.language_config.read();
+        let inner = self.inner.load();
+        let config_lock = inner.language_config.read();
         let language_bundles = lang
             .iter()
             .chain(fallback_language.as_ref().into_iter())
@@ -241,7 +261,8 @@ impl FluentLanguageLoader {
     /// available in any of the languages currently loaded (including
     /// the fallback language).
     pub fn has(&self, message_id: &str) -> bool {
-        let config_lock = self.language_config.read();
+        let inner = self.inner.load();
+        let config_lock = inner.language_config.read();
         let mut has_message = false;
 
         config_lock
@@ -263,7 +284,8 @@ impl FluentLanguageLoader {
     where
         C: Fn(fluent::FluentMessage<'_>) -> OUT,
     {
-        let config_lock = self.language_config.read();
+        let inner = self.inner.load();
+        let config_lock = inner.language_config.read();
 
         config_lock
             .language_bundles
@@ -280,7 +302,8 @@ impl FluentLanguageLoader {
     where
         C: Fn(&mut dyn Iterator<Item = &ast::Message<&str>>) -> OUT,
     {
-        let config_lock = self.language_config.read();
+        let inner = self.inner.load();
+        let config_lock = inner.language_config.read();
 
         let mut iter = config_lock
             .language_bundles
@@ -321,8 +344,48 @@ impl FluentLanguageLoader {
     where
         F: Fn(&mut FluentBundle<Arc<FluentResource>, IntlLangMemoizer>),
     {
-        for bundle in self.language_config.write().language_bundles.as_mut_slice() {
+        for bundle in self
+            .inner
+            .load()
+            .language_config
+            .write()
+            .language_bundles
+            .as_mut_slice()
+        {
             f(&mut bundle.bundle);
+        }
+    }
+
+    /// Create a new loader with a different current language setting.
+    /// This is a rather cheap operation and does not require any
+    /// extensive copy operations. Cheap does not mean free so you
+    /// should not call this message repeatedly in order to translate
+    /// multiple strings for the same language.
+    pub fn lang(&self, languages: &[&LanguageIdentifier]) -> FluentLanguageLoader {
+        let inner = self.inner.load();
+        let config_lock = inner.language_config.read();
+        let fallback_language = if languages.contains(&&self.fallback_language) {
+            None
+        } else {
+            Some(&self.fallback_language)
+        };
+        let indices = languages
+            .iter()
+            .cloned()
+            .chain(fallback_language)
+            .filter_map(|lang| config_lock.language_map.get(lang))
+            .cloned()
+            .collect();
+        FluentLanguageLoader {
+            inner: ArcSwap::new(Arc::new(FluentLanguageLoaderInner {
+                current_language: CurrentLanguage {
+                    languages: languages.iter().map(|&lang| lang.clone()).collect(),
+                    indices,
+                },
+                language_config: self.inner.load().language_config.clone(),
+            })),
+            domain: self.domain.clone(),
+            fallback_language: self.fallback_language.clone(),
         }
     }
 }
@@ -345,11 +408,12 @@ impl LanguageLoader for FluentLanguageLoader {
 
     /// Get the language which is currently loaded for this loader.
     fn current_language(&self) -> unic_langid::LanguageIdentifier {
-        let config_lock = self.language_config.read();
-        config_lock.language_bundles.first().map_or_else(
-            || self.fallback_language.clone(),
-            |bundle| bundle.language.clone(),
-        )
+        self.inner
+            .load()
+            .current_language
+            .languages
+            .first()
+            .map_or_else(|| self.fallback_language.clone(), Clone::clone)
     }
 
     /// Load the languages `language_ids` using the resources packaged
@@ -376,7 +440,7 @@ impl LanguageLoader for FluentLanguageLoader {
 
         let mut language_bundles = Vec::with_capacity(language_ids.len());
 
-        for language in load_language_ids {
+        for &language in &load_language_ids {
             let (path, file) = self.language_file(language, i18n_assets);
 
             if let Some(file) = file {
@@ -409,15 +473,20 @@ impl LanguageLoader for FluentLanguageLoader {
             }
         }
 
-        let mut config_lock = self.language_config.write();
-        config_lock.language_bundles = language_bundles;
-        config_lock.language_map = config_lock
-            .language_bundles
-            .iter()
-            .enumerate()
-            .map(|(i, language_bundle)| (language_bundle.language.clone(), i))
-            .collect();
-        drop(config_lock);
+        self.inner.swap(Arc::new(FluentLanguageLoaderInner {
+            current_language: CurrentLanguage {
+                languages: language_ids.iter().map(|&lang| lang.to_owned()).collect(),
+                indices: (0..load_language_ids.len()).collect(),
+            },
+            language_config: Arc::new(RwLock::new(LanguageConfig {
+                language_map: language_bundles
+                    .iter()
+                    .enumerate()
+                    .map(|(i, language_bundle)| (language_bundle.language.clone(), i))
+                    .collect(),
+                language_bundles,
+            })),
+        }));
 
         Ok(())
     }
