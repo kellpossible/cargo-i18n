@@ -313,7 +313,7 @@ impl FluentLanguageLoader {
         self.with_bundles_mut(|bundle| bundle.set_use_isolating(value));
     }
 
-    /// Apply some configuration to each budle in this loader.
+    /// Apply some configuration to each bundle in this loader.
     ///
     /// **Note:** This function will have no effect if
     /// [`LanguageLoader::load_languages`] has not been called first.
