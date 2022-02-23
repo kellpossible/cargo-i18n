@@ -19,25 +19,24 @@ use unic_langid::LanguageIdentifier;
 struct LanguageBundle {
     language: LanguageIdentifier,
     bundle: FluentBundle<Arc<FluentResource>, IntlLangMemoizer>,
-    resources: Vec<Arc<FluentResource>>,
+    resource: Arc<FluentResource>,
 }
 
 impl LanguageBundle {
-    fn new(language: LanguageIdentifier, resources: Vec<Arc<FluentResource>>) -> Self {
+    fn new(language: LanguageIdentifier, resource: FluentResource) -> Self {
         let mut bundle = FluentBundle::new_concurrent(vec![language.clone()]);
+        let resource = Arc::new(resource);
 
-        for resource in &resources {
-            if let Err(errors) = bundle.add_resource(Arc::clone(resource)) {
-                errors.iter().for_each(|error | {
-                    log::error!(target: "i18n_embed::fluent", "Error while adding resource to bundle: {0:?}.", error);
-                })
-            }
+        if let Err(errors) = bundle.add_resource(resource.clone()) {
+            errors.iter().for_each(|error | {
+                log::error!(target: "i18n_embed::fluent", "Error while adding resource to bundle: {0:?}.", error);
+            })
         }
 
         Self {
             language,
             bundle,
-            resources,
+            resource,
         }
     }
 }
@@ -288,12 +287,13 @@ impl FluentLanguageLoader {
             .iter()
             .filter(|language_bundle| &language_bundle.language == language)
             .flat_map(|language_bundle| {
-                language_bundle.resources.iter().flat_map(|resource| {
-                    resource.entries().filter_map(|entry| match entry {
+                language_bundle
+                    .resource
+                    .entries()
+                    .filter_map(|entry| match entry {
                         ast::Entry::Message(message) => Some(message),
                         _ => None,
                     })
-                })
             });
 
         (closure)(&mut iter)
@@ -398,8 +398,7 @@ impl LanguageLoader for FluentLanguageLoader {
                     }
                 };
 
-                let resources = vec![Arc::new(resource)];
-                let language_bundle = LanguageBundle::new(language.clone(), resources);
+                let language_bundle = LanguageBundle::new(language.clone(), resource);
 
                 language_bundles.push(language_bundle);
             } else {
