@@ -20,11 +20,20 @@ use serde_derive::Deserialize;
 use thiserror::Error;
 use unic_langid::LanguageIdentifier;
 
+/// An error type explaining why a crate failed to verify.
+#[derive(Debug, Error)]
+pub enum WhyNotCrate {
+    #[error("there is no Cargo.toml present")]
+    NoCargoToml,
+    #[error("it is a workspace")]
+    Workspace
+}
+
 /// An error type for use with the `i18n-config` crate.
 #[derive(Debug, Error)]
 pub enum I18nConfigError {
-    #[error("The specified path is not a crate because there is no Cargo.toml present.")]
-    NotACrate(PathBuf),
+    #[error("The specified path is not a crate because {1}.")]
+    NotACrate(PathBuf, WhyNotCrate),
     #[error("Cannot read file {0:?} in the current working directory {1:?} because {2}.")]
     CannotReadFile(PathBuf, io::Result<PathBuf>, #[source] io::Error),
     #[error("Cannot parse Cargo configuration file {0:?} because {1}.")]
@@ -80,7 +89,7 @@ impl<'a> Crate<'a> {
         let cargo_path = path_into.join("Cargo.toml");
 
         if !cargo_path.exists() {
-            return Err(I18nConfigError::NotACrate(path_into));
+            return Err(I18nConfigError::NotACrate(path_into, WhyNotCrate::NoCargoToml));
         }
 
         let toml_str = read_to_string(cargo_path.clone()).map_err(|err| {
@@ -93,7 +102,12 @@ impl<'a> Crate<'a> {
             .as_table()
             .ok_or_else(|| I18nConfigError::CannotParseCargoToml(cargo_path.clone(), "Cargo.toml needs have sections (such as the \"gettext\" section when using gettext.".to_string()))?
             .get("package")
-            .ok_or_else(|| I18nConfigError::CannotParseCargoToml(cargo_path.clone(), "Cargo.toml needs to have a \"package\" section.".to_string()))?
+            .ok_or_else(|| {
+                match cargo_toml.get("workspace") {
+                    Some(_) => I18nConfigError::NotACrate(cargo_path.clone(), WhyNotCrate::Workspace),
+                    None => I18nConfigError::CannotParseCargoToml(cargo_path.clone(), "Cargo.toml needs to have a \"package\" section.".to_string())
+                }
+            })?
             .as_table()
             .ok_or_else(|| I18nConfigError::CannotParseCargoToml(cargo_path.clone(),
                 "Cargo.toml's \"package\" section needs to contain values.".to_string()
@@ -269,9 +283,12 @@ impl<'a> Crate<'a> {
                 }
                 Err(err) => {
                     match err {
-                        I18nConfigError::NotACrate(path) => {
+                        I18nConfigError::NotACrate(path, WhyNotCrate::Workspace) => {
+                            debug!("The parent of {0} at path {1:?} is a workspace", self, path);
+                        },
+                        I18nConfigError::NotACrate(path, WhyNotCrate::NoCargoToml) => {
                             debug!("The parent of {0} at path {1:?} is not a valid crate with a Cargo.toml", self, path);
-                        }
+                        },
                         _ => {
                             error!(
                                 "Error occurred while attempting to resolve parent of {0}: {1}",
