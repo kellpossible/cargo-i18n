@@ -71,6 +71,28 @@ mod fluent {
     }
 
     #[test]
+    fn attr() {
+        setup();
+        let en_us: LanguageIdentifier = "en-US".parse().unwrap();
+        let loader = FluentLanguageLoader::new("test", en_us.clone());
+        loader.load_languages(&Localizations, &[&en_us]).unwrap();
+        pretty_assertions::assert_eq!("World (US version)!", loader.get_attr("with-attr", "attr"));
+    }
+
+    #[test]
+    fn attr_with_args() {
+        setup();
+        let en_us: LanguageIdentifier = "en-US".parse().unwrap();
+        let en_gb: LanguageIdentifier = "en-GB".parse().unwrap();
+        let loader = FluentLanguageLoader::new("test", en_us.clone());
+        loader.load_languages(&Localizations, &[&en_gb]).unwrap();
+        let args = maplit::hashmap! {
+            "name" => "Joe Doe"
+        };
+        pretty_assertions::assert_eq!("\u{2068}Joe Doe\u{2069}!", loader.get_attr_args("with-attr-and-args", "who", args));
+    }
+
+    #[test]
     fn has() {
         setup();
         let en_us: LanguageIdentifier = "en-US".parse().unwrap();

@@ -67,3 +67,26 @@ fn with_one_arg_lit() {
         fl!(loader, "hello-arg", name = "Bob")
     );
 }
+
+#[test]
+fn with_attr() {
+    let loader: FluentLanguageLoader = fluent_language_loader!();
+    loader
+        .load_languages(&Localizations, &[loader.fallback_language()])
+        .unwrap();
+
+    pretty_assertions::assert_eq!("Hello, attribute!", fl!(loader, "hello-attr", "text"));
+}
+
+#[test]
+fn with_attr_and_args() {
+    let loader: FluentLanguageLoader = fluent_language_loader!();
+    loader
+        .load_languages(&Localizations, &[loader.fallback_language()])
+        .unwrap();
+
+    pretty_assertions::assert_eq!(
+        "Hello \u{2068}Bob\u{2069}'s attribute!",
+        fl!(loader, "hello-arg", "attr", name = "Bob")
+    );
+}

@@ -9,7 +9,9 @@ use crate::{I18nAssets, I18nEmbedError, LanguageLoader};
 
 pub use i18n_embed_impl::fluent_language_loader;
 
-use fluent::{bundle::FluentBundle, FluentArgs, FluentMessage, FluentResource, FluentValue};
+use fluent::{
+    bundle::FluentBundle, FluentArgs, FluentAttribute, FluentMessage, FluentResource, FluentValue,
+};
 use fluent_syntax::ast::{self, Pattern};
 use intl_memoizer::concurrent::IntlLangMemoizer;
 use parking_lot::RwLock;
@@ -141,6 +143,62 @@ impl FluentLanguageLoader {
         self.get_args_fluent(id, hash_map_to_fluent_args(args).as_ref())
     }
 
+    /// Get a localized attribute referenced by the `message_id` and `attribute_id`.
+    pub fn get_attr(&self, message_id: &str, attribute_id: &str) -> String {
+        self.get_attr_args_fluent(message_id, attribute_id, None)
+    }
+
+    /// A non-generic version of [FluentLanguageLoader::get_attr_args()].
+    pub fn get_attr_args_concrete<'args>(
+        &self,
+        message_id: &str,
+        attribute_id: &str,
+        args: HashMap<&'args str, FluentValue<'args>>,
+    ) -> String {
+        self.get_attr_args_fluent(
+            message_id,
+            attribute_id,
+            hash_map_to_fluent_args(args).as_ref(),
+        )
+    }
+
+    /// A non-generic version of [FluentLanguageLoader::get_attr_args()]
+    /// accepting [FluentArgs] instead of a [HashMap].
+    pub fn get_attr_args_fluent<'args>(
+        &self,
+        message_id: &str,
+        attribute_id: &str,
+        args: Option<&'args FluentArgs<'args>>,
+    ) -> String {
+        let language_config = self.language_config.read();
+        self._get_attribute(
+            language_config.language_bundles.iter(),
+            &language_config.current_language,
+            message_id,
+            attribute_id,
+            args,
+        )
+    }
+
+    /// Get a localized attribute referenced by the `message_id` and `attribute_id`, and
+    /// formatted with the specified `args`.
+    pub fn get_attr_args<'a, S, V>(
+        &self,
+        message_id: &str,
+        attribute_id: &str,
+        args: HashMap<S, V>,
+    ) -> String
+    where
+        S: Into<Cow<'a, str>> + Clone,
+        V: Into<FluentValue<'a>> + Clone,
+    {
+        self.get_attr_args_fluent(
+            message_id,
+            attribute_id,
+            hash_map_to_fluent_args(args).as_ref(),
+        )
+    }
+
     /// Get a localized message referenced by the `message_id`.
     pub fn get_lang(&self, lang: &[&LanguageIdentifier], message_id: &str) -> String {
         self.get_lang_args_fluent(lang, message_id, None)
@@ -203,6 +261,87 @@ impl FluentLanguageLoader {
         self.get_lang_args_fluent(lang, id, fluent_args.as_ref())
     }
 
+    /// Get a localized attribute referenced by the `Message_id` and `attribute_id`.
+    pub fn get_lang_attr(
+        &self,
+        lang: &[&LanguageIdentifier],
+        message_id: &str,
+        attribute_id: &str,
+    ) -> String {
+        self.get_lang_attr_args_fluent(lang, message_id, attribute_id, None)
+    }
+
+    /// A non-generic version of [FluentLanguageLoader::get_lang_attr_args()].
+    pub fn get_lang_attr_args_concrete<'source>(
+        &self,
+        lang: &[&LanguageIdentifier],
+        message_id: &str,
+        attribute_id: &str,
+        args: HashMap<&'source str, FluentValue<'source>>,
+    ) -> String {
+        self.get_lang_attr_args_fluent(
+            lang,
+            message_id,
+            attribute_id,
+            hash_map_to_fluent_args(args).as_ref(),
+        )
+    }
+
+    /// A non-generic version of [FluentLanguageLoader::get_lang_attr_args()]
+    /// accepting [FluentArgs] instead of a [HashMap].
+    pub fn get_lang_attr_args_fluent<'args>(
+        &self,
+        lang: &[&LanguageIdentifier],
+        message_id: &str,
+        attribute_id: &str,
+        args: Option<&'args FluentArgs<'args>>,
+    ) -> String {
+        let current_language = if lang.is_empty() {
+            &self.fallback_language
+        } else {
+            lang[0]
+        };
+        let fallback_language = if lang.contains(&&self.fallback_language) {
+            None
+        } else {
+            Some(&self.fallback_language)
+        };
+        let config_lock = self.language_config.read();
+        let language_bundles = lang
+            .iter()
+            .chain(fallback_language.as_ref().into_iter())
+            .filter_map(|id| {
+                config_lock
+                    .language_map
+                    .get(id)
+                    .map(|idx| &config_lock.language_bundles[*idx])
+            });
+        self._get_attribute(
+            language_bundles,
+            current_language,
+            message_id,
+            attribute_id,
+            args,
+        )
+    }
+
+    /// Get a localized attribute referenced by the `message_id` and `attribute_id`
+    /// and formatted with the `args`.
+    pub fn get_lang_attr_args<'a, S, V>(
+        &self,
+        lang: &[&LanguageIdentifier],
+        message_id: &str,
+        attribute_id: &str,
+        args: HashMap<S, V>,
+    ) -> String
+    where
+        S: Into<Cow<'a, str>> + Clone,
+        V: Into<FluentValue<'a>> + Clone,
+    {
+        let fluent_args = hash_map_to_fluent_args(args);
+        self.get_lang_attr_args_fluent(lang, message_id, attribute_id, fluent_args.as_ref())
+    }
+
     fn _get<'a, 'args>(
         &'a self,
         language_bundles: impl Iterator<Item = &'a LanguageBundle>,
@@ -240,7 +379,50 @@ impl FluentLanguageLoader {
             })
     }
 
-    /// Returns true if a message with the specified `message_id` is
+    fn _get_attribute<'a, 'args>(
+        &'a self,
+        language_bundles: impl Iterator<Item = &'a LanguageBundle>,
+        current_language: &LanguageIdentifier,
+        message_id: &str,
+        attribute_id: &str,
+        args: Option<&'args FluentArgs<'args>>,
+    ) -> String {
+        language_bundles.filter_map(|language_bundle| {
+            language_bundle
+                .bundle
+                .get_message(message_id)
+                .and_then(|m: FluentMessage<'_>| {
+                    m.get_attribute(attribute_id)
+                    .and_then(|a: FluentAttribute<'_>| {
+                        Some(a.value())
+                    })
+                })
+                .map(|pattern: &Pattern<&str>| {
+                    let mut errors = Vec::new();
+                    let value = language_bundle.bundle.format_pattern(pattern, args, &mut errors);
+                    if !errors.is_empty() {
+                        log::error!(
+                            target:"i18n_embed::fluent",
+                            "Failed to format a message for language \"{}\" and id \"{}\".\nErrors\n{:?}.",
+                            current_language, message_id, errors
+                        )
+                    }
+                    value.into()
+                })
+        })
+        .next()
+        .unwrap_or_else(|| {
+            log::error!(
+                target:"i18n_embed::fluent",
+                "Unable to find localization for language \"{}\", message id \"{}\" and attribute id \"{}\".",
+                current_language,
+                message_id,
+                attribute_id
+            );
+            format!("No localization for message id: \"{}\" and attribute id: \"{}\"", message_id, attribute_id)
+        })
+    }
+
     /// available in any of the languages currently loaded (including
     /// the fallback language).
     pub fn has(&self, message_id: &str) -> bool {
@@ -255,6 +437,32 @@ impl FluentLanguageLoader {
             });
 
         has_message
+    }
+
+    /// Determines if an attribute associated with the specified `message_id` 
+    /// is available in any of the currently loaded languages, including the fallback language.
+    /// 
+    /// Returns true if at least one available instance was found,
+    /// false otherwise.
+    /// 
+    /// Note that this also returns false if the `message_id` could not be found;
+    /// use [FluentLanguageLoader::has()] to determine if the `message_id` is available.
+    pub fn has_attr(&self, message_id: &str, attribute_id: &str) -> bool {
+        let config_lock = self.language_config.read();
+        
+        config_lock
+            .language_bundles
+            .iter()
+            .filter_map(|bundle| {
+                bundle
+                    .bundle
+                    .get_message(message_id)
+                    .and_then(|message| {
+                        Some(message.get_attribute(attribute_id).is_some())
+                    })
+            })
+            .next()
+            .unwrap_or(false)
     }
 
     /// Run the `closure` with the message that matches the specified
