@@ -21,3 +21,7 @@ multi-line-args =
     { $argTwo }
 
     Finished!
+with-attr = Hello
+    .attr = World (US version)!
+with-attr-and-args = Hello
+    .who = {$name}!
