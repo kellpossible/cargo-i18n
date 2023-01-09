@@ -98,19 +98,19 @@ pub fn run_xtr(
 
         match &gettext_config.copyright_holder {
             Some(copyright_holder) => {
-                xtr.args(&["--copyright-holder", copyright_holder.as_str()]);
+                xtr.args(["--copyright-holder", copyright_holder.as_str()]);
             }
             None => {}
         }
 
         match &gettext_config.msgid_bugs_address {
             Some(msgid_bugs_address) => {
-                xtr.args(&["--msgid-bugs-address", msgid_bugs_address.as_str()]);
+                xtr.args(["--msgid-bugs-address", msgid_bugs_address.as_str()]);
             }
             None => {}
         }
 
-        xtr.args(&[
+        xtr.args([
             "--package-name",
             crt.name.as_str(),
             "--package-version",
@@ -186,7 +186,7 @@ pub fn run_msgcat<P: AsRef<Path>, I: IntoIterator<Item = P>>(
     };
 
     util::create_dir_all_if_not_exists(
-        &interim_output_pot_path
+        interim_output_pot_path
             .parent()
             .expect("expected there to be a parent to the interim output pot path"),
     )?;
@@ -260,7 +260,7 @@ pub fn run_msginit(crt: &Crate, pot_dir: &Path, po_dir: &Path) -> Result<()> {
                             PathType::File,
                         ))?
                 ),
-                format!("--locale={}.UTF-8", locale),
+                format!("--locale={locale}.UTF-8"),
                 format!(
                     "--output={}",
                     po_path.to_str().ok_or_else(|| PathError::not_valid_utf8(
@@ -307,7 +307,7 @@ pub fn run_msgmerge(crt: &Crate, pot_dir: &Path, po_dir: &Path) -> Result<()> {
         util::check_path_exists(&po_file_path)?;
 
         let mut msgmerge = Command::new(msgmerge_command_name);
-        msgmerge.args(&[
+        msgmerge.args([
             "--silent",
             "--backup=none",
             "--update",
@@ -448,7 +448,7 @@ pub fn run(crt: &Crate) -> Result<()> {
             crt.path.canonicalize().unwrap() != config_crate.path.canonicalize().unwrap();
         run_xtr(
             crt,
-            &gettext_config,
+            gettext_config,
             src_dir.as_path(),
             pot_dir.as_path(),
             prepend_crate_path,

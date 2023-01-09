@@ -168,7 +168,7 @@ impl<'a> Crate<'a> {
     /// The name of the module/library used for this crate. Replaces
     /// `-` characters with `_` in the crate name.
     pub fn module_name(&self) -> String {
-        self.name.replace("-", "_")
+        self.name.replace('-', "_")
     }
 
     /// If there is a parent, get it's

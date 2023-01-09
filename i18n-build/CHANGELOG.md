@@ -1,5 +1,11 @@
 # Changelog for `i18n-build`
 
+## master
+
+### Internal
+
++ Fix clippy warnings.
+
 ## v0.8.2
 
 + Update `rust-embed` to `6.3` to address [RUSTSEC-2021-0126](https://rustsec.org/advisories/RUSTSEC-2021-0126.html).

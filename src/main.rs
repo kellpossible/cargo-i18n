@@ -133,7 +133,7 @@ fn main() -> Result<()> {
                 .short('l')
                 .takes_value(true)
                 .default_value(&fallback_locale)
-                .possible_values(&available_languages_slice)
+                .possible_values(available_languages_slice)
             )
         )
         .get_matches();

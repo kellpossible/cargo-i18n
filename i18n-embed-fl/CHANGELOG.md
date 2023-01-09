@@ -1,5 +1,19 @@
 # Changelog for `i18n-embed-fl`
 
+## v0.6.5
+
+### New Features
+
++ Support fluent attributes [#98](https://github.com/kellpossible/cargo-i18n/pull/98) thanks to [@Almost-Senseless-Coder](https://github.com/Almost-Senseless-Coder)!
+  + Tweaked the `fl!()` macro definition such that it optionally accepts an attribute ID in addition to a message ID and arguments.
+  + Implemented compile-time verification of attributes.
+
+### Internal
+
++ Bump `i18n-embed` dependency to version `0.13.5`.
++ Bump `env_logger` dev dependency to version `0.10`.
++ Fix clippy warnings.
+
 ## v0.6.4
 
 + Update `dashmap` to version `5.1`.

@@ -375,7 +375,7 @@ impl FluentLanguageLoader {
                     current_language,
                     message_id
                 );
-                format!("No localization for id: \"{}\"", message_id)
+                format!("No localization for id: \"{message_id}\"")
             })
     }
 
@@ -393,8 +393,8 @@ impl FluentLanguageLoader {
                 .get_message(message_id)
                 .and_then(|m: FluentMessage<'_>| {
                     m.get_attribute(attribute_id)
-                    .and_then(|a: FluentAttribute<'_>| {
-                        Some(a.value())
+                    .map(|a: FluentAttribute<'_>| {
+                        a.value()
                     })
                 })
                 .map(|pattern: &Pattern<&str>| {
@@ -419,7 +419,7 @@ impl FluentLanguageLoader {
                 message_id,
                 attribute_id
             );
-            format!("No localization for message id: \"{}\" and attribute id: \"{}\"", message_id, attribute_id)
+            format!("No localization for message id: \"{message_id}\" and attribute id: \"{attribute_id}\"")
         })
     }
 
@@ -453,13 +453,12 @@ impl FluentLanguageLoader {
         config_lock
             .language_bundles
             .iter()
-            .filter_map(|bundle| {
+            .find_map(|bundle| {
                 bundle
                     .bundle
                     .get_message(message_id)
-                    .and_then(|message| Some(message.get_attribute(attribute_id).is_some()))
+                    .map(|message| message.get_attribute(attribute_id).is_some())
             })
-            .next()
             .unwrap_or(false)
     }
 

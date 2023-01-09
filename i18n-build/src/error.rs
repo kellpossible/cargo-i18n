@@ -191,6 +191,6 @@ impl Display for PathError {
             ),
         };
 
-        write!(f, "{}", message)
+        write!(f, "{message}")
     }
 }

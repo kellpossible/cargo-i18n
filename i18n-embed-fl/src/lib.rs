@@ -352,12 +352,12 @@ pub fn fl(input: TokenStream) -> TokenStream {
 
         let config_file_path = &crate_paths.i18n_config_file;
 
-        let config = i18n_config::I18nConfig::from_file(&config_file_path).unwrap_or_else(|err| {
+        let config = i18n_config::I18nConfig::from_file(config_file_path).unwrap_or_else(|err| {
             abort! {
                 proc_macro2::Span::call_site(),
                 format!(
-                    "fl!() had a problem reading i18n config file {0:?}: {1}",
-                    config_file_path, err);
+                    "fl!() had a problem reading i18n config file {config_file_path:?}: {err}"
+                );
                 help = "Try creating the `i18n.toml` configuration file.";
             }
         });
@@ -366,9 +366,9 @@ pub fn fl(input: TokenStream) -> TokenStream {
             abort! {
                 proc_macro2::Span::call_site(),
                 format!(
-                    "fl!() had a problem parsing i18n config file {0:?}: \
-                    there is no `[fluent]` subsection.",
-                    config_file_path);
+                    "fl!() had a problem parsing i18n config file {config_file_path:?}: \
+                    there is no `[fluent]` subsection."
+                );
                 help = "Add the `[fluent]` subsection to `i18n.toml`, \
                         along with its required `assets_dir`.";
             }
@@ -397,8 +397,9 @@ pub fn fl(input: TokenStream) -> TokenStream {
                         proc_macro2::Span::call_site(),
                         format!(
                             "fl!() was unable to load the localization \
-                            file for the `fallback_language` (\"{0}\"): {1}",
-                            fallback_language, file,);
+                            file for the `fallback_language` \
+                            (\"{fallback_language}\"): {file}"
+                        );
                         help = "Try creating the required fluent localization file.";
                     }
                 }
@@ -549,13 +550,13 @@ pub fn fl(input: TokenStream) -> TokenStream {
     };
 
     if let Some(message_id_str) = &message_id_string {
-        if !checked_loader_has_message && !domain_data.loader.has(&message_id_str) {
+        if !checked_loader_has_message && !domain_data.loader.has(message_id_str) {
             let suggestions =
                 fuzzy_message_suggestions(&domain_data.loader, message_id_str, 5).join("\n");
 
             let hint = format!(
-                "Perhaps you are looking for one of the following messages?\n\n{}",
-                suggestions
+                "Perhaps you are looking for one of the following messages?\n\n\
+                {suggestions}"
             );
 
             emit_error! {
@@ -572,38 +573,36 @@ pub fn fl(input: TokenStream) -> TokenStream {
 
                 hint = hint;
             };
-        } else {
-            if let Some(attr_id_str) = &attr_str {
-                if !checked_message_has_attribute
-                    && !&domain_data.loader.has_attr(message_id_str, attr_id_str)
-                {
-                    let suggestions = &domain_data
-                        .loader
-                        .with_fluent_message(&message_id_str, |message| {
-                            fuzzy_attribute_suggestions(&message, &attr_id_str, 5).join("\n")
-                        })
-                        .unwrap();
+        } else if let Some(attr_id_str) = &attr_str {
+            if !checked_message_has_attribute
+                && !&domain_data.loader.has_attr(message_id_str, attr_id_str)
+            {
+                let suggestions = &domain_data
+                    .loader
+                    .with_fluent_message(message_id_str, |message| {
+                        fuzzy_attribute_suggestions(&message, attr_id_str, 5).join("\n")
+                    })
+                    .unwrap();
 
-                    let hint = format!(
-                        "Perhaps you are looking for one of the following attributes?\n\n{}",
-                        suggestions
+                let hint = format!(
+                    "Perhaps you are looking for one of the following attributes?\n\n\
+                    {suggestions}"
+                );
+
+                emit_error! {
+                    attr_lit,
+                    format!(
+                        "fl!() `attribute_id` validation failed. `attribute_id` \
+                        of \"{0}\" does not exist in the `fallback_language` (\"{1}\")",
+                        attr_id_str,
+                        domain_data.loader.current_language(),
                     );
+                    help = "Enter the correct `attribute_id` or create \
+                            the attribute associated with the message in the localization file if the \
+                            intended attribute does not yet exist.";
 
-                    emit_error! {
-                        attr_lit,
-                        format!(
-                            "fl!() `attribute_id` validation failed. `attribute_id` \
-                            of \"{0}\" does not exist in the `fallback_language` (\"{1}\")",
-                            attr_id_str,
-                            domain_data.loader.current_language(),
-                        );
-                        help = "Enter the correct `attribute_id` or create \
-                                the attribute associated with the message in the localization file if the \
-                                intended attribute does not yet exist.";
-
-                        hint = hint;
-                    };
-                }
+                    hint = hint;
+                };
             }
         }
     }
@@ -645,7 +644,6 @@ fn fuzzy_attribute_suggestions(
 ) -> Vec<String> {
     let mut scored_attributes: Vec<(String, usize)> = message
         .attributes()
-        .into_iter()
         .map(|attribute| {
             (
                 attribute.id().to_string(),
@@ -676,14 +674,13 @@ fn check_message_args(
 
         let key_args: Vec<String> = specified_args
             .keys()
-            .into_iter()
             .map(|key| {
                 let arg = key.value();
 
                 if !args_set.contains(arg.as_str()) {
                     let available_args: String = args_set
                         .iter()
-                        .map(|arg| format!("`{}`", arg))
+                        .map(|arg| format!("`{arg}`"))
                         .collect::<Vec<String>>()
                         .join(", ");
 
@@ -710,7 +707,7 @@ fn check_message_args(
             .iter()
             .filter_map(|arg| {
                 if !key_args_set.contains(arg) {
-                    Some(format!("`{}`", arg))
+                    Some(format!("`{arg}`"))
                 } else {
                     None
                 }
@@ -744,14 +741,13 @@ fn check_attribute_args(
 
     let key_args: Vec<String> = specified_args
         .keys()
-        .into_iter()
         .map(|key| {
             let arg = key.value();
 
             if !args_set.contains(arg.as_str()) {
                 let available_args: String = args_set
                     .iter()
-                    .map(|arg| format!("`{}`", arg))
+                    .map(|arg| format!("`{arg}`"))
                     .collect::<Vec<String>>()
                     .join(", ");
 
@@ -778,7 +774,7 @@ fn check_attribute_args(
         .iter()
         .filter_map(|arg| {
             if !key_args_set.contains(arg) {
-                Some(format!("`{}`", arg))
+                Some(format!("`{arg}`"))
             } else {
                 None
             }
@@ -833,11 +829,9 @@ fn args_from_inline_expression<S: Copy>(inline_expr: &InlineExpression<S>, args:
         InlineExpression::TermReference {
             id: _,
             attribute: _,
-            arguments,
+            arguments: Some(call_args),
         } => {
-            if let Some(call_args) = arguments {
-                args_from_call_arguments(call_args, args);
-            }
+            args_from_call_arguments(call_args, args);
         }
         InlineExpression::VariableReference { id } => args.push(id.name),
         InlineExpression::Placeable { expression } => args_from_expression(expression, args),

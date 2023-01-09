@@ -476,7 +476,7 @@ pub enum I18nEmbedError {
 }
 
 fn error_vec_to_string(errors: &[I18nEmbedError]) -> String {
-    let strings: Vec<String> = errors.iter().map(|e| format!("{}", e)).collect();
+    let strings: Vec<String> = errors.iter().map(|e| format!("{e}")).collect();
     strings.join(", ")
 }
 
@@ -648,15 +648,13 @@ pub trait LanguageLoader {
                     _ => None,
                 };
 
-                let language_file_name: Option<String> = components
-                    .get(1)
-                    .map(|component| match component {
+                let language_file_name: Option<String> =
+                    components.get(1).and_then(|component| match component {
                         Component::Normal(s) => {
                             Some(s.to_str().expect("path should be valid utf-8").to_string())
                         }
                         _ => None,
-                    })
-                    .flatten();
+                    });
 
                 match language_file_name {
                     Some(language_file_name) => {

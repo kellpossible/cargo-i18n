@@ -1,5 +1,25 @@
 # Changelog for `i18n-embed`
 
+## v0.13.5
+
+### New Features
+
++ Support fluent attributes [#98](https://github.com/kellpossible/cargo-i18n/pull/98) thanks to [@Almost-Senseless-Coder](https://github.com/Almost-Senseless-Coder)!
+  +  New methods on `FluentLanguageLoader`:
+    + `get_attr`
+    + `get_attr_args_concrete`
+    + `get_attr_args_fluent`
+    + `get_attr_args`
+    + `get_lang_attr`
+    + `get_lang_attr_args_concrete`
+    + `get_lang_attr_args_fluent`
+    + `get_lang_attr_args`
+
+### Internal
+
++ Bump `env_logger` dev dependency to version `0.10`.
++ Fix clippy warnings.
+
 ## v0.13.4 
 
 ### New Features

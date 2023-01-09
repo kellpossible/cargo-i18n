@@ -207,7 +207,7 @@ impl std::fmt::Debug for LanguageRequesterImpl<'_> {
             .arc_listeners
             .iter()
             .map(|l| match l.upgrade() {
-                Some(l) => format!("{:p}", l),
+                Some(l) => format!("{l:p}"),
                 None => "None".to_string(),
             })
             .collect::<Vec<String>>()
