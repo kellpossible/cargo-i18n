@@ -1,5 +1,9 @@
 # `i18n-config` Changelog
 
+## v0.4.3
+
++ Prevent a panic when the crate root is a workspace. [#93](https://github.com/kellpossible/cargo-i18n/pull/93) thanks to [@ctrlcctrlv](https://github.com/ctrlcctrlv).
+
 ## v0.4.2
 
 ### New Features

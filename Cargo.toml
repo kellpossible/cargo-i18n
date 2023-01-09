@@ -25,7 +25,7 @@ tr = { version = "0.1", default-features = false, features = ["gettext"] }
 clap = { version = "3.0", features = ["cargo"] }
 rust-embed = "^6.3"
 unic-langid = "0.9"
-env_logger = "0.9"
+env_logger = "0.10"
 log = "0.4"
 lazy_static = "1.4.0"
 
