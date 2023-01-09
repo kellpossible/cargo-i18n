@@ -439,17 +439,17 @@ impl FluentLanguageLoader {
         has_message
     }
 
-    /// Determines if an attribute associated with the specified `message_id` 
+    /// Determines if an attribute associated with the specified `message_id`
     /// is available in any of the currently loaded languages, including the fallback language.
-    /// 
+    ///
     /// Returns true if at least one available instance was found,
     /// false otherwise.
-    /// 
+    ///
     /// Note that this also returns false if the `message_id` could not be found;
     /// use [FluentLanguageLoader::has()] to determine if the `message_id` is available.
     pub fn has_attr(&self, message_id: &str, attribute_id: &str) -> bool {
         let config_lock = self.language_config.read();
-        
+
         config_lock
             .language_bundles
             .iter()
@@ -457,9 +457,7 @@ impl FluentLanguageLoader {
                 bundle
                     .bundle
                     .get_message(message_id)
-                    .and_then(|message| {
-                        Some(message.get_attribute(attribute_id).is_some())
-                    })
+                    .and_then(|message| Some(message.get_attribute(attribute_id).is_some()))
             })
             .next()
             .unwrap_or(false)

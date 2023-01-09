@@ -89,7 +89,10 @@ mod fluent {
         let args = maplit::hashmap! {
             "name" => "Joe Doe"
         };
-        pretty_assertions::assert_eq!("\u{2068}Joe Doe\u{2069}!", loader.get_attr_args("with-attr-and-args", "who", args));
+        pretty_assertions::assert_eq!(
+            "\u{2068}Joe Doe\u{2069}!",
+            loader.get_attr_args("with-attr-and-args", "who", args)
+        );
     }
 
     #[test]
