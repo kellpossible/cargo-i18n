@@ -26,7 +26,7 @@ pub enum WhyNotCrate {
     #[error("there is no Cargo.toml present")]
     NoCargoToml,
     #[error("it is a workspace")]
-    Workspace
+    Workspace,
 }
 
 /// An error type for use with the `i18n-config` crate.
@@ -89,7 +89,10 @@ impl<'a> Crate<'a> {
         let cargo_path = path_into.join("Cargo.toml");
 
         if !cargo_path.exists() {
-            return Err(I18nConfigError::NotACrate(path_into, WhyNotCrate::NoCargoToml));
+            return Err(I18nConfigError::NotACrate(
+                path_into,
+                WhyNotCrate::NoCargoToml,
+            ));
         }
 
         let toml_str = read_to_string(cargo_path.clone()).map_err(|err| {
@@ -285,10 +288,10 @@ impl<'a> Crate<'a> {
                     match err {
                         I18nConfigError::NotACrate(path, WhyNotCrate::Workspace) => {
                             debug!("The parent of {0} at path {1:?} is a workspace", self, path);
-                        },
+                        }
                         I18nConfigError::NotACrate(path, WhyNotCrate::NoCargoToml) => {
                             debug!("The parent of {0} at path {1:?} is not a valid crate with a Cargo.toml", self, path);
-                        },
+                        }
                         _ => {
                             error!(
                                 "Error occurred while attempting to resolve parent of {0}: {1}",
