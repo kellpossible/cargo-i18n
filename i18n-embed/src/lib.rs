@@ -696,6 +696,12 @@ pub trait LanguageLoader {
             .collect()
     }
 
+    /// Load all available languages with [`LanguageLoader::load_languages()`].
+    fn load_available_languages(&self, i18n_assets: &dyn I18nAssets) -> Result<(), I18nEmbedError> {
+        let available_languages = self.available_languages(i18n_assets)?;
+        self.load_languages(i18n_assets, &available_languages.iter().collect::<Vec<_>>())
+    }
+
     /// Get the language which is currently loaded for this loader.
     fn current_language(&self) -> unic_langid::LanguageIdentifier;
 

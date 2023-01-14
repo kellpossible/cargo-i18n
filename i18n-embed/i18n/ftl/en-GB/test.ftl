@@ -1,6 +1,7 @@
 hello-world = Hello World Localisation!
 only-gb = only GB
 only-gb-args = Hello {$userName}!
+only-gb-us = only GB US (GB)
 different-args = this message has {$different} {$args} in different languages
 with-attr = Hello
     .attr = World!

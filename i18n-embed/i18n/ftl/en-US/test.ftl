@@ -1,6 +1,7 @@
 hello-world = Hello World Localization!
 only-us = only US
 only-ru = only RU
+only-gb-us = only GB US (US)
 only-gb = only GB (US Version)
 only-gb-args = Hello {$userName}! (US Version)
 different-args = this message has different {$arg}s in different languages

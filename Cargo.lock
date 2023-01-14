@@ -444,7 +444,7 @@ dependencies = [
 
 [[package]]
 name = "i18n-embed"
-version = "0.13.6"
+version = "0.13.7"
 dependencies = [
  "arc-swap",
  "doc-comment",
@@ -1110,6 +1110,17 @@ name = "wasm-bindgen-shared"
 version = "0.2.83"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1c38c045535d93ec4f0b4defec448e4291638ee608530863b1e2ba115d4fff7f"
+
+[[package]]
+name = "web-server"
+version = "0.1.0"
+dependencies = [
+ "i18n-embed",
+ "i18n-embed-fl",
+ "once_cell",
+ "rust-embed",
+ "unic-langid",
+]
 
 [[package]]
 name = "web-sys"

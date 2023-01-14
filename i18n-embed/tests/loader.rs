@@ -6,6 +6,7 @@ fn setup() {
 #[cfg(feature = "fluent-system")]
 mod fluent {
     use super::setup;
+    use fluent_langneg::NegotiationStrategy;
     use i18n_embed::{fluent::FluentLanguageLoader, LanguageLoader};
     use rust_embed::RustEmbed;
     use unic_langid::LanguageIdentifier;
@@ -215,7 +216,7 @@ mod fluent {
     }
 
     #[test]
-    fn lang_get_default_fallback() {
+    fn select_languages_get_default_fallback() {
         setup();
         let ru: LanguageIdentifier = "ru".parse().unwrap();
         let en_gb: LanguageIdentifier = "en-GB".parse().unwrap();
@@ -226,15 +227,15 @@ mod fluent {
             .load_languages(&Localizations, &[&ru, &en_gb])
             .unwrap();
 
-        let msg = loader.lang(&[&ru]).get("only-ru");
+        let msg = loader.select_languages(&[&ru]).get("only-ru");
         assert_eq!("только русский", msg);
 
-        let msg = loader.lang(&[&ru]).get("only-gb");
+        let msg = loader.select_languages(&[&ru]).get("only-gb");
         assert_eq!("only GB (US Version)", msg);
     }
 
     #[test]
-    fn lang_get_args_default_fallback() {
+    fn select_languages_get_args_default_fallback() {
         setup();
         let ru: LanguageIdentifier = "ru".parse().unwrap();
         let en_gb: LanguageIdentifier = "en-GB".parse().unwrap();
@@ -250,7 +251,9 @@ mod fluent {
             "argTwo" => "2",
         };
 
-        let msg = loader.lang(&[&ru]).get_args("multi-line-args", args);
+        let msg = loader
+            .select_languages(&[&ru])
+            .get_args("multi-line-args", args);
         assert_eq!(
             "Это многострочное сообщение с параметрами.\n\n\
             \u{2068}1\u{2069}\n\n\
@@ -262,7 +265,7 @@ mod fluent {
     }
 
     #[test]
-    fn lang_get_custom_fallback() {
+    fn select_languages_get_custom_fallback() {
         setup();
         let ru: LanguageIdentifier = "ru".parse().unwrap();
         let en_gb: LanguageIdentifier = "en-GB".parse().unwrap();
@@ -273,15 +276,15 @@ mod fluent {
             .load_languages(&Localizations, &[&ru, &en_gb])
             .unwrap();
 
-        let msg = loader.lang(&[&ru, &en_gb]).get("only-gb");
+        let msg = loader.select_languages(&[&ru, &en_gb]).get("only-gb");
         assert_eq!("only GB", msg);
 
-        let msg = loader.lang(&[&ru, &en_gb]).get("only-us");
+        let msg = loader.select_languages(&[&ru, &en_gb]).get("only-us");
         assert_eq!("only US", msg);
     }
 
     #[test]
-    fn lang_get_args_custom_fallback() {
+    fn select_languages_get_args_custom_fallback() {
         setup();
         let ru: LanguageIdentifier = "ru".parse().unwrap();
         let en_gb: LanguageIdentifier = "en-GB".parse().unwrap();
@@ -296,13 +299,31 @@ mod fluent {
             "userName" => "username",
         };
 
-        let msg = loader.lang(&[&ru]).get_args("only-gb-args", args.clone());
+        let msg = loader
+            .select_languages(&[&ru])
+            .get_args("only-gb-args", args.clone());
         assert_eq!("Hello \u{2068}username\u{2069}! (US Version)", msg);
 
         let msg = loader
-            .lang(&[&ru, &en_gb])
+            .select_languages(&[&ru, &en_gb])
             .get_args("only-gb-args", args.clone());
         assert_eq!("Hello \u{2068}username\u{2069}!", msg);
+    }
+
+    #[test]
+    fn select_languages_negotiate() {
+        setup();
+        let ru: LanguageIdentifier = "ru".parse().unwrap();
+        let en_gb: LanguageIdentifier = "en-GB".parse().unwrap();
+        let en_us: LanguageIdentifier = "en-US".parse().unwrap();
+        let loader = FluentLanguageLoader::new("test", en_us);
+
+        loader.load_available_languages(&Localizations).unwrap();
+
+        let msg = loader
+            .select_languages_negotiate(&[&ru, &en_gb], NegotiationStrategy::Filtering)
+            .get("only-gb-us");
+        assert_eq!("only GB US (GB)", msg);
     }
 }
 
