@@ -222,7 +222,7 @@ impl FluentLanguageLoader {
     ) -> String {
         let inner = self.inner.load();
         let language_config = inner.language_config.read();
-        let current_language = self.current_language_impl(&*inner);
+        let current_language = self.current_language_impl(&inner);
 
         language_config.language_bundles.iter().find_map(|language_bundle| {
             language_bundle
@@ -551,8 +551,7 @@ impl FluentLanguageLoader {
         let config_lock = inner.language_config.read();
         let fallback_language: Option<&unic_langid::LanguageIdentifier> = if languages
             .iter()
-            .find(|language| language.as_ref() == &self.fallback_language)
-            .is_some()
+            .any(|language| language.as_ref() == &self.fallback_language)
         {
             None
         } else {
@@ -616,7 +615,7 @@ impl LanguageLoader for FluentLanguageLoader {
 
     /// Get the language which is currently selected for this loader.
     fn current_language(&self) -> unic_langid::LanguageIdentifier {
-        self.current_language_impl(&*self.inner.load())
+        self.current_language_impl(&self.inner.load())
     }
 
     /// Load the languages `language_ids` using the resources packaged
@@ -638,14 +637,14 @@ impl LanguageLoader for FluentLanguageLoader {
         let mut load_language_ids: Vec<unic_langid::LanguageIdentifier> =
             language_ids.iter().map(|id| (**id).clone()).collect();
 
-        if !load_language_ids.contains(&&self.fallback_language) {
+        if !load_language_ids.contains(&self.fallback_language) {
             load_language_ids.push(self.fallback_language.clone());
         }
 
         let mut language_bundles = Vec::with_capacity(language_ids.len());
 
         for language in &load_language_ids {
-            let (path, file) = self.language_file(&language, i18n_assets);
+            let (path, file) = self.language_file(language, i18n_assets);
 
             if let Some(file) = file {
                 log::debug!(target:"i18n_embed::fluent", "Loaded language file: \"{0}\" for language: \"{1}\"", path, language);
