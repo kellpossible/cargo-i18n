@@ -7,6 +7,7 @@
 
 use crate::{I18nAssets, I18nEmbedError, LanguageLoader};
 
+use arc_swap::ArcSwap;
 pub use i18n_embed_impl::fluent_language_loader;
 
 use fluent::{
@@ -21,25 +22,22 @@ use unic_langid::LanguageIdentifier;
 struct LanguageBundle {
     language: LanguageIdentifier,
     bundle: FluentBundle<Arc<FluentResource>, IntlLangMemoizer>,
-    resources: Vec<Arc<FluentResource>>,
+    resource: Arc<FluentResource>,
 }
 
 impl LanguageBundle {
-    fn new(language: LanguageIdentifier, resources: Vec<Arc<FluentResource>>) -> Self {
+    fn new(language: LanguageIdentifier, resource: FluentResource) -> Self {
         let mut bundle = FluentBundle::new_concurrent(vec![language.clone()]);
-
-        for resource in &resources {
-            if let Err(errors) = bundle.add_resource(Arc::clone(resource)) {
-                errors.iter().for_each(|error | {
-                    log::error!(target: "i18n_embed::fluent", "Error while adding resource to bundle: {0:?}.", error);
-                })
-            }
+        let resource = Arc::new(resource);
+        if let Err(errors) = bundle.add_resource(resource.clone()) {
+            errors.iter().for_each(|error | {
+                log::error!(target: "i18n_embed::fluent", "Error while adding resource to bundle: {0:?}.", error);
+            })
         }
-
         Self {
             language,
             bundle,
-            resources,
+            resource,
         }
     }
 }
@@ -52,11 +50,25 @@ impl Debug for LanguageBundle {
 
 #[derive(Debug)]
 struct LanguageConfig {
-    current_language: LanguageIdentifier,
     language_bundles: Vec<LanguageBundle>,
     /// This maps a `LanguageIdentifier` to the index inside the
     /// `language_bundles` vector.
     language_map: HashMap<LanguageIdentifier, usize>,
+}
+
+#[derive(Debug)]
+struct CurrentLanguages {
+    /// Languages currently selected.
+    languages: Vec<LanguageIdentifier>,
+    /// Indexes into the [`LanguageConfig::language_bundles`] associated the
+    /// currently selected [`CurrentLanguages::languages`].
+    indices: Vec<usize>,
+}
+
+#[derive(Debug)]
+struct FluentLanguageLoaderInner {
+    language_config: Arc<RwLock<LanguageConfig>>,
+    current_languages: CurrentLanguages,
 }
 
 /// [LanguageLoader] implemenation for the `fluent` localization
@@ -66,7 +78,7 @@ struct LanguageConfig {
 /// ⚠️ *This API requires the following crate features to be activated: `fluent-system`.*
 #[derive(Debug)]
 pub struct FluentLanguageLoader {
-    language_config: RwLock<LanguageConfig>,
+    inner: ArcSwap<FluentLanguageLoaderInner>,
     domain: String,
     fallback_language: unic_langid::LanguageIdentifier,
 }
@@ -81,26 +93,37 @@ impl FluentLanguageLoader {
         fallback_language: unic_langid::LanguageIdentifier,
     ) -> Self {
         let config = LanguageConfig {
-            current_language: fallback_language.clone(),
             language_bundles: Vec::new(),
             language_map: HashMap::new(),
         };
 
         Self {
-            language_config: RwLock::new(config),
+            inner: ArcSwap::new(Arc::new(FluentLanguageLoaderInner {
+                language_config: Arc::new(RwLock::new(config)),
+                current_languages: CurrentLanguages {
+                    languages: vec![fallback_language.clone()],
+                    indices: vec![],
+                },
+            })),
             domain: domain.into(),
             fallback_language,
         }
     }
 
-    /// The languages associated with each actual loaded language bundle.
+    fn current_language_impl(
+        &self,
+        inner: &FluentLanguageLoaderInner,
+    ) -> unic_langid::LanguageIdentifier {
+        inner
+            .current_languages
+            .languages
+            .first()
+            .map_or_else(|| self.fallback_language.clone(), Clone::clone)
+    }
+
+    /// The languages associated with each actual currently loaded language bundle.
     pub fn current_languages(&self) -> Vec<unic_langid::LanguageIdentifier> {
-        self.language_config
-            .read()
-            .language_bundles
-            .iter()
-            .map(|b| b.language.clone())
-            .collect()
+        self.inner.load().current_languages.languages.clone()
     }
 
     /// Get a localized message referenced by the `message_id`.
@@ -124,13 +147,39 @@ impl FluentLanguageLoader {
         message_id: &str,
         args: Option<&'args FluentArgs<'args>>,
     ) -> String {
-        let language_config = self.language_config.read();
-        self._get(
-            language_config.language_bundles.iter(),
-            &language_config.current_language,
-            message_id,
-            args,
-        )
+        let inner = self.inner.load();
+        let language_config = inner.language_config.read();
+        inner
+            .current_languages
+            .indices
+            .iter()
+            .map(|&idx| &language_config.language_bundles[idx])
+            .find_map(|language_bundle| language_bundle
+                .bundle
+                .get_message(message_id)
+                .and_then(|m: FluentMessage<'_>| m.value())
+                .map(|pattern: &Pattern<&str>| {
+                    let mut errors = Vec::new();
+                    let value = language_bundle.bundle.format_pattern(pattern, args, &mut errors);
+                    if !errors.is_empty() {
+                        log::error!(
+                            target:"i18n_embed::fluent",
+                            "Failed to format a message for language \"{}\" and id \"{}\".\nErrors\n{:?}.",
+                            inner.current_languages.languages.first().unwrap_or(&self.fallback_language), message_id, errors
+                        )
+                    }
+                    value.into()
+                })
+            )
+            .unwrap_or_else(|| {
+                log::error!(
+                    target:"i18n_embed::fluent",
+                    "Unable to find localization for language \"{}\" and id \"{}\".",
+                    inner.current_languages.languages.first().unwrap_or(&self.fallback_language),
+                    message_id
+                );
+                format!("No localization for id: \"{}\"", message_id)
+            })
     }
 
     /// Get a localized message referenced by the `message_id`, and
@@ -170,224 +219,11 @@ impl FluentLanguageLoader {
         attribute_id: &str,
         args: Option<&'args FluentArgs<'args>>,
     ) -> String {
-        let language_config = self.language_config.read();
-        self._get_attribute(
-            language_config.language_bundles.iter(),
-            &language_config.current_language,
-            message_id,
-            attribute_id,
-            args,
-        )
-    }
+        let inner = self.inner.load();
+        let language_config = inner.language_config.read();
+        let current_language = self.current_language_impl(&*inner);
 
-    /// Get a localized attribute referenced by the `message_id` and `attribute_id`, and
-    /// formatted with the specified `args`.
-    pub fn get_attr_args<'a, S, V>(
-        &self,
-        message_id: &str,
-        attribute_id: &str,
-        args: HashMap<S, V>,
-    ) -> String
-    where
-        S: Into<Cow<'a, str>> + Clone,
-        V: Into<FluentValue<'a>> + Clone,
-    {
-        self.get_attr_args_fluent(
-            message_id,
-            attribute_id,
-            hash_map_to_fluent_args(args).as_ref(),
-        )
-    }
-
-    /// Get a localized message referenced by the `message_id`.
-    pub fn get_lang(&self, lang: &[&LanguageIdentifier], message_id: &str) -> String {
-        self.get_lang_args_fluent(lang, message_id, None)
-    }
-
-    /// A non-generic version of [FluentLanguageLoader::get_lang_args()].
-    pub fn get_lang_args_concrete<'source>(
-        &self,
-        lang: &[&LanguageIdentifier],
-        message_id: &str,
-        args: HashMap<&'source str, FluentValue<'source>>,
-    ) -> String {
-        self.get_lang_args_fluent(lang, message_id, hash_map_to_fluent_args(args).as_ref())
-    }
-
-    /// A non-generic version of [FluentLanguageLoader::get_lang_args()]
-    /// accepting [FluentArgs] instead of a [HashMap].
-    pub fn get_lang_args_fluent<'args>(
-        &self,
-        lang: &[&LanguageIdentifier],
-        message_id: &str,
-        args: Option<&'args FluentArgs<'args>>,
-    ) -> String {
-        let current_language = if lang.is_empty() {
-            &self.fallback_language
-        } else {
-            lang[0]
-        };
-        let fallback_language = if lang.contains(&&self.fallback_language) {
-            None
-        } else {
-            Some(&self.fallback_language)
-        };
-        let config_lock = self.language_config.read();
-        let language_bundles = lang
-            .iter()
-            .chain(fallback_language.as_ref().into_iter())
-            .filter_map(|id| {
-                config_lock
-                    .language_map
-                    .get(id)
-                    .map(|idx| &config_lock.language_bundles[*idx])
-            });
-        self._get(language_bundles, current_language, message_id, args)
-    }
-
-    /// Get a localized message for the given language identifiers, referenced
-    /// by the `message_id` and formatted with the specified `args`.
-    pub fn get_lang_args<'a, S, V>(
-        &self,
-        lang: &[&LanguageIdentifier],
-        id: &str,
-        args: HashMap<S, V>,
-    ) -> String
-    where
-        S: Into<Cow<'a, str>> + Clone,
-        V: Into<FluentValue<'a>> + Clone,
-    {
-        let fluent_args = hash_map_to_fluent_args(args);
-        self.get_lang_args_fluent(lang, id, fluent_args.as_ref())
-    }
-
-    /// Get a localized attribute referenced by the `Message_id` and `attribute_id`.
-    pub fn get_lang_attr(
-        &self,
-        lang: &[&LanguageIdentifier],
-        message_id: &str,
-        attribute_id: &str,
-    ) -> String {
-        self.get_lang_attr_args_fluent(lang, message_id, attribute_id, None)
-    }
-
-    /// A non-generic version of [FluentLanguageLoader::get_lang_attr_args()].
-    pub fn get_lang_attr_args_concrete<'source>(
-        &self,
-        lang: &[&LanguageIdentifier],
-        message_id: &str,
-        attribute_id: &str,
-        args: HashMap<&'source str, FluentValue<'source>>,
-    ) -> String {
-        self.get_lang_attr_args_fluent(
-            lang,
-            message_id,
-            attribute_id,
-            hash_map_to_fluent_args(args).as_ref(),
-        )
-    }
-
-    /// A non-generic version of [FluentLanguageLoader::get_lang_attr_args()]
-    /// accepting [FluentArgs] instead of a [HashMap].
-    pub fn get_lang_attr_args_fluent<'args>(
-        &self,
-        lang: &[&LanguageIdentifier],
-        message_id: &str,
-        attribute_id: &str,
-        args: Option<&'args FluentArgs<'args>>,
-    ) -> String {
-        let current_language = if lang.is_empty() {
-            &self.fallback_language
-        } else {
-            lang[0]
-        };
-        let fallback_language = if lang.contains(&&self.fallback_language) {
-            None
-        } else {
-            Some(&self.fallback_language)
-        };
-        let config_lock = self.language_config.read();
-        let language_bundles = lang
-            .iter()
-            .chain(fallback_language.as_ref().into_iter())
-            .filter_map(|id| {
-                config_lock
-                    .language_map
-                    .get(id)
-                    .map(|idx| &config_lock.language_bundles[*idx])
-            });
-        self._get_attribute(
-            language_bundles,
-            current_language,
-            message_id,
-            attribute_id,
-            args,
-        )
-    }
-
-    /// Get a localized attribute referenced by the `message_id` and `attribute_id`
-    /// and formatted with the `args`.
-    pub fn get_lang_attr_args<'a, S, V>(
-        &self,
-        lang: &[&LanguageIdentifier],
-        message_id: &str,
-        attribute_id: &str,
-        args: HashMap<S, V>,
-    ) -> String
-    where
-        S: Into<Cow<'a, str>> + Clone,
-        V: Into<FluentValue<'a>> + Clone,
-    {
-        let fluent_args = hash_map_to_fluent_args(args);
-        self.get_lang_attr_args_fluent(lang, message_id, attribute_id, fluent_args.as_ref())
-    }
-
-    fn _get<'a, 'args>(
-        &'a self,
-        language_bundles: impl Iterator<Item = &'a LanguageBundle>,
-        current_language: &LanguageIdentifier,
-        message_id: &str,
-        args: Option<&'args FluentArgs<'args>>,
-    ) -> String {
-        language_bundles.filter_map(|language_bundle| {
-            language_bundle
-                .bundle
-                .get_message(message_id)
-                .and_then(|m: FluentMessage<'_>| m.value())
-                .map(|pattern: &Pattern<&str>| {
-                    let mut errors = Vec::new();
-                    let value = language_bundle.bundle.format_pattern(pattern, args, &mut errors);
-                    if !errors.is_empty() {
-                        log::error!(
-                            target:"i18n_embed::fluent",
-                            "Failed to format a message for language \"{}\" and id \"{}\".\nErrors\n{:?}.",
-                            current_language, message_id, errors
-                        )
-                    }
-                    value.into()
-                })
-            })
-            .next()
-            .unwrap_or_else(|| {
-                log::error!(
-                    target:"i18n_embed::fluent",
-                    "Unable to find localization for language \"{}\" and id \"{}\".",
-                    current_language,
-                    message_id
-                );
-                format!("No localization for id: \"{message_id}\"")
-            })
-    }
-
-    fn _get_attribute<'a, 'args>(
-        &'a self,
-        language_bundles: impl Iterator<Item = &'a LanguageBundle>,
-        current_language: &LanguageIdentifier,
-        message_id: &str,
-        attribute_id: &str,
-        args: Option<&'args FluentArgs<'args>>,
-    ) -> String {
-        language_bundles.filter_map(|language_bundle| {
+        language_config.language_bundles.iter().find_map(|language_bundle| {
             language_bundle
                 .bundle
                 .get_message(message_id)
@@ -410,7 +246,6 @@ impl FluentLanguageLoader {
                     value.into()
                 })
         })
-        .next()
         .unwrap_or_else(|| {
             log::error!(
                 target:"i18n_embed::fluent",
@@ -423,13 +258,156 @@ impl FluentLanguageLoader {
         })
     }
 
+    /// Get a localized attribute referenced by the `message_id` and `attribute_id`, and
+    /// formatted with the specified `args`.
+    pub fn get_attr_args<'a, S, V>(
+        &self,
+        message_id: &str,
+        attribute_id: &str,
+        args: HashMap<S, V>,
+    ) -> String
+    where
+        S: Into<Cow<'a, str>> + Clone,
+        V: Into<FluentValue<'a>> + Clone,
+    {
+        self.get_attr_args_fluent(
+            message_id,
+            attribute_id,
+            hash_map_to_fluent_args(args).as_ref(),
+        )
+    }
+
+    /// Get a localized message referenced by the `message_id`.
+    #[deprecated(since = "0.13.6", note = "Please use `lang(...).get(...)` instead")]
+    pub fn get_lang(&self, lang: &[&LanguageIdentifier], message_id: &str) -> String {
+        self.lang(lang).get(message_id)
+    }
+
+    /// A non-generic version of [FluentLanguageLoader::get_lang_args()].
+    #[deprecated(
+        since = "0.13.6",
+        note = "Please use `lang(...).get_args_concrete(...)` instead"
+    )]
+    pub fn get_lang_args_concrete<'source>(
+        &self,
+        lang: &[&LanguageIdentifier],
+        message_id: &str,
+        args: HashMap<&'source str, FluentValue<'source>>,
+    ) -> String {
+        self.lang(lang).get_args_concrete(message_id, args)
+    }
+
+    /// A non-generic version of [FluentLanguageLoader::get_lang_args()]
+    /// accepting [FluentArgs] instead of a [HashMap].
+    #[deprecated(
+        since = "0.13.6",
+        note = "Please use `lang(...).get_args_fluent(...)` instead"
+    )]
+    pub fn get_lang_args_fluent<'args>(
+        &self,
+        lang: &[&LanguageIdentifier],
+        message_id: &str,
+        args: Option<&'args FluentArgs<'args>>,
+    ) -> String {
+        self.lang(lang).get_args_fluent(message_id, args)
+    }
+
+    /// Get a localized message for the given language identifiers, referenced
+    /// by the `message_id` and formatted with the specified `args`.
+    #[deprecated(
+        since = "0.13.6",
+        note = "Please use `lang(...).get_args(...)` instead"
+    )]
+    pub fn get_lang_args<'a, S, V>(
+        &self,
+        lang: &[&LanguageIdentifier],
+        id: &str,
+        args: HashMap<S, V>,
+    ) -> String
+    where
+        S: Into<Cow<'a, str>> + Clone,
+        V: Into<FluentValue<'a>> + Clone,
+    {
+        self.lang(lang).get_args(id, args)
+    }
+
+    /// Get a localized attribute referenced by the `Message_id` and `attribute_id`.
+    #[deprecated(
+        since = "0.13.6",
+        note = "Please use `lang(...).get_attr(...)` instead"
+    )]
+    pub fn get_lang_attr(
+        &self,
+        lang: &[&LanguageIdentifier],
+        message_id: &str,
+        attribute_id: &str,
+    ) -> String {
+        self.lang(lang).get_attr(message_id, attribute_id)
+    }
+
+    /// A non-generic version of [FluentLanguageLoader::get_lang_attr_args()].
+    #[deprecated(
+        since = "0.13.6",
+        note = "Please use `lang(...).get_attr_args_concrete(...)` instead"
+    )]
+    pub fn get_lang_attr_args_concrete<'source>(
+        &self,
+        lang: &[&LanguageIdentifier],
+        message_id: &str,
+        attribute_id: &str,
+        args: HashMap<&'source str, FluentValue<'source>>,
+    ) -> String {
+        self.lang(lang)
+            .get_attr_args_concrete(message_id, attribute_id, args)
+    }
+
+    /// A non-generic version of [FluentLanguageLoader::get_lang_attr_args()]
+    /// accepting [FluentArgs] instead of a [HashMap].
+    #[deprecated(
+        since = "0.13.6",
+        note = "Please use `lang(...).get_attr_args_fluent(...)` instead"
+    )]
+    pub fn get_lang_attr_args_fluent<'args>(
+        &self,
+        lang: &[&LanguageIdentifier],
+        message_id: &str,
+        attribute_id: &str,
+        args: Option<&'args FluentArgs<'args>>,
+    ) -> String {
+        self.lang(lang)
+            .get_attr_args_fluent(message_id, attribute_id, args)
+    }
+
+    /// Get a localized attribute referenced by the `message_id` and `attribute_id`
+    /// and formatted with the `args`.
+    #[deprecated(
+        since = "0.13.6",
+        note = "Please use `lang(...).get_attr_args(...)` instead"
+    )]
+    pub fn get_lang_attr_args<'a, S, V>(
+        &self,
+        lang: &[&LanguageIdentifier],
+        message_id: &str,
+        attribute_id: &str,
+        args: HashMap<S, V>,
+    ) -> String
+    where
+        S: Into<Cow<'a, str>> + Clone,
+        V: Into<FluentValue<'a>> + Clone,
+    {
+        self.lang(lang)
+            .get_attr_args(message_id, attribute_id, args)
+    }
+
     /// available in any of the languages currently loaded (including
     /// the fallback language).
     pub fn has(&self, message_id: &str) -> bool {
-        let config_lock = self.language_config.read();
         let mut has_message = false;
 
-        config_lock
+        self.inner
+            .load()
+            .language_config
+            .read()
             .language_bundles
             .iter()
             .for_each(|language_bundle| {
@@ -448,9 +426,10 @@ impl FluentLanguageLoader {
     /// Note that this also returns false if the `message_id` could not be found;
     /// use [FluentLanguageLoader::has()] to determine if the `message_id` is available.
     pub fn has_attr(&self, message_id: &str, attribute_id: &str) -> bool {
-        let config_lock = self.language_config.read();
-
-        config_lock
+        self.inner
+            .load()
+            .language_config
+            .read()
             .language_bundles
             .iter()
             .find_map(|bundle| {
@@ -471,9 +450,10 @@ impl FluentLanguageLoader {
     where
         C: Fn(fluent::FluentMessage<'_>) -> OUT,
     {
-        let config_lock = self.language_config.read();
-
-        config_lock
+        self.inner
+            .load()
+            .language_config
+            .read()
             .language_bundles
             .iter()
             .find_map(|language_bundle| language_bundle.bundle.get_message(message_id))
@@ -488,19 +468,21 @@ impl FluentLanguageLoader {
     where
         C: Fn(&mut dyn Iterator<Item = &ast::Message<&str>>) -> OUT,
     {
-        let config_lock = self.language_config.read();
+        let inner = self.inner.load();
+        let config_lock = inner.language_config.read();
 
         let mut iter = config_lock
             .language_bundles
             .iter()
             .filter(|language_bundle| &language_bundle.language == language)
             .flat_map(|language_bundle| {
-                language_bundle.resources.iter().flat_map(|resource| {
-                    resource.entries().filter_map(|entry| match entry {
+                language_bundle
+                    .resource
+                    .entries()
+                    .filter_map(|entry| match entry {
                         ast::Entry::Message(message) => Some(message),
                         _ => None,
                     })
-                })
             });
 
         (closure)(&mut iter)
@@ -528,8 +510,48 @@ impl FluentLanguageLoader {
     where
         F: Fn(&mut FluentBundle<Arc<FluentResource>, IntlLangMemoizer>),
     {
-        for bundle in self.language_config.write().language_bundles.as_mut_slice() {
+        for bundle in self
+            .inner
+            .load()
+            .language_config
+            .write()
+            .language_bundles
+            .as_mut_slice()
+        {
             f(&mut bundle.bundle);
+        }
+    }
+
+    /// Create a new loader with a different current language setting.
+    /// This is a rather cheap operation and does not require any
+    /// extensive copy operations. Cheap does not mean free so you
+    /// should not call this message repeatedly in order to translate
+    /// multiple strings for the same language.
+    pub fn lang(&self, languages: &[&LanguageIdentifier]) -> FluentLanguageLoader {
+        let inner = self.inner.load();
+        let config_lock = inner.language_config.read();
+        let fallback_language = if languages.contains(&&self.fallback_language) {
+            None
+        } else {
+            Some(&self.fallback_language)
+        };
+        let indices = languages
+            .iter()
+            .cloned()
+            .chain(fallback_language)
+            .filter_map(|lang| config_lock.language_map.get(lang))
+            .cloned()
+            .collect();
+        FluentLanguageLoader {
+            inner: ArcSwap::new(Arc::new(FluentLanguageLoaderInner {
+                current_languages: CurrentLanguages {
+                    languages: languages.iter().map(|&lang| lang.clone()).collect(),
+                    indices,
+                },
+                language_config: self.inner.load().language_config.clone(),
+            })),
+            domain: self.domain.clone(),
+            fallback_language: self.fallback_language.clone(),
         }
     }
 }
@@ -550,9 +572,9 @@ impl LanguageLoader for FluentLanguageLoader {
         format!("{}.ftl", self.domain())
     }
 
-    /// Get the language which is currently loaded for this loader.
+    /// Get the language which is currently selected for this loader.
     fn current_language(&self) -> unic_langid::LanguageIdentifier {
-        self.language_config.read().current_language.clone()
+        self.current_language_impl(&*self.inner.load())
     }
 
     /// Load the languages `language_ids` using the resources packaged
@@ -566,21 +588,22 @@ impl LanguageLoader for FluentLanguageLoader {
         i18n_assets: &dyn I18nAssets,
         language_ids: &[&unic_langid::LanguageIdentifier],
     ) -> Result<(), I18nEmbedError> {
-        let current_language = *language_ids
-            .get(0)
-            .ok_or(I18nEmbedError::RequestedLanguagesEmpty)?;
+        if language_ids.is_empty() {
+            return Err(I18nEmbedError::RequestedLanguagesEmpty);
+        }
 
         // The languages to load
-        let mut load_language_ids = language_ids.to_vec();
+        let mut load_language_ids: Vec<unic_langid::LanguageIdentifier> =
+            language_ids.iter().map(|id| (**id).clone()).collect();
 
         if !load_language_ids.contains(&&self.fallback_language) {
-            load_language_ids.push(&self.fallback_language);
+            load_language_ids.push(self.fallback_language.clone());
         }
 
         let mut language_bundles = Vec::with_capacity(language_ids.len());
 
-        for language in load_language_ids {
-            let (path, file) = self.language_file(language, i18n_assets);
+        for language in &load_language_ids {
+            let (path, file) = self.language_file(&language, i18n_assets);
 
             if let Some(file) = file {
                 log::debug!(target:"i18n_embed::fluent", "Loaded language file: \"{0}\" for language: \"{1}\"", path, language);
@@ -601,8 +624,7 @@ impl LanguageLoader for FluentLanguageLoader {
                     }
                 };
 
-                let resources = vec![Arc::new(resource)];
-                let language_bundle = LanguageBundle::new(language.clone(), resources);
+                let language_bundle = LanguageBundle::new(language.clone(), resource);
 
                 language_bundles.push(language_bundle);
             } else {
@@ -613,16 +635,20 @@ impl LanguageLoader for FluentLanguageLoader {
             }
         }
 
-        let mut config_lock = self.language_config.write();
-        config_lock.current_language = current_language.clone();
-        config_lock.language_bundles = language_bundles;
-        config_lock.language_map = config_lock
-            .language_bundles
-            .iter()
-            .enumerate()
-            .map(|(i, language_bundle)| (language_bundle.language.clone(), i))
-            .collect();
-        drop(config_lock);
+        self.inner.swap(Arc::new(FluentLanguageLoaderInner {
+            current_languages: CurrentLanguages {
+                languages: language_ids.iter().map(|&lang| lang.to_owned()).collect(),
+                indices: (0..load_language_ids.len()).collect(),
+            },
+            language_config: Arc::new(RwLock::new(LanguageConfig {
+                language_map: language_bundles
+                    .iter()
+                    .enumerate()
+                    .map(|(i, language_bundle)| (language_bundle.language.clone(), i))
+                    .collect(),
+                language_bundles,
+            })),
+        }));
 
         Ok(())
     }

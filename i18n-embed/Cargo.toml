@@ -19,6 +19,7 @@ maintenance = { status = "actively-developed" }
 
 [dependencies]
 fluent = { version = "0.16", optional = true }
+arc-swap = "1.6"
 fluent-langneg = "0.13"
 fluent-syntax = { version = "0.11", optional = true }
 gettext_system = { package = "gettext", version = "0.4", optional = true }
