@@ -1,5 +1,11 @@
 # Changelog for `i18n-embed`
 
+## v0.13.8
+
+### Internal
+
+- Made `arc-swap` an optional dependency, it's only required for `fluent-system` implementation.
+
 ## v0.13.7
 
 ### New Features
