@@ -42,5 +42,6 @@ members = [
 
     # Examples
     "i18n-embed/examples/library-fluent",
-    "i18n-embed/examples/bin",
+    "i18n-embed/examples/desktop-bin",
+    "i18n-embed-fl/examples/web-server",
 ]
