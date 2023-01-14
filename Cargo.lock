@@ -444,7 +444,7 @@ dependencies = [
 
 [[package]]
 name = "i18n-embed"
-version = "0.13.5"
+version = "0.13.6"
 dependencies = [
  "arc-swap",
  "doc-comment",
