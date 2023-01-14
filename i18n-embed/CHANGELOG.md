@@ -1,5 +1,22 @@
 # Changelog for `i18n-embed`
 
+## v0.13.6
+
+### New Features
+
++ A single new method called `FluentLanguageLoader::lang()` thanks to [@bikeshedder](https://github.com/bikeshedder)!
+
+This methods allows creating a shallow copy of the
+FluentLanguageLoader which can than be used just like the original
+loader but with a different current language setting. That makes it
+possible to use the fl! macro without any changes and is a far more
+elegant implementation than adding multiple get_lang* methods as
+done in #84.
+
+### Deprecated
+
++ `FluentLanguageLoader::get_lang*` methods have been deprecated in favour of `FluentLanguageLoader::lang()`.
+
 ## v0.13.5
 
 ### New Features
