@@ -1,5 +1,9 @@
 # Changelog for `i18n-embed-fl`
 
+## v0.6.6
+
++ Fix for [#104](https://github.com/kellpossible/cargo-i18n/issues/104), include files necessary for running tests in crate.
+
 ## v0.6.5
 
 ### New Features
