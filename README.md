@@ -159,9 +159,12 @@ Once you have some updated `po` files back from translators, or you want to upda
 
 For some projects using build scripts, with complex pipelines, and with continuous integration, you may want to look into using the [i18n-build](https://crates.io/crates/i18n-build) for automation as an alternative to the `cargo i18n` command line tool.
 
-## Example Projects
+## Projects Using `cargo-i18n` or `i18n-embed`
 
-For a complete example usage, including localizing sub-crates as libraries, you can see the [source code](https://github.com/kellpossible/cargo-i18n/) for this project, which localizes itself. This project was originally created to aid in the localization for the [coster (work in progress)](https://github.com/kellpossible/coster) self-hosted web application.
++ The [source code](https://github.com/kellpossible/cargo-i18n/) for this project, which localizes itself. 
++ [`age` file encryption](https://github.com/str4d/rage/tree/main/age)
++ [`avalanche-report`](https://github.com/kellpossible/avalanche-report)
++ [`coster` (work in progress)](https://github.com/kellpossible/coster) self-hosted web application.
 
 ## Configuration
 
