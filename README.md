@@ -19,6 +19,13 @@ The [i18n-build](https://crates.io/crates/i18n-build) library contains most of t
 
 **[Changelog](https://github.com/kellpossible/cargo-i18n/releases)**
 
+## Projects Using `cargo-i18n` or `i18n-embed`
+
++ The [source code](https://github.com/kellpossible/cargo-i18n/) for this project, which localizes itself. 
++ [`age` file encryption](https://github.com/str4d/rage/tree/main/age)
++ [`avalanche-report`](https://github.com/kellpossible/avalanche-report)
++ [`coster` (work in progress)](https://github.com/kellpossible/coster) self-hosted web application.
+
 ## Usage with Fluent
 
 Fluent support is now available in [i18n-embed](https://crates.io/crates/i18n-embed). See the examples for that crate, and the [documentation for i18n-embed](https://docs.rs/i18n-embed/) for example of how to use it.
@@ -158,13 +165,6 @@ Or you could also consider setting up a translation management website for your 
 Once you have some updated `po` files back from translators, or you want to update the `po` files with new or edited strings, all you need to do is run `cargo i18n` to update the `po` files, and recompile updated `mo` files, then rebuild your application with `cargo build`.
 
 For some projects using build scripts, with complex pipelines, and with continuous integration, you may want to look into using the [i18n-build](https://crates.io/crates/i18n-build) for automation as an alternative to the `cargo i18n` command line tool.
-
-## Projects Using `cargo-i18n` or `i18n-embed`
-
-+ The [source code](https://github.com/kellpossible/cargo-i18n/) for this project, which localizes itself. 
-+ [`age` file encryption](https://github.com/str4d/rage/tree/main/age)
-+ [`avalanche-report`](https://github.com/kellpossible/avalanche-report)
-+ [`coster` (work in progress)](https://github.com/kellpossible/coster) self-hosted web application.
 
 ## Configuration
 
