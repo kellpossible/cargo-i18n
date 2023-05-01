@@ -128,8 +128,11 @@ pub fn fluent_language_loader(_: proc_macro::TokenStream) -> proc_macro::TokenSt
         &config.fallback_language.to_string(),
         proc_macro2::Span::call_site(),
     );
-    
-    let domain_str = config.fluent.and_then(|f| f.domain).unwrap_or(current_crate_package.name);
+
+    let domain_str = config
+        .fluent
+        .and_then(|f| f.domain)
+        .unwrap_or(current_crate_package.name);
     let domain = syn::LitStr::new(&domain_str, proc_macro2::Span::call_site());
 
     let gen = quote::quote! {
