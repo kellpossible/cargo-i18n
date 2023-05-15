@@ -13,6 +13,6 @@ pub struct FluentConfig {
 
     /// (Optional) Domain name to override default value (i.e. package name)
     /// The paths inside the assets directory should be  structured
-    /// like so: `assets_dir/{language}/{domain}.ftl` 
+    /// like so: `assets_dir/{language}/{domain}.ftl`
     pub domain: Option<String>,
 }
