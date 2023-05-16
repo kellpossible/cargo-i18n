@@ -10,4 +10,9 @@ pub struct FluentConfig {
     /// The paths inside the assets directory should be  structured
     /// like so: `assets_dir/{language}/{domain}.ftl`
     pub assets_dir: PathBuf,
+
+    /// (Optional) Domain name to override default value (i.e. package name)
+    /// The paths inside the assets directory should be  structured
+    /// like so: `assets_dir/{language}/{domain}.ftl`
+    pub domain: Option<String>,
 }

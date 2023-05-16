@@ -85,7 +85,6 @@ pub fn gettext_language_loader(_: proc_macro::TokenStream) -> proc_macro::TokenS
 pub fn fluent_language_loader(_: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let manifest = find_crate::Manifest::new().expect("Error reading Cargo.toml");
     let current_crate_package = manifest.crate_package().expect("Error reading Cargo.toml");
-    let domain = syn::LitStr::new(&current_crate_package.name, proc_macro2::Span::call_site());
 
     // Special case for when this macro is invoked in i18n-embed tests/docs
     let i18n_embed_crate_name = if current_crate_package.name == "i18n_embed" {
@@ -128,6 +127,12 @@ pub fn fluent_language_loader(_: proc_macro::TokenStream) -> proc_macro::TokenSt
         &config.fallback_language.to_string(),
         proc_macro2::Span::call_site(),
     );
+
+    let domain_str = config
+        .fluent
+        .and_then(|f| f.domain)
+        .unwrap_or(current_crate_package.name);
+    let domain = syn::LitStr::new(&domain_str, proc_macro2::Span::call_site());
 
     let gen = quote::quote! {
         #i18n_embed_crate_ident::fluent::FluentLanguageLoader::new(
