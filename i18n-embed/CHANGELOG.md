@@ -1,5 +1,11 @@
 # Changelog for `i18n-embed`
 
+## master
+
+## New Features
+
+- Add option to override the default domain name for fluent assets.
+
 ## v0.13.8
 
 ### Internal

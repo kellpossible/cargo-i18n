@@ -2,6 +2,10 @@
 
 ## master
 
+### New Features
+
++ Add option to override the default domain name for fluent assets.
+
 ### Internal
 
 + Fix clippy warnings.
