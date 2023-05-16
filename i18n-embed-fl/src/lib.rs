@@ -100,9 +100,10 @@ impl Parse for FlArgs {
 
                 let argument_value = expr.right;
 
-                if let Some(_duplicate) =
-                    args_map.insert(argument_name_lit_str.clone(), argument_value)
-                {
+                if let Some(_duplicate) = args_map.insert(argument_name_lit_str, argument_value) {
+                    // There's no Clone implementation by default.
+                    let argument_name_lit_str =
+                        syn::LitStr::new(&argument_name_string, argument_name_ident.span());
                     return Err(syn::Error::new(
                         argument_name_lit_str.span(),
                         format!(
