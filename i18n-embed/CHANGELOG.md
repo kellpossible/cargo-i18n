@@ -1,6 +1,6 @@
 # Changelog for `i18n-embed`
 
-## master
+## v0.13.9
 
 ## New Features
 
