@@ -17,7 +17,7 @@ maintenance = { status = "actively-developed" }
 
 [dependencies]
 log = "0.4"
-toml = "0.5"
+toml = "0.7"
 serde = { version = "1", features = ["derive"] }
 serde_derive = "1"
 thiserror = "1"

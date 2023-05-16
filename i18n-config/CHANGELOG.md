@@ -9,6 +9,7 @@
 ### Internal
 
 + Fix clippy warnings.
++ Bump `toml` to version `0.7`.
 
 ## v0.4.3
 
