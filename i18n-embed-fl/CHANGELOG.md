@@ -1,5 +1,11 @@
 # Changelog for `i18n-embed-fl`
 
+## v0.7.0
+
+### Internal
+
++ Bump dependencies and use workspace dependencies.
+
 ## v0.6.7
 
 + Update to syn version `2.0`.

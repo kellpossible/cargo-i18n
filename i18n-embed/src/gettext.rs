@@ -9,6 +9,7 @@ use crate::{domain_from_module, I18nAssets, I18nEmbedError, LanguageLoader};
 
 pub use i18n_embed_impl::gettext_language_loader;
 
+use gettext as gettext_system;
 use parking_lot::RwLock;
 use unic_langid::LanguageIdentifier;
 

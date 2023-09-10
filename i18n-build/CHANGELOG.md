@@ -1,10 +1,11 @@
 # Changelog for `i18n-build`
 
-## master
+## v0.9.0
 
 ### Internal
 
 + Fix clippy warnings.
++ Bump dependencies and use workspace dependencies.
 
 ## v0.8.2
 

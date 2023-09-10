@@ -451,6 +451,7 @@ use std::{
 };
 
 use fluent_langneg::{negotiate_languages, NegotiationStrategy};
+extern crate gettext as gettext_system;
 use log::{debug, error};
 use thiserror::Error;
 

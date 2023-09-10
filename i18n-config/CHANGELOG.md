@@ -1,5 +1,11 @@
 # `i18n-config` Changelog
 
+## v0.4.5
+
+### Internal
+
++ Bump dependencies and refactor to use workspace dependencies.
+
 ## v0.4.4
 
 ### New Features

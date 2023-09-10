@@ -17,16 +17,16 @@ maintenance = { status = "actively-developed" }
 proc-macro = true
 
 [dependencies]
-find-crate = { version = "0.6", optional = true }
-i18n-config = { version = "0.4.4", path = "../../i18n-config", optional = true }
-proc-macro2 = "1.0"
-quote = { version = "1.0", optional = true }
+find-crate = { workspace = true, optional = true }
+i18n-config = { workspace = true, optional = true }
+proc-macro2 = { workspace = true }
+quote = { workspace = true, optional = true }
 
 [dev-dependencies]
-rust-embed = "6"
+rust-embed = { workspace = true }
 
 [dependencies.syn]
-version = "1.0"
+workspace = true
 default-features = false
 features = ["derive", "proc-macro", "parsing", "printing", "extra-traits",]
 
