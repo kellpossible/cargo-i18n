@@ -63,7 +63,7 @@
 //! ```toml
 //! [dependencies]
 //! i18n-embed = { version = "VERSION", features = ["fluent-system", "desktop-requester"]}
-//! rust-embed = "6"
+//! rust-embed = "8"
 //! ```
 //!
 //! Set up a minimal `i18n.toml` in your crate root to use with
@@ -173,7 +173,7 @@
 //! ```toml
 //! [dependencies]
 //! i18n-embed = { version = "VERSION", features = ["gettext-system", "desktop-requester"]}
-//! rust-embed = "6"
+//! rust-embed = "8"
 //! ```
 //!
 //! Set up a minimal `i18n.toml` in your crate root to use with
@@ -442,6 +442,8 @@ doctest!("../README.md");
 #[allow(unused_imports)]
 #[macro_use]
 extern crate i18n_embed_impl;
+#[cfg(feature = "gettext-system")]
+extern crate gettext as gettext_system;
 
 use std::{
     borrow::Cow,
@@ -451,7 +453,6 @@ use std::{
 };
 
 use fluent_langneg::{negotiate_languages, NegotiationStrategy};
-extern crate gettext as gettext_system;
 use log::{debug, error};
 use thiserror::Error;
 
