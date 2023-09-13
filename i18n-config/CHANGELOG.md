@@ -1,5 +1,11 @@
 # `i18n-config` Changelog
 
+## v0.4.6
+
+### Internal
+
++ Bump `toml` to version `0.8`.
+
 ## v0.4.5
 
 ### Internal
