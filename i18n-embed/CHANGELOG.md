@@ -1,5 +1,11 @@
 # Changelog for `i18n-embed`
 
+## v0.14.1
+
+## Internal
+
++ Relax the version constraint on `arc-swap`.
+
 ## v0.14.0
 
 ### Internal
