@@ -8,7 +8,7 @@ license = "MIT"
 name = "cargo-i18n"
 readme = "README.md"
 repository = "https://github.com/kellpossible/cargo-i18n"
-version = "0.2.11"
+version = "0.2.12"
 
 [badges]
 maintenance = { status = "actively-developed" }
@@ -22,7 +22,7 @@ i18n-config = { workspace = true }
 anyhow = { workspace = true }
 gettext = { workspace = true }
 tr = { workspace = true, default-features = false, features = ["gettext"] }
-clap = { version = "3.2.25", features = ["cargo"] }
+clap = { version = "4.4.5", features = ["cargo"] }
 rust-embed = { workspace = true } 
 unic-langid = { workspace = true }
 env_logger = { workspace = true }
