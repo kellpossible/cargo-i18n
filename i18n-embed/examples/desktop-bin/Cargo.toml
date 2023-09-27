@@ -8,4 +8,4 @@ edition = "2018"
 
 [dependencies]
 library-fluent = { path = "../library-fluent/" }
-i18n-embed = { path = "../../", features = ["fluent-system", "desktop-requester"]}
+i18n-embed = { workspace = true, features = ["fluent-system", "desktop-requester"]}

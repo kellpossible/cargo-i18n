@@ -1,5 +1,11 @@
 # Changelog for `i18n-embed`
 
+## v0.14.0
+
+### Internal
+
++ Bump dependencies and use workspace dependencies.
+
 ## v0.13.9
 
 ## New Features

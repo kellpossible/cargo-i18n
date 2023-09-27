@@ -332,6 +332,7 @@ mod gettext {
     use super::setup;
     use i18n_embed::{gettext::GettextLanguageLoader, LanguageLoader};
     use rust_embed::RustEmbed;
+    use serial_test::serial;
     use tr::internal::with_translator;
     use unic_langid::LanguageIdentifier;
 
@@ -347,6 +348,7 @@ mod gettext {
     struct Localizations;
 
     #[test]
+    #[serial]
     fn only_en() {
         setup();
 
@@ -365,6 +367,7 @@ mod gettext {
     }
 
     #[test]
+    #[serial]
     fn fallback_ru_to_en() {
         setup();
 
