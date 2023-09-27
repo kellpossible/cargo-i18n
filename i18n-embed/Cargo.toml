@@ -19,7 +19,7 @@ maintenance = { status = "actively-developed" }
 
 [dependencies]
 fluent = { workspace = true, optional = true }
-arc-swap = { version = "1.6", optional = true }
+arc-swap = { version = "1", optional = true }
 fluent-langneg = { workspace = true }
 fluent-syntax = { workspace = true, optional = true }
 gettext = { workspace = true, optional = true }
