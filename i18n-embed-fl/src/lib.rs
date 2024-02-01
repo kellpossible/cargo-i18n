@@ -467,22 +467,22 @@ pub fn fl(input: TokenStream) -> TokenStream {
         FlArgs::HashMap(args_hash_map) => {
             if attr_lit.is_none() {
                 quote! {
-                    #fluent_loader.get_args(#message_id, #args_hash_map)
+                    (#fluent_loader).get_args(#message_id, #args_hash_map)
                 }
             } else {
                 quote! {
-                    #fluent_loader.get_attr_args(#message_id, #attr_lit, #args_hash_map)
+                    (#fluent_loader).get_attr_args(#message_id, #attr_lit, #args_hash_map)
                 }
             }
         }
         FlArgs::None => {
             if attr_lit.is_none() {
                 quote! {
-                    #fluent_loader.get(#message_id)
+                    (#fluent_loader).get(#message_id)
                 }
             } else {
                 quote! {
-                    #fluent_loader.get_attr(#message_id, #attr_lit)
+                    (#fluent_loader).get_attr(#message_id, #attr_lit)
                 }
             }
         }
@@ -506,7 +506,7 @@ pub fn fl(input: TokenStream) -> TokenStream {
                 }
 
                 let gen = quote! {
-                    #fluent_loader.get_args_concrete(
+                    (#fluent_loader).get_args_concrete(
                         #message_id,
                         {
                             let mut args = std::collections::HashMap::new();
@@ -535,7 +535,7 @@ pub fn fl(input: TokenStream) -> TokenStream {
                 }
 
                 let gen = quote! {
-                    #fluent_loader.get_attr_args_concrete(
+                    (#fluent_loader).get_attr_args_concrete(
                         #message_id,
                         #attr_lit,
                         {

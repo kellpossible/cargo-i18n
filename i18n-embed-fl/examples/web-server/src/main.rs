@@ -49,6 +49,6 @@ fn hande_request(
 ) -> String {
     let loader =
         loader.select_languages_negotiate(requested_languages, NegotiationStrategy::Filtering);
-    let message = fl!(&loader, "hello-world");
+    let message: String = fl!(loader, "hello-world");
     format!("<html><body><h1>{message}</h1></body></html>")
 }

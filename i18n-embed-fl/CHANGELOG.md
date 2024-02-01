@@ -1,5 +1,11 @@
 # Changelog for `i18n-embed-fl`
 
+## v0.8.0
+
+### Breaking
+
++ The loader argument is now wrapped in brackets when expanded. This means that the return type for the macro will always be `String`, previously if the loader was a reference (e.g. `fl!(&loader, "message")`) the returned value would be `&String`, which was misleading (see [112](https://github.com/kellpossible/cargo-i18n/issues/112)) and not useful.
+
 ## v0.7.0
 
 ### Internal
