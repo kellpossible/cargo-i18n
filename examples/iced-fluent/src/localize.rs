@@ -1,8 +1,8 @@
 use i18n_embed::{
-    fluent::{fluent_language_loader, FluentLanguageLoader},
-    DefaultLocalizer, LanguageLoader, Localizer,
+    fluent::{fluent_language_loader, FluentLanguageLoader}, select, LanguageLoader
 };
 use rust_embed::RustEmbed;
+use unic_langid::LanguageIdentifier;
 
 #[derive(RustEmbed)]
 #[folder = "./i18n/"]
@@ -31,17 +31,21 @@ macro_rules! fl {
     }};
 }
 
-// Get the `Localizer` to be used for localizing this library.
-fn localizer() -> Box<dyn Localizer> {
-    Box::from(DefaultLocalizer::new(&*LANGUAGE_LOADER, &Localizations))
+
+pub fn available_languages() -> Vec<LanguageIdentifier> {
+    (*LANGUAGE_LOADER)
+        .available_languages(&Localizations)
+        .expect("error while calculating available languages")
+
 }
 
-pub fn localize() {
-    let localizer = localizer();
-    let requested_languages = i18n_embed::DesktopLanguageRequester::requested_languages();
 
-    if let Err(error) = localizer.select(&requested_languages) {
-        eprintln!("Error while loading language for App List {}", error);
-    }
+pub fn requested_languages() -> Vec<LanguageIdentifier> {
+    i18n_embed::DesktopLanguageRequester::requested_languages()
 }
 
+
+
+pub fn select_language(requested_languages: &[LanguageIdentifier]) -> Vec<LanguageIdentifier> {
+    select(&*LANGUAGE_LOADER, &Localizations, &requested_languages).unwrap()
+}
