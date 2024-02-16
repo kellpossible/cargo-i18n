@@ -1,97 +1,49 @@
-use iced::{
-    pick_list, scrollable, Align, Column, Container, Element, Length, PickList, Sandbox,
-    Scrollable, Settings, Space, Text,
-};
+
+use iced::{executor, widget::{Column, Text}, Alignment, Application, Command, Element, Settings};
+
 use unic_langid::LanguageIdentifier;
 
-use i18n_embed::{
-    fluent::{fluent_language_loader, FluentLanguageLoader},
-    select, DesktopLanguageRequester, LanguageLoader,
-};
-use rust_embed::RustEmbed;
-
-#[derive(RustEmbed)]
-#[folder = "i18n"] // path to the compiled localization resources
-struct Translations;
-
-const TRANSLATIONS: Translations = Translations {};
-
-lazy_static::lazy_static! {
-    static ref LANGUAGE_LOADER: FluentLanguageLoader = fluent_language_loader!();
-}
-
-macro_rules! fl {
-    ($message_id:literal) => {{
-        i18n_embed_fl::fl!(LANGUAGE_LOADER, $message_id)
-    }};
-
-    ($message_id:literal, $($args:expr),*) => {{
-        i18n_embed_fl::fl!(LANGUAGE_LOADER, $message_id, $($args), *)
-    }};
-}
+mod localize;
 
 pub fn main() -> iced::Result {
+
+    localize::localize();
+
     Example::run(Settings::default())
 }
 
-struct Example {
-    available_languages: Vec<LanguageIdentifier>,
-    pick_list: pick_list::State<LanguageIdentifier>,
-    selected_language: LanguageIdentifier,
-}
+struct Example {}
 
 #[derive(Debug, Clone)]
-enum Message {
-    LanguageSelected(LanguageIdentifier),
-}
+enum Message {}
 
-impl Sandbox for Example {
+impl iced::Application for Example {
+    type Executor = executor::Default;
     type Message = Message;
+    type Theme = iced::Theme;
+    type Flags = ();
 
-    fn new() -> Self {
-        let available_languages = (*LANGUAGE_LOADER)
-            .available_languages(&TRANSLATIONS)
-            .unwrap();
-        let requested_languages = DesktopLanguageRequester::requested_languages();
-        let selected_languages =
-            select(&*LANGUAGE_LOADER, &TRANSLATIONS, &requested_languages).unwrap();
-        let selected_language = selected_languages.get(0).unwrap().clone();
+    fn new(_flags: Self::Flags) -> (Self, iced::Command<Self::Message>) {
+        
+        
+         
 
-        Self {
-            available_languages,
-            pick_list: pick_list::State::default(),
-            selected_language,
-        }
+         (Self {}, Command::none())
     }
 
     fn title(&self) -> String {
         String::from(fl!("window-title"))
     }
 
-    fn update(&mut self, message: Message) {
-        match message {
-            Message::LanguageSelected(language) => {
-                let requested_languages = vec![language];
-                let selected_languages =
-                    select(&*LANGUAGE_LOADER, &TRANSLATIONS, &requested_languages).unwrap();
-                self.selected_language = selected_languages.get(0).unwrap().clone();
-            }
-        }
+    fn update(&mut self, _message: Message) -> Command<Self::Message> {
+        Command::none()
     }
 
-    fn view(&mut self) -> Element<Message> {
-        let pick_list = PickList::new(
-            &mut self.pick_list,
-            self.available_languages.as_slice(),
-            Some(self.selected_language.clone()),
-            Message::LanguageSelected,
-        );
-
+    fn view(&self) -> Element<Self::Message, Self::Theme, iced::Renderer> {
         Column::new()
             .padding(20)
-            .align_items(Align::Center)
+            .align_items(Alignment::Center)
             .push(Text::new(fl!("select-language-label")))
-            .push(pick_list)
             .into()
     }
 }

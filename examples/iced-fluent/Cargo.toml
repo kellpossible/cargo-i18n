@@ -7,9 +7,14 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-i18n-embed = { path = "../../i18n-embed", default-features = false, features = ["fluent-system", "desktop-requester", "rust-embed"] }
+i18n-embed = { path = "../../i18n-embed", features = [
+    "fluent-system",
+    "desktop-requester",
+    #"rust-embed",
+] }
 i18n-embed-fl = { path = "../../i18n-embed-fl" }
-iced = { version = "0.2", default-features = false, features = ["glow"] }
+rust-embed = "8.0"
 lazy_static = "1.4"
-rust-embed = "5.6"
+
+iced = "0.12"
 unic-langid = "0.9"
