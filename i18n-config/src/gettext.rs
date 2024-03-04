@@ -33,6 +33,13 @@ pub struct GettextConfig {
     pub msgid_bugs_address: Option<String>,
     /// Whether or not to perform string extraction using the `xtr` command.
     pub xtr: Option<bool>,
+    /// List of files (or file glob patterns) the `xgettext` command needs to
+    /// run for.
+    /// Patterns are in gitignore style, so exclude rules are also possible
+    /// When no patterns are given, xgettext will not run.
+    /// By default this is **[]**.
+    #[serde(default)]
+    pub xgettext: Vec<String>,
     /// Generate ‘#: filename:line’ lines (default) in the pot files when
     /// running the `xtr` command. If the type is ‘full’ (the default),
     /// it generates the lines with both file name and line number.

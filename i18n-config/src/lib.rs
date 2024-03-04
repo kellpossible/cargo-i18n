@@ -83,6 +83,15 @@ impl<'a> Crate<'a> {
         config_file_path: P2,
     ) -> Result<Crate<'a>, I18nConfigError> {
         let path_into = path.into();
+        let path_into = match path_into.canonicalize() {
+            Ok(p) => p,
+            Err(_) => {
+                return Err(I18nConfigError::NotACrate(
+                    path_into,
+                    WhyNotCrate::NoCargoToml,
+                ));
+            }
+        };
 
         let config_file_path_into = config_file_path.into();
 

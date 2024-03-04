@@ -66,8 +66,8 @@ impl I18nAssets for FileSystemAssets {
             Ok(contents) => Some(Cow::from(contents)),
             Err(e) => {
                 log::error!(
-                    target: "i18n_embed::assets", 
-                    "Unexpected error while reading localization asset file: {}", 
+                    target: "i18n_embed::assets",
+                    "Unexpected error while reading localization asset file: {}",
                     e);
                 None
             }
@@ -75,34 +75,39 @@ impl I18nAssets for FileSystemAssets {
     }
 
     fn filenames_iter(&self) -> Box<dyn Iterator<Item = String>> {
-        Box::new(
-            walkdir::WalkDir::new(&self.base_dir)
-                .into_iter()
-                .filter_map(|f| match f {
-                    Ok(f) => {
-                        if f.file_type().is_file() {
-                            match f.file_name().to_str() {
-                                Some(filename) => Some(filename.to_string()),
-                                None => {
-                                    log::error!(
-                                    target: "i18n_embed::assets", 
-                                    "Filename {:?} is not valid UTF-8.", 
+        match globwalk::GlobWalkerBuilder::new(&self.base_dir, "*").build() {
+            Ok(walker) => Box::new(walker.into_iter().filter_map(|f| match f {
+                Ok(f) => {
+                    if f.file_type().is_file() {
+                        match f.file_name().to_str() {
+                            Some(filename) => Some(filename.to_string()),
+                            None => {
+                                log::error!(
+                                    target: "i18n_embed::assets",
+                                    "Filename {:?} is not valid UTF-8.",
                                     f.file_name());
-                                    None
-                                }
+                                None
                             }
-                        } else {
-                            None
                         }
-                    }
-                    Err(err) => {
-                        log::error!(
-                        target: "i18n_embed::assets", 
-                        "Unexpected error while gathering localization asset filenames: {}", 
-                        err);
+                    } else {
                         None
                     }
-                }),
-        )
+                }
+                Err(err) => {
+                    log::error!(
+                        target: "i18n_embed::assets",
+                        "Unexpected error while gathering localization asset filenames: {}",
+                        err);
+                    None
+                }
+            })),
+            Err(err) => {
+                log::error!(
+                        target: "i18n_embed::assets",
+                        "Unexpected error while gathering localization asset filenames: {}",
+                        err);
+                Box::new(vec![].into_iter())
+            }
+        }
     }
 }
