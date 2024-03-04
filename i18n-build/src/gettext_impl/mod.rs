@@ -156,7 +156,7 @@ fn run_xgettext(
 ) -> Result<()> {
     info!(
         "Performing string extraction with `xgettext` for crate \"{0}\"",
-        crt.path.to_string_lossy()
+        crt.path.display()
     );
     let mut src_files: Vec<Box<Path>> = Vec::new();
 
