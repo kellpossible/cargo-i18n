@@ -14,7 +14,7 @@ use anyhow::{anyhow, Context, Result};
 use log::{debug, info};
 use subprocess::Exec;
 use tr::tr;
-use walkdir::WalkDir;
+use globwalk::GlobWalkerBuilder;
 
 /// Run the `xtr` command (<https://crates.io/crates/xtr/>) in order
 /// to extract the translateable strings from the crate.
@@ -41,19 +41,19 @@ pub fn run_xtr(
     );
     let mut rs_files: Vec<Box<Path>> = Vec::new();
 
-    for result in WalkDir::new(src_dir) {
-        match result {
-            Ok(entry) => {
-                let path = entry.path();
-
-                if let Some(extension) = path.extension() {
-                    if extension.to_str() == Some("rs") {
+    match GlobWalkerBuilder::new(src_dir, "*.rs").build(){
+        Ok(walker) => {
+            for result in walker {
+                match result {
+                    Ok(entry) => {
+                        let path = entry.path();
                         rs_files.push(Box::from(path))
                     }
+                    Err(err) => return Err(anyhow!("error walking directory {}/src: {}", crt.name, err)),
                 }
             }
-            Err(err) => return Err(anyhow!("error walking directory {}/src: {}", crt.name, err)),
-        }
+        },
+        Err(err) => return Err(anyhow!("error walking directory {}/src: {}", crt.name, err)),
     }
 
     let mut pot_paths = Vec::new();
@@ -131,6 +131,134 @@ pub fn run_xtr(
         util::run_command_and_check_success(xtr_command_name, xtr)?;
 
         pot_paths.push(pot_file_path.to_owned());
+    }
+
+    let mut msgcat_args: Vec<Box<OsStr>> = Vec::new();
+
+    for path in &pot_paths {
+        msgcat_args.push(Box::from(path.as_os_str()));
+    }
+
+    let combined_pot_file_path = crate_module_pot_file_path(crt, pot_dir);
+
+    run_msgcat(&pot_paths, &combined_pot_file_path)
+        .context("There was a problem while trying to run the \"msgcat\" command.")?;
+
+    Ok(())
+}
+
+fn run_xgettext(
+    crt: &Crate,
+    gettext_config: &GettextConfig,
+    _src_dir: &Path,
+    pot_dir: &Path,
+    prepend_crate_path: bool,
+) -> Result<()> {
+    info!(
+        "Performing string extraction with `xgettext` for crate \"{0}\"",
+        crt.path.display()
+    );
+    let mut src_files: Vec<Box<Path>> = Vec::new();
+
+    let patterns = &crt
+        .gettext_config_or_err()?
+        .xgettext;
+
+    match GlobWalkerBuilder::from_patterns(&crt.path, patterns).build(){
+        Ok(walker) => {
+            for result in walker {
+                match result {
+                    Ok(entry) => {
+                        let path = entry.path();
+                        src_files.push(Box::from(path))
+                    }
+                    Err(err) => return Err(anyhow!("error walking directory {}/src: {}", crt.name, err)),
+                }
+            }
+        },
+        Err(err) => return Err(anyhow!("error walking directory {}/src: {}", crt.name, err)),
+    }
+
+    let mut pot_paths = Vec::new();
+
+    let pot_src_dir = if prepend_crate_path {
+        pot_dir.join(&crt.path)
+    } else {
+        pot_dir.to_path_buf()
+    };
+
+    // create pot and pot/tmp if they don't exist
+    util::create_dir_all_if_not_exists(&pot_src_dir)?;
+
+    for src_file_path in src_files {
+        let parent_dir = src_file_path.parent().context(format!(
+            "the rs file {0} is not inside a directory",
+            src_file_path.to_string_lossy()
+        ))?;
+
+        let src_dir_relative = parent_dir.strip_prefix(crt.path.to_path_buf()).map_err(|_| {
+            PathError::not_inside_dir(parent_dir, format!("crate {0}", crt.name), &crt.path)
+        })?;
+        let mut file_name = src_file_path.file_name().context(format!(
+            "expected src file path {0} would have a filename",
+            src_file_path.to_string_lossy()
+        ))?.to_owned();
+        file_name.push(".pot");
+
+        let pot_file_path = pot_src_dir
+            .join(src_dir_relative)
+            .join(&PathBuf::from(file_name));
+
+        util::create_dir_all_if_not_exists(pot_file_path.parent().with_context(|| {
+            format!(
+                "Expected that pot file path \"{0}\" would be inside a directory (have a parent)",
+                &pot_file_path.to_string_lossy()
+            )
+        })?)?;
+
+        // ======= Run the `xgettext` command to extract translatable strings =======
+        let xgettext_command_name = "xgettext";
+        let mut xgettext = Command::new(xgettext_command_name);
+
+        match &gettext_config.copyright_holder {
+            Some(copyright_holder) => {
+                xgettext.args(["--copyright-holder", copyright_holder.as_str()]);
+            }
+            None => {}
+        }
+
+        match &gettext_config.msgid_bugs_address {
+            Some(msgid_bugs_address) => {
+                xgettext.args(["--msgid-bugs-address", msgid_bugs_address.as_str()]);
+            }
+            None => {}
+        }
+
+        xgettext.args([
+            "--package-name",
+            crt.name.as_str(),
+            "--package-version",
+            crt.version.as_str(),
+            "--default-domain",
+            crt.module_name().as_str(),
+            "--add-location",
+            "--from-code=UTF-8",
+            "--add-comments",
+            "-o",
+            pot_file_path.to_str().ok_or_else(|| {
+                PathError::not_valid_utf8(pot_file_path.clone(), "pot", PathType::File)
+            })?,
+            src_file_path.to_str().ok_or_else(|| {
+                PathError::not_valid_utf8(src_file_path.clone(), "src", PathType::File)
+            })?,
+        ]);
+
+        util::run_command_and_check_success(xgettext_command_name, xgettext)?;
+
+        // If there was nothing to translate, xgettext may not create a file
+        if pot_file_path.exists() {
+            pot_paths.push(pot_file_path.to_owned());
+        }
     }
 
     let mut msgcat_args: Vec<Box<OsStr>> = Vec::new();
@@ -403,6 +531,9 @@ pub fn run(crt: &Crate) -> Result<()> {
         .expect("expected gettext config to be present");
 
     let do_xtr = config_crate.gettext_config_or_err()?.xtr.unwrap_or(true);
+    let do_xgettext = !config_crate
+        .gettext_config_or_err()?
+        .xgettext.is_empty();
 
     // We don't use the i18n_config (which potentially comes from the
     // parent crate )to get the subcrates, because this would result
@@ -447,6 +578,18 @@ pub fn run(crt: &Crate) -> Result<()> {
         let prepend_crate_path =
             crt.path.canonicalize().unwrap() != config_crate.path.canonicalize().unwrap();
         run_xtr(
+            crt,
+            gettext_config,
+            src_dir.as_path(),
+            pot_dir.as_path(),
+            prepend_crate_path,
+        )?;
+    }
+
+    if do_xgettext {
+        let prepend_crate_path =
+            crt.path.canonicalize().unwrap() != config_crate.path.canonicalize().unwrap();
+        run_xgettext(
             crt,
             gettext_config,
             src_dir.as_path(),

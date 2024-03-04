@@ -33,11 +33,11 @@ rust-embed = { workspace = true, optional = true }
 thiserror = { workspace = true }
 tr = { version = "0.1", default-features = false, optional = true }
 unic-langid = { workspace = true }
-walkdir = { workspace = true, optional = true }
+globwalk = { workspace = true, optional = true }
 web-sys = { version = "0.3", features = ["Window", "Navigator"], optional = true }
 
 [dev-dependencies]
-doc-comment = { workspace = true } 
+doc-comment = { workspace = true }
 env_logger = { workspace = true }
 maplit = "1.0"
 pretty_assertions = { workspace = true }
@@ -52,4 +52,4 @@ fluent-system = ["fluent", "fluent-syntax", "parking_lot", "i18n-embed-impl", "i
 desktop-requester = ["locale_config"]
 web-sys-requester = ["web-sys"]
 
-filesystem-assets = ["walkdir"]
+filesystem-assets = ["globwalk"]
