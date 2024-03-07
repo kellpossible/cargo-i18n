@@ -28,6 +28,8 @@ intl-memoizer = "0.5"
 lazy_static = { workspace = true }
 locale_config = { version = "0.3", optional = true }
 log = { workspace = true }
+# notify = { version = "6.1.1", optional = true }
+notify = { version = "6.1.1" }
 parking_lot = { version = "0.12", optional = true }
 rust-embed = { workspace = true, optional = true }
 thiserror = { workspace = true }
@@ -41,7 +43,7 @@ doc-comment = { workspace = true }
 env_logger = { workspace = true }
 maplit = "1.0"
 pretty_assertions = { workspace = true }
-serial_test = "2.0"
+serial_test = "3.0"
 
 [features]
 default = ["rust-embed"]
@@ -53,3 +55,5 @@ desktop-requester = ["locale_config"]
 web-sys-requester = ["web-sys"]
 
 filesystem-assets = ["walkdir"]
+
+# autoreload = ["notify"]

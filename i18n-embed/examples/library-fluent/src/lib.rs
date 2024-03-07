@@ -1,6 +1,6 @@
 use i18n_embed::{
     fluent::{fluent_language_loader, FluentLanguageLoader},
-    DefaultLocalizer, LanguageLoader, Localizer,
+    DefaultLocalizer, I18nAssets, LanguageLoader, Localizer, RustEmbedNotifyAssets,
 };
 use i18n_embed_fl::fl;
 use once_cell::sync::Lazy;
@@ -8,7 +8,11 @@ use rust_embed::RustEmbed;
 
 #[derive(RustEmbed)]
 #[folder = "i18n/"]
-struct Localizations;
+pub struct LocalizationsEmbed;
+
+pub static LOCALIZATIONS: Lazy<RustEmbedNotifyAssets<LocalizationsEmbed>> = Lazy::new(|| {
+    RustEmbedNotifyAssets::new(std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("i18n/"))
+});
 
 static LANGUAGE_LOADER: Lazy<FluentLanguageLoader> = Lazy::new(|| {
     let loader: FluentLanguageLoader = fluent_language_loader!();
@@ -16,7 +20,7 @@ static LANGUAGE_LOADER: Lazy<FluentLanguageLoader> = Lazy::new(|| {
     // Load the fallback langauge by default so that users of the
     // library don't need to if they don't care about localization.
     loader
-        .load_fallback_language(&Localizations)
+        .load_fallback_language(&*LOCALIZATIONS)
         .expect("Error while loading fallback language");
 
     loader
@@ -39,6 +43,7 @@ pub fn hello_world() -> String {
 }
 
 // Get the `Localizer` to be used for localizing this library.
-pub fn localizer() -> Box<dyn Localizer> {
-    Box::from(DefaultLocalizer::new(&*LANGUAGE_LOADER, &Localizations))
+pub fn localizer(
+) -> DefaultLocalizer<'static, FluentLanguageLoader, RustEmbedNotifyAssets<LocalizationsEmbed>> {
+    DefaultLocalizer::new(&*LANGUAGE_LOADER, &LOCALIZATIONS)
 }

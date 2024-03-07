@@ -486,11 +486,13 @@ fn error_vec_to_string(errors: &[I18nEmbedError]) -> String {
 /// [LanguageLoader](LanguageLoader) and an [I18nAssets](I18nAssets),
 /// which are used together to localize a library/crate on demand.
 pub trait Localizer {
+    type Assets: I18nAssets;
+    type Loader: LanguageLoader;
     /// The [LanguageLoader] used by this localizer.
-    fn language_loader(&self) -> &'_ dyn LanguageLoader;
+    fn language_loader(&self) -> &'_ Self::Loader;
 
     /// The source of localization assets used by this localizer
-    fn i18n_assets(&self) -> &'_ dyn I18nAssets;
+    fn i18n_assets(&self) -> &'_ Self::Assets;
 
     /// The available languages that can be selected by this localizer.
     fn available_languages(&self) -> Result<Vec<unic_langid::LanguageIdentifier>, I18nEmbedError> {
@@ -514,14 +516,15 @@ pub trait Localizer {
 }
 
 /// A simple default implemenation of the [Localizer](Localizer) trait.
-pub struct DefaultLocalizer<'a> {
+pub struct DefaultLocalizer<'a, LOADER, ASSETS: I18nAssets> {
     /// The [LanguageLoader] used by this localizer.
-    pub language_loader: &'a dyn LanguageLoader,
+    pub language_loader: &'a LOADER,
     /// The source of assets used by this localizer.
-    pub i18n_assets: &'a dyn I18nAssets,
+    pub i18n_assets: &'a ASSETS,
+    watchers: Vec<ASSETS::Watcher>,
 }
 
-impl Debug for DefaultLocalizer<'_> {
+impl<LOADER, ASSETS: I18nAssets> Debug for DefaultLocalizer<'_, LOADER, ASSETS> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
@@ -532,25 +535,52 @@ impl Debug for DefaultLocalizer<'_> {
 }
 
 #[allow(single_use_lifetimes)]
-impl<'a> Localizer for DefaultLocalizer<'a> {
-    fn language_loader(&self) -> &'_ dyn LanguageLoader {
+impl<'a, LOADER, ASSETS> Localizer for DefaultLocalizer<'a, LOADER, ASSETS>
+where
+    LOADER: LanguageLoader,
+    ASSETS: I18nAssets,
+{
+    type Loader = LOADER;
+    type Assets = ASSETS;
+    fn language_loader(&self) -> &'_ Self::Loader {
         self.language_loader
     }
-    fn i18n_assets(&self) -> &'_ dyn I18nAssets {
+    fn i18n_assets(&self) -> &'_ Self::Assets {
         self.i18n_assets
     }
 }
 
-impl<'a> DefaultLocalizer<'a> {
+impl<'a, LOADER, ASSETS> DefaultLocalizer<'a, LOADER, ASSETS>
+where
+    ASSETS: I18nAssets,
+{
     /// Create a new [DefaultLocalizer](DefaultLocalizer).
-    pub fn new(
-        language_loader: &'a dyn LanguageLoader,
-        i18n_assets: &'a dyn I18nAssets,
-    ) -> DefaultLocalizer<'a> {
-        DefaultLocalizer {
+    pub fn new(language_loader: &'a LOADER, i18n_assets: &'a ASSETS) -> Self {
+        Self {
             language_loader,
             i18n_assets,
+            watchers: Vec::new(),
         }
+    }
+}
+
+impl<LOADER, ASSETS> DefaultLocalizer<'static, LOADER, ASSETS>
+where
+    ASSETS: I18nAssets + Send + Sync,
+    LOADER: LanguageLoader + Send + Sync,
+{
+    /// Create a new [DefaultLocalizer](DefaultLocalizer).
+    pub fn with_autoreload(mut self) -> Result<Self, ASSETS::Error> {
+        let assets = self.i18n_assets;
+        let loader = self.language_loader;
+        let watcher = self.i18n_assets.subscribe_changed(move |changed| {
+            if let Some(file) = assets.get_file(changed) {
+                loader.reload(assets).unwrap();
+                println!("Reloading {file:?}");
+            }
+        })?;
+        self.watchers.push(watcher);
+        Ok(self)
     }
 }
 
@@ -562,12 +592,16 @@ impl<'a> DefaultLocalizer<'a> {
 /// [LanguageLoader::load_languages()]. If there were no available
 /// languages, then no languages will be loaded and the returned
 /// `Vec` will be empty.
-pub fn select(
-    language_loader: &dyn LanguageLoader,
-    i18n_assets: &dyn I18nAssets,
+pub fn select<LOADER, ASSETS>(
+    language_loader: &LOADER,
+    i18n_assets: &ASSETS,
     requested_languages: &[unic_langid::LanguageIdentifier],
-) -> Result<Vec<unic_langid::LanguageIdentifier>, I18nEmbedError> {
-    debug!(
+) -> Result<Vec<unic_langid::LanguageIdentifier>, I18nEmbedError>
+where
+    LOADER: LanguageLoader,
+    ASSETS: I18nAssets,
+{
+    log::info!(
         "Selecting translations for domain \"{0}\"",
         language_loader.domain()
     );
@@ -583,12 +617,12 @@ pub fn select(
         NegotiationStrategy::Filtering,
     );
 
-    debug!("Requested Languages: {:?}", requested_languages);
-    debug!("Available Languages: {:?}", available_languages);
-    debug!("Supported Languages: {:?}", supported_languages);
+    log::debug!("Requested Languages: {:?}", requested_languages);
+    log::debug!("Available Languages: {:?}", available_languages);
+    log::debug!("Supported Languages: {:?}", supported_languages);
 
     if !supported_languages.is_empty() {
-        language_loader.load_languages(i18n_assets, supported_languages.as_slice())?;
+        language_loader.load_languages(i18n_assets, supported_languages.iter().map(|id| *id))?;
     }
 
     Ok(supported_languages.into_iter().cloned().collect())
@@ -617,10 +651,10 @@ pub trait LanguageLoader {
     fn language_file_name(&self) -> String;
     /// The computed path to the language file, and `Cow` of the file
     /// itself if it exists.
-    fn language_file<'a>(
+    fn language_file<'a, ASSETS: I18nAssets>(
         &self,
         language_id: &unic_langid::LanguageIdentifier,
-        i18n_assets: &'a dyn I18nAssets,
+        i18n_assets: &'a ASSETS,
     ) -> (String, Option<Cow<'a, [u8]>>) {
         let language_id_string = language_id.to_string();
         let file_path = format!("{}/{}", language_id_string, self.language_file_name());
@@ -632,9 +666,9 @@ pub trait LanguageLoader {
     }
 
     /// Calculate the languages which are available to be loaded.
-    fn available_languages(
+    fn available_languages<ASSETS: I18nAssets>(
         &self,
-        i18n_assets: &dyn I18nAssets,
+        i18n_assets: &ASSETS,
     ) -> Result<Vec<unic_langid::LanguageIdentifier>, I18nEmbedError> {
         let mut language_strings: Vec<String> = i18n_assets
             .filenames_iter()
@@ -699,13 +733,19 @@ pub trait LanguageLoader {
     }
 
     /// Load all available languages with [`LanguageLoader::load_languages()`].
-    fn load_available_languages(&self, i18n_assets: &dyn I18nAssets) -> Result<(), I18nEmbedError> {
+    fn load_available_languages<ASSETS: I18nAssets>(
+        &self,
+        i18n_assets: &ASSETS,
+    ) -> Result<(), I18nEmbedError> {
         let available_languages = self.available_languages(i18n_assets)?;
-        self.load_languages(i18n_assets, &available_languages.iter().collect::<Vec<_>>())
+        self.load_languages(i18n_assets, available_languages.iter().collect::<Vec<_>>())
     }
 
     /// Get the language which is currently loaded for this loader.
     fn current_language(&self) -> unic_langid::LanguageIdentifier;
+
+    /// Reload the currently loaded languages.
+    fn reload<ASSETS: I18nAssets>(&self, i18n_assets: &ASSETS) -> Result<(), I18nEmbedError>;
 
     /// Load the languages `language_ids` using the resources packaged
     /// in the `i18n_embed` in order of fallback preference. This also
@@ -713,15 +753,19 @@ pub trait LanguageLoader {
     /// the `language_ids` slice. You can use [select()] to determine
     /// which fallbacks are actually available for an arbitrary slice
     /// of preferences.
-    fn load_languages(
+    #[allow(single_use_lifetimes)]
+    fn load_languages<'a, ASSETS: I18nAssets>(
         &self,
-        i18n_assets: &dyn I18nAssets,
-        language_ids: &[&unic_langid::LanguageIdentifier],
+        i18n_assets: &ASSETS,
+        language_ids: impl IntoIterator<Item = &'a unic_langid::LanguageIdentifier>,
     ) -> Result<(), I18nEmbedError>;
 
     /// Load the [LanguageLoader::fallback_language()].
-    fn load_fallback_language(&self, i18n_assets: &dyn I18nAssets) -> Result<(), I18nEmbedError> {
-        self.load_languages(i18n_assets, &[self.fallback_language()])
+    fn load_fallback_language<ASSETS: I18nAssets>(
+        &self,
+        i18n_assets: &ASSETS,
+    ) -> Result<(), I18nEmbedError> {
+        self.load_languages(i18n_assets, [self.fallback_language()])
     }
 }
 

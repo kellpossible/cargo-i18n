@@ -383,7 +383,7 @@ pub fn fl(input: TokenStream) -> TokenStream {
         let loader = FluentLanguageLoader::new(&domain, fallback_language.clone());
 
         loader
-            .load_languages(&assets, &[&fallback_language])
+            .load_languages(&assets, [&fallback_language])
             .unwrap_or_else(|err| match err {
                 i18n_embed::I18nEmbedError::LanguageNotAvailable(file, language_id) => {
                     if fallback_language != language_id {

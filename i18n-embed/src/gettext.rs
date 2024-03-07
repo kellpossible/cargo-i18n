@@ -81,9 +81,9 @@ impl LanguageLoader for GettextLanguageLoader {
     /// **Note:** Gettext doesn't support loading multiple languages
     /// as multiple fallbacks. We only load the first of the requested
     /// languages, and the fallback is the src language.
-    fn load_languages(
+    fn load_languages<ASSETS: I18nAssets>(
         &self,
-        i18n_assets: &dyn I18nAssets,
+        i18n_assets: &ASSETS,
         language_ids: &[&unic_langid::LanguageIdentifier],
     ) -> Result<(), I18nEmbedError> {
         let language_id = *language_ids

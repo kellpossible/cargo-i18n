@@ -1,13 +1,24 @@
-use i18n_embed::DesktopLanguageRequester;
-use library_fluent::{hello_world, localizer};
+use std::time::Duration;
+
+use i18n_embed::{
+    fluent::FluentLanguageLoader, DefaultLocalizer, DesktopLanguageRequester, I18nAssets,
+    Localizer, RustEmbedNotifyAssets,
+};
+use library_fluent::{hello_world, localizer, LocalizationsEmbed, LOCALIZATIONS};
 
 fn main() {
-    let library_localizer = localizer();
-    let requested_languages = DesktopLanguageRequester::requested_languages();
+    env_logger::init();
+    let library_localizer = localizer().with_autoreload().unwrap();
+    let requested_languages = DesktopLanguageRequester::<
+        DefaultLocalizer<FluentLanguageLoader, RustEmbedNotifyAssets<LocalizationsEmbed>>,
+    >::requested_languages();
 
     if let Err(error) = library_localizer.select(&requested_languages) {
         eprintln!("Error while loading languages for library_fluent {error}");
     }
 
-    println!("{}", hello_world());
+    loop {
+        println!("{}", hello_world());
+        std::thread::sleep(Duration::from_secs(1));
+    }
 }

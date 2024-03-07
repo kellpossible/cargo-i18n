@@ -624,24 +624,26 @@ impl LanguageLoader for FluentLanguageLoader {
     /// first in the `language_ids` slice. You can use
     /// [select()](super::select()) to determine which fallbacks are
     /// actually available for an arbitrary slice of preferences.
-    fn load_languages(
+    #[allow(single_use_lifetimes)]
+    fn load_languages<'a, ASSETS: I18nAssets>(
         &self,
-        i18n_assets: &dyn I18nAssets,
-        language_ids: &[&unic_langid::LanguageIdentifier],
+        i18n_assets: &ASSETS,
+        language_ids: impl IntoIterator<Item = &'a unic_langid::LanguageIdentifier>,
     ) -> Result<(), I18nEmbedError> {
-        if language_ids.is_empty() {
+        let mut language_ids = language_ids.into_iter().peekable();
+        if language_ids.peek().is_none() {
             return Err(I18nEmbedError::RequestedLanguagesEmpty);
         }
 
         // The languages to load
-        let mut load_language_ids: Vec<unic_langid::LanguageIdentifier> =
-            language_ids.iter().map(|id| (**id).clone()).collect();
+        let language_ids: Vec<unic_langid::LanguageIdentifier> =
+            language_ids.map(|id| (*id).clone()).collect();
+        let mut load_language_ids: Vec<unic_langid::LanguageIdentifier> = language_ids.clone();
 
         if !load_language_ids.contains(&self.fallback_language) {
             load_language_ids.push(self.fallback_language.clone());
         }
-
-        let mut language_bundles = Vec::with_capacity(language_ids.len());
+        let mut language_bundles = Vec::with_capacity(load_language_ids.len());
 
         for language in &load_language_ids {
             let (path, file) = self.language_file(language, i18n_assets);
@@ -678,7 +680,7 @@ impl LanguageLoader for FluentLanguageLoader {
 
         self.inner.swap(Arc::new(FluentLanguageLoaderInner {
             current_languages: CurrentLanguages {
-                languages: language_ids.iter().map(|&lang| lang.to_owned()).collect(),
+                languages: language_ids,
                 indices: (0..load_language_ids.len()).collect(),
             },
             language_config: Arc::new(RwLock::new(LanguageConfig {
@@ -692,6 +694,13 @@ impl LanguageLoader for FluentLanguageLoader {
         }));
 
         Ok(())
+    }
+
+    fn reload<ASSETS: I18nAssets>(&self, i18n_assets: &ASSETS) -> Result<(), I18nEmbedError> {
+        self.load_languages(
+            i18n_assets,
+            &self.inner.load().current_languages.languages.clone(),
+        )
     }
 }
 

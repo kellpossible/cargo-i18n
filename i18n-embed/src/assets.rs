@@ -1,26 +1,92 @@
-use std::borrow::Cow;
+use std::{borrow::Cow, marker::PhantomData};
+
+use rust_embed::RustEmbed;
 
 /// A trait to handle the retrieval of localization assets.
 pub trait I18nAssets {
+    type Error: std::error::Error;
+    type Watcher;
     /// Get a localization asset (returns `None` if the asset does not
     /// exist, or unable to obtain the asset due to a non-critical
     /// error).
     fn get_file(&self, file_path: &str) -> Option<Cow<'_, [u8]>>;
     /// Get an iterator over the filenames of the localization assets.
-    fn filenames_iter(&self) -> Box<dyn Iterator<Item = String>>;
+    fn filenames_iter(&self) -> impl Iterator<Item = String>;
+    /// A method to allow users of this trait to subscribe to change events, and reload assets when
+    /// they have changed. The subscription will be cancelled when the returned [`Watcher`] is
+    /// dropped.
+    fn subscribe_changed<F>(&self, changed: F) -> Result<Self::Watcher, Self::Error>
+    where
+        F: Fn(&str) -> () + Send + Sync + 'static;
 }
 
-#[cfg(feature = "rust-embed")]
 impl<T> I18nAssets for T
 where
-    T: rust_embed::RustEmbed + 'static,
+    T: RustEmbed,
 {
+    type Error = RustEmbedAssetsError;
+    type Watcher = ();
+
     fn get_file(&self, file_path: &str) -> Option<Cow<'_, [u8]>> {
         Self::get(file_path).map(|file| file.data)
     }
 
-    fn filenames_iter(&self) -> Box<dyn Iterator<Item = String>> {
-        Box::new(Self::iter().map(|filename| filename.to_string()))
+    fn filenames_iter(&self) -> impl Iterator<Item = String> {
+        Self::iter().map(|filename| filename.to_string())
+    }
+
+    #[allow(unused_variables)]
+    fn subscribe_changed<F>(&self, changed: F) -> Result<Self::Watcher, Self::Error>
+    where
+        F: Fn(&str) -> () + Send + Sync + 'static,
+    {
+        Ok(())
+    }
+}
+
+#[cfg(feature = "rust-embed")]
+#[derive(Debug, thiserror::Error)]
+#[non_exhaustive]
+pub enum RustEmbedAssetsError {
+    #[error(transparent)]
+    Notify(#[from] notify::Error),
+}
+
+pub struct RustEmbedNotifyAssets<T: rust_embed::RustEmbed> {
+    base_dir: std::path::PathBuf,
+    embed: PhantomData<T>,
+}
+
+impl<T: rust_embed::RustEmbed> RustEmbedNotifyAssets<T> {
+    pub fn new(base_dir: impl Into<std::path::PathBuf>) -> Self {
+        Self {
+            base_dir: base_dir.into(),
+            embed: PhantomData,
+        }
+    }
+}
+
+impl<T> I18nAssets for RustEmbedNotifyAssets<T>
+where
+    T: RustEmbed,
+{
+    type Error = RustEmbedAssetsError;
+    type Watcher = notify::RecommendedWatcher;
+
+    fn get_file(&self, file_path: &str) -> Option<Cow<'_, [u8]>> {
+        T::get(file_path).map(|file| file.data)
+    }
+
+    fn filenames_iter(&self) -> impl Iterator<Item = String> {
+        T::iter().map(|filename| filename.to_string())
+    }
+
+    fn subscribe_changed<F>(&self, changed: F) -> Result<Self::Watcher, Self::Error>
+    where
+        F: Fn(&str) -> () + Send + Sync + 'static,
+    {
+        log::debug!("Watching for changed files in {:?}", self.base_dir);
+        notify_watcher(self, &self.base_dir, changed).map_err(Into::into)
     }
 }
 
@@ -54,7 +120,49 @@ impl FileSystemAssets {
 }
 
 #[cfg(feature = "filesystem-assets")]
+#[derive(Debug, thiserror::Error)]
+#[non_exhaustive]
+pub enum FileSystemAssetsError {
+    #[error(transparent)]
+    Notify(#[from] notify::Error),
+}
+
+fn notify_watcher<ASSETS, F>(
+    _assets: &ASSETS,
+    base_dir: &std::path::Path,
+    changed: F,
+) -> notify::Result<notify::RecommendedWatcher>
+where
+    F: Fn(&str) -> () + Send + Sync + 'static,
+    ASSETS: I18nAssets,
+{
+    let mut watcher = notify::recommended_watcher(move |event_result| {
+        let event: notify::Event = match event_result {
+            Ok(event) => event,
+            Err(error) => {
+                log::error!("{error}");
+                return;
+            }
+        };
+
+        for path in event.paths {
+            if let Some(path_str) = path.as_os_str().to_str() {
+                changed(path_str)
+            } else {
+                log::error!("Path contains invalid UTF-8: {path:?}");
+            }
+        }
+    })?;
+
+    notify::Watcher::watch(&mut watcher, base_dir, notify::RecursiveMode::Recursive)?;
+
+    Ok(watcher)
+}
+
+#[cfg(feature = "filesystem-assets")]
 impl I18nAssets for FileSystemAssets {
+    type Error = FileSystemAssetsError;
+    type Watcher = notify::RecommendedWatcher;
     fn get_file(&self, file_path: &str) -> Option<Cow<'_, [u8]>> {
         let full_path = self.base_dir.join(file_path);
 
@@ -74,35 +182,41 @@ impl I18nAssets for FileSystemAssets {
         }
     }
 
-    fn filenames_iter(&self) -> Box<dyn Iterator<Item = String>> {
-        Box::new(
-            walkdir::WalkDir::new(&self.base_dir)
-                .into_iter()
-                .filter_map(|f| match f {
-                    Ok(f) => {
-                        if f.file_type().is_file() {
-                            match f.file_name().to_str() {
-                                Some(filename) => Some(filename.to_string()),
-                                None => {
-                                    log::error!(
-                                    target: "i18n_embed::assets", 
-                                    "Filename {:?} is not valid UTF-8.", 
-                                    f.file_name());
-                                    None
-                                }
+    fn filenames_iter(&self) -> impl Iterator<Item = String> {
+        walkdir::WalkDir::new(&self.base_dir)
+            .into_iter()
+            .filter_map(|f| match f {
+                Ok(f) => {
+                    if f.file_type().is_file() {
+                        match f.file_name().to_str() {
+                            Some(filename) => Some(filename.to_string()),
+                            None => {
+                                log::error!(
+                                target: "i18n_embed::assets", 
+                                "Filename {:?} is not valid UTF-8.", 
+                                f.file_name());
+                                None
                             }
-                        } else {
-                            None
                         }
-                    }
-                    Err(err) => {
-                        log::error!(
-                        target: "i18n_embed::assets", 
-                        "Unexpected error while gathering localization asset filenames: {}", 
-                        err);
+                    } else {
                         None
                     }
-                }),
-        )
+                }
+                Err(err) => {
+                    log::error!(
+                    target: "i18n_embed::assets", 
+                    "Unexpected error while gathering localization asset filenames: {}", 
+                    err);
+                    None
+                }
+            })
+    }
+
+    // #[cfg(all(feature = "autoreload", feature = "filesystem-assets"))]
+    fn subscribe_changed<F>(&self, changed: F) -> Result<Self::Watcher, Self::Error>
+    where
+        F: Fn(&str) -> () + Send + Sync + 'static,
+    {
+        notify_watcher(self, &self.base_dir, changed).map_err(Into::into)
     }
 }
