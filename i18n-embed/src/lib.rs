@@ -573,10 +573,9 @@ where
     pub fn with_autoreload(mut self) -> Result<Self, ASSETS::Error> {
         let assets = self.i18n_assets;
         let loader = self.language_loader;
-        let watcher = self.i18n_assets.subscribe_changed(move |changed| {
-            if let Some(file) = assets.get_file(changed) {
-                loader.reload(assets).unwrap();
-                println!("Reloading {file:?}");
+        let watcher = self.i18n_assets.subscribe_changed(move || {
+            if let Err(error) = loader.reload(assets) {
+                log::error!("Error autoreloading assets: {error:?}")
             }
         })?;
         self.watchers.push(watcher);

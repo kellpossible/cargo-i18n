@@ -17,7 +17,7 @@ pub trait I18nAssets {
     /// dropped.
     fn subscribe_changed<F>(&self, changed: F) -> Result<Self::Watcher, Self::Error>
     where
-        F: Fn(&str) -> () + Send + Sync + 'static;
+        F: Fn() -> () + Send + Sync + 'static;
 }
 
 impl<T> I18nAssets for T
@@ -38,7 +38,7 @@ where
     #[allow(unused_variables)]
     fn subscribe_changed<F>(&self, changed: F) -> Result<Self::Watcher, Self::Error>
     where
-        F: Fn(&str) -> () + Send + Sync + 'static,
+        F: Fn() -> () + Send + Sync + 'static,
     {
         Ok(())
     }
@@ -83,7 +83,7 @@ where
 
     fn subscribe_changed<F>(&self, changed: F) -> Result<Self::Watcher, Self::Error>
     where
-        F: Fn(&str) -> () + Send + Sync + 'static,
+        F: Fn() -> () + Send + Sync + 'static,
     {
         log::debug!("Watching for changed files in {:?}", self.base_dir);
         notify_watcher(self, &self.base_dir, changed).map_err(Into::into)
@@ -133,7 +133,7 @@ fn notify_watcher<ASSETS, F>(
     changed: F,
 ) -> notify::Result<notify::RecommendedWatcher>
 where
-    F: Fn(&str) -> () + Send + Sync + 'static,
+    F: Fn() -> () + Send + Sync + 'static,
     ASSETS: I18nAssets,
 {
     let mut watcher = notify::recommended_watcher(move |event_result| {
@@ -144,14 +144,6 @@ where
                 return;
             }
         };
-
-        for path in event.paths {
-            if let Some(path_str) = path.as_os_str().to_str() {
-                changed(path_str)
-            } else {
-                log::error!("Path contains invalid UTF-8: {path:?}");
-            }
-        }
     })?;
 
     notify::Watcher::watch(&mut watcher, base_dir, notify::RecursiveMode::Recursive)?;
@@ -215,7 +207,7 @@ impl I18nAssets for FileSystemAssets {
     // #[cfg(all(feature = "autoreload", feature = "filesystem-assets"))]
     fn subscribe_changed<F>(&self, changed: F) -> Result<Self::Watcher, Self::Error>
     where
-        F: Fn(&str) -> () + Send + Sync + 'static,
+        F: Fn() -> () + Send + Sync + 'static,
     {
         notify_watcher(self, &self.base_dir, changed).map_err(Into::into)
     }
