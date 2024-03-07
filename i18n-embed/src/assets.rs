@@ -2,9 +2,10 @@ use std::{borrow::Cow, marker::PhantomData};
 
 use rust_embed::RustEmbed;
 
+use crate::I18nEmbedError;
+
 /// A trait to handle the retrieval of localization assets.
 pub trait I18nAssets {
-    type Error: std::error::Error;
     type Watcher;
     /// Get a localization asset (returns `None` if the asset does not
     /// exist, or unable to obtain the asset due to a non-critical
@@ -15,7 +16,7 @@ pub trait I18nAssets {
     /// A method to allow users of this trait to subscribe to change events, and reload assets when
     /// they have changed. The subscription will be cancelled when the returned [`Watcher`] is
     /// dropped.
-    fn subscribe_changed<F>(&self, changed: F) -> Result<Self::Watcher, Self::Error>
+    fn subscribe_changed<F>(&self, changed: F) -> Result<Self::Watcher, I18nEmbedError>
     where
         F: Fn() -> () + Send + Sync + 'static;
 }
@@ -24,7 +25,6 @@ impl<T> I18nAssets for T
 where
     T: RustEmbed,
 {
-    type Error = RustEmbedAssetsError;
     type Watcher = ();
 
     fn get_file(&self, file_path: &str) -> Option<Cow<'_, [u8]>> {
@@ -36,7 +36,7 @@ where
     }
 
     #[allow(unused_variables)]
-    fn subscribe_changed<F>(&self, changed: F) -> Result<Self::Watcher, Self::Error>
+    fn subscribe_changed<F>(&self, changed: F) -> Result<Self::Watcher, I18nEmbedError>
     where
         F: Fn() -> () + Send + Sync + 'static,
     {
@@ -70,7 +70,6 @@ impl<T> I18nAssets for RustEmbedNotifyAssets<T>
 where
     T: RustEmbed,
 {
-    type Error = RustEmbedAssetsError;
     type Watcher = notify::RecommendedWatcher;
 
     fn get_file(&self, file_path: &str) -> Option<Cow<'_, [u8]>> {
@@ -81,7 +80,7 @@ where
         T::iter().map(|filename| filename.to_string())
     }
 
-    fn subscribe_changed<F>(&self, changed: F) -> Result<Self::Watcher, Self::Error>
+    fn subscribe_changed<F>(&self, changed: F) -> Result<Self::Watcher, I18nEmbedError>
     where
         F: Fn() -> () + Send + Sync + 'static,
     {
@@ -153,7 +152,6 @@ where
 
 #[cfg(feature = "filesystem-assets")]
 impl I18nAssets for FileSystemAssets {
-    type Error = FileSystemAssetsError;
     type Watcher = notify::RecommendedWatcher;
     fn get_file(&self, file_path: &str) -> Option<Cow<'_, [u8]>> {
         let full_path = self.base_dir.join(file_path);
@@ -205,7 +203,7 @@ impl I18nAssets for FileSystemAssets {
     }
 
     // #[cfg(all(feature = "autoreload", feature = "filesystem-assets"))]
-    fn subscribe_changed<F>(&self, changed: F) -> Result<Self::Watcher, Self::Error>
+    fn subscribe_changed<F>(&self, changed: F) -> Result<Self::Watcher, I18nEmbedError>
     where
         F: Fn() -> () + Send + Sync + 'static,
     {

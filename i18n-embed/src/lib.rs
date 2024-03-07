@@ -475,6 +475,8 @@ pub enum I18nEmbedError {
     #[cfg(feature = "gettext-system")]
     #[error(transparent)]
     Gettext(#[from] gettext_system::Error),
+    #[error(transparent)]
+    Notify(#[from] notify::Error),
 }
 
 fn error_vec_to_string(errors: &[I18nEmbedError]) -> String {
@@ -570,7 +572,7 @@ where
     LOADER: LanguageLoader + Send + Sync,
 {
     /// Create a new [DefaultLocalizer](DefaultLocalizer).
-    pub fn with_autoreload(mut self) -> Result<Self, ASSETS::Error> {
+    pub fn with_autoreload(mut self) -> Result<Self, I18nEmbedError> {
         let assets = self.i18n_assets;
         let loader = self.language_loader;
         let watcher = self.i18n_assets.subscribe_changed(move || {
