@@ -81,13 +81,15 @@ impl LanguageLoader for GettextLanguageLoader {
     /// **Note:** Gettext doesn't support loading multiple languages
     /// as multiple fallbacks. We only load the first of the requested
     /// languages, and the fallback is the src language.
-    fn load_languages<ASSETS: I18nAssets>(
+    #[allow(single_use_lifetimes)]
+    fn load_languages<'a, ASSETS: I18nAssets>(
         &self,
         i18n_assets: &ASSETS,
-        language_ids: &[&unic_langid::LanguageIdentifier],
+        language_ids: impl IntoIterator<Item = &'a unic_langid::LanguageIdentifier>,
     ) -> Result<(), I18nEmbedError> {
-        let language_id = *language_ids
-            .get(0)
+        let language_id = language_ids
+            .into_iter()
+            .next()
             .ok_or(I18nEmbedError::RequestedLanguagesEmpty)?;
 
         if language_id == self.fallback_language() {
@@ -113,5 +115,9 @@ impl LanguageLoader for GettextLanguageLoader {
         *(self.current_language.write()) = language_id.clone();
 
         Ok(())
+    }
+
+    fn reload<ASSETS: I18nAssets>(&self, i18n_assets: &ASSETS) -> Result<(), I18nEmbedError> {
+        self.load_languages(i18n_assets, [&self.current_language()])
     }
 }
