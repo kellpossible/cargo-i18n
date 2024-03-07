@@ -625,10 +625,10 @@ impl LanguageLoader for FluentLanguageLoader {
     /// [select()](super::select()) to determine which fallbacks are
     /// actually available for an arbitrary slice of preferences.
     #[allow(single_use_lifetimes)]
-    fn load_languages<'a, ASSETS: I18nAssets>(
+    fn load_languages<'a>(
         &self,
-        i18n_assets: &ASSETS,
-        language_ids: impl IntoIterator<Item = &'a unic_langid::LanguageIdentifier>,
+        i18n_assets: &dyn I18nAssets,
+        language_ids: &[unic_langid::LanguageIdentifier],
     ) -> Result<(), I18nEmbedError> {
         let mut language_ids = language_ids.into_iter().peekable();
         if language_ids.peek().is_none() {
@@ -696,7 +696,7 @@ impl LanguageLoader for FluentLanguageLoader {
         Ok(())
     }
 
-    fn reload<ASSETS: I18nAssets>(&self, i18n_assets: &ASSETS) -> Result<(), I18nEmbedError> {
+    fn reload(&self, i18n_assets: &dyn I18nAssets) -> Result<(), I18nEmbedError> {
         self.load_languages(
             i18n_assets,
             &self.inner.load().current_languages.languages.clone(),

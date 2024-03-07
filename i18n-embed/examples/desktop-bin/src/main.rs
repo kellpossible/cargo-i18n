@@ -10,7 +10,7 @@ fn main() {
     env_logger::init();
     let library_localizer = localizer().with_autoreload().unwrap();
     let requested_languages = DesktopLanguageRequester::<
-        DefaultLocalizer<FluentLanguageLoader, RustEmbedNotifyAssets<LocalizationsEmbed>>,
+        DefaultLocalizer<RustEmbedNotifyAssets<LocalizationsEmbed>, FluentLanguageLoader>,
     >::requested_languages();
 
     if let Err(error) = library_localizer.select(&requested_languages) {

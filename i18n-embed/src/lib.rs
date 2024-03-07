@@ -488,13 +488,11 @@ fn error_vec_to_string(errors: &[I18nEmbedError]) -> String {
 /// [LanguageLoader](LanguageLoader) and an [I18nAssets](I18nAssets),
 /// which are used together to localize a library/crate on demand.
 pub trait Localizer {
-    type Assets: I18nAssets;
-    type Loader: LanguageLoader;
     /// The [LanguageLoader] used by this localizer.
-    fn language_loader(&self) -> &'_ Self::Loader;
+    fn language_loader(&self) -> &'_ dyn LanguageLoader;
 
     /// The source of localization assets used by this localizer
-    fn i18n_assets(&self) -> &'_ Self::Assets;
+    fn i18n_assets(&self) -> &'_ dyn I18nAssets;
 
     /// The available languages that can be selected by this localizer.
     fn available_languages(&self) -> Result<Vec<unic_langid::LanguageIdentifier>, I18nEmbedError> {
@@ -518,15 +516,15 @@ pub trait Localizer {
 }
 
 /// A simple default implemenation of the [Localizer](Localizer) trait.
-pub struct DefaultLocalizer<'a, LOADER, ASSETS: I18nAssets> {
-    /// The [LanguageLoader] used by this localizer.
-    pub language_loader: &'a LOADER,
+pub struct DefaultLocalizer<'a, ASSETS, LOADER> {
     /// The source of assets used by this localizer.
     pub i18n_assets: &'a ASSETS,
-    watchers: Vec<ASSETS::Watcher>,
+    /// The [LanguageLoader] used by this localizer.
+    pub language_loader: &'a LOADER,
+    watchers: Vec<Box<dyn Watcher>>,
 }
 
-impl<LOADER, ASSETS: I18nAssets> Debug for DefaultLocalizer<'_, LOADER, ASSETS> {
+impl<ASSETS, LOADER> Debug for DefaultLocalizer<'_, ASSETS, LOADER> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
@@ -537,49 +535,44 @@ impl<LOADER, ASSETS: I18nAssets> Debug for DefaultLocalizer<'_, LOADER, ASSETS> 
 }
 
 #[allow(single_use_lifetimes)]
-impl<'a, LOADER, ASSETS> Localizer for DefaultLocalizer<'a, LOADER, ASSETS>
+impl<'a, ASSETS, LOADER> Localizer for DefaultLocalizer<'a, ASSETS, LOADER>
 where
-    LOADER: LanguageLoader,
     ASSETS: I18nAssets,
+    LOADER: LanguageLoader,
 {
-    type Loader = LOADER;
-    type Assets = ASSETS;
-    fn language_loader(&self) -> &'_ Self::Loader {
-        self.language_loader
-    }
-    fn i18n_assets(&self) -> &'_ Self::Assets {
+    fn i18n_assets(&self) -> &'_ dyn I18nAssets {
         self.i18n_assets
+    }
+    fn language_loader(&self) -> &'_ dyn LanguageLoader {
+        self.language_loader
     }
 }
 
-impl<'a, LOADER, ASSETS> DefaultLocalizer<'a, LOADER, ASSETS>
-where
-    ASSETS: I18nAssets,
-{
+impl<'a, ASSETS, LOADER> DefaultLocalizer<'a, ASSETS, LOADER> {
     /// Create a new [DefaultLocalizer](DefaultLocalizer).
-    pub fn new(language_loader: &'a LOADER, i18n_assets: &'a ASSETS) -> Self {
+    pub fn new(i18n_assets: &'a ASSETS, language_loader: &'a LOADER) -> Self {
         Self {
-            language_loader,
             i18n_assets,
+            language_loader,
             watchers: Vec::new(),
         }
     }
 }
 
-impl<LOADER, ASSETS> DefaultLocalizer<'static, LOADER, ASSETS>
-where
-    ASSETS: I18nAssets + Send + Sync,
-    LOADER: LanguageLoader + Send + Sync,
+impl<
+        ASSETS: I18nAssets + Send + Sync + 'static,
+        LOADER: LanguageLoader + Send + Sync + 'static,
+    > DefaultLocalizer<'static, ASSETS, LOADER>
 {
     /// Create a new [DefaultLocalizer](DefaultLocalizer).
     pub fn with_autoreload(mut self) -> Result<Self, I18nEmbedError> {
         let assets = self.i18n_assets;
         let loader = self.language_loader;
-        let watcher = self.i18n_assets.subscribe_changed(move || {
+        let watcher = self.i18n_assets.subscribe_changed(Box::new(move || {
             if let Err(error) = loader.reload(assets) {
                 log::error!("Error autoreloading assets: {error:?}")
             }
-        })?;
+        }))?;
         self.watchers.push(watcher);
         Ok(self)
     }
@@ -593,15 +586,11 @@ where
 /// [LanguageLoader::load_languages()]. If there were no available
 /// languages, then no languages will be loaded and the returned
 /// `Vec` will be empty.
-pub fn select<LOADER, ASSETS>(
-    language_loader: &LOADER,
-    i18n_assets: &ASSETS,
+pub fn select(
+    language_loader: &dyn LanguageLoader,
+    i18n_assets: &dyn I18nAssets,
     requested_languages: &[unic_langid::LanguageIdentifier],
-) -> Result<Vec<unic_langid::LanguageIdentifier>, I18nEmbedError>
-where
-    LOADER: LanguageLoader,
-    ASSETS: I18nAssets,
-{
+) -> Result<Vec<unic_langid::LanguageIdentifier>, I18nEmbedError> {
     log::info!(
         "Selecting translations for domain \"{0}\"",
         language_loader.domain()
@@ -622,11 +611,13 @@ where
     log::debug!("Available Languages: {:?}", available_languages);
     log::debug!("Supported Languages: {:?}", supported_languages);
 
+    let supported_languages: Vec<unic_langid::LanguageIdentifier> =
+        supported_languages.into_iter().cloned().collect();
     if !supported_languages.is_empty() {
-        language_loader.load_languages(i18n_assets, supported_languages.iter().map(|id| *id))?;
+        language_loader.load_languages(i18n_assets, &supported_languages)?;
     }
 
-    Ok(supported_languages.into_iter().cloned().collect())
+    Ok(supported_languages)
 }
 
 /// A language resource file, and its associated `language`.
@@ -652,10 +643,10 @@ pub trait LanguageLoader {
     fn language_file_name(&self) -> String;
     /// The computed path to the language file, and `Cow` of the file
     /// itself if it exists.
-    fn language_file<'a, ASSETS: I18nAssets>(
+    fn language_file<'a>(
         &self,
         language_id: &unic_langid::LanguageIdentifier,
-        i18n_assets: &'a ASSETS,
+        i18n_assets: &'a dyn I18nAssets,
     ) -> (String, Option<Cow<'a, [u8]>>) {
         let language_id_string = language_id.to_string();
         let file_path = format!("{}/{}", language_id_string, self.language_file_name());
@@ -667,9 +658,9 @@ pub trait LanguageLoader {
     }
 
     /// Calculate the languages which are available to be loaded.
-    fn available_languages<ASSETS: I18nAssets>(
+    fn available_languages(
         &self,
-        i18n_assets: &ASSETS,
+        i18n_assets: &dyn I18nAssets,
     ) -> Result<Vec<unic_langid::LanguageIdentifier>, I18nEmbedError> {
         let mut language_strings: Vec<String> = i18n_assets
             .filenames_iter()
@@ -734,19 +725,16 @@ pub trait LanguageLoader {
     }
 
     /// Load all available languages with [`LanguageLoader::load_languages()`].
-    fn load_available_languages<ASSETS: I18nAssets>(
-        &self,
-        i18n_assets: &ASSETS,
-    ) -> Result<(), I18nEmbedError> {
+    fn load_available_languages(&self, i18n_assets: &dyn I18nAssets) -> Result<(), I18nEmbedError> {
         let available_languages = self.available_languages(i18n_assets)?;
-        self.load_languages(i18n_assets, available_languages.iter().collect::<Vec<_>>())
+        self.load_languages(i18n_assets, &available_languages)
     }
 
     /// Get the language which is currently loaded for this loader.
     fn current_language(&self) -> unic_langid::LanguageIdentifier;
 
     /// Reload the currently loaded languages.
-    fn reload<ASSETS: I18nAssets>(&self, i18n_assets: &ASSETS) -> Result<(), I18nEmbedError>;
+    fn reload(&self, i18n_assets: &dyn I18nAssets) -> Result<(), I18nEmbedError>;
 
     /// Load the languages `language_ids` using the resources packaged
     /// in the `i18n_embed` in order of fallback preference. This also
@@ -754,19 +742,15 @@ pub trait LanguageLoader {
     /// the `language_ids` slice. You can use [select()] to determine
     /// which fallbacks are actually available for an arbitrary slice
     /// of preferences.
-    #[allow(single_use_lifetimes)]
-    fn load_languages<'a, ASSETS: I18nAssets>(
+    fn load_languages(
         &self,
-        i18n_assets: &ASSETS,
-        language_ids: impl IntoIterator<Item = &'a unic_langid::LanguageIdentifier>,
+        i18n_assets: &dyn I18nAssets,
+        language_ids: &[unic_langid::LanguageIdentifier],
     ) -> Result<(), I18nEmbedError>;
 
     /// Load the [LanguageLoader::fallback_language()].
-    fn load_fallback_language<ASSETS: I18nAssets>(
-        &self,
-        i18n_assets: &ASSETS,
-    ) -> Result<(), I18nEmbedError> {
-        self.load_languages(i18n_assets, [self.fallback_language()])
+    fn load_fallback_language(&self, i18n_assets: &dyn I18nAssets) -> Result<(), I18nEmbedError> {
+        self.load_languages(i18n_assets, &[self.fallback_language().clone()])
     }
 }
 

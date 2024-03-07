@@ -6,41 +6,41 @@ use crate::I18nEmbedError;
 
 /// A trait to handle the retrieval of localization assets.
 pub trait I18nAssets {
-    type Watcher;
     /// Get a localization asset (returns `None` if the asset does not
     /// exist, or unable to obtain the asset due to a non-critical
     /// error).
     fn get_file(&self, file_path: &str) -> Option<Cow<'_, [u8]>>;
     /// Get an iterator over the filenames of the localization assets.
-    fn filenames_iter(&self) -> impl Iterator<Item = String>;
+    fn filenames_iter(&self) -> Box<dyn Iterator<Item = String>>;
     /// A method to allow users of this trait to subscribe to change events, and reload assets when
     /// they have changed. The subscription will be cancelled when the returned [`Watcher`] is
     /// dropped.
-    fn subscribe_changed<F>(&self, changed: F) -> Result<Self::Watcher, I18nEmbedError>
-    where
-        F: Fn() -> () + Send + Sync + 'static;
+    fn subscribe_changed(
+        &self,
+        changed: Box<dyn Fn() -> () + Send + Sync + 'static>,
+    ) -> Result<Box<dyn Watcher>, I18nEmbedError>;
 }
+
+impl Watcher for () {}
 
 impl<T> I18nAssets for T
 where
     T: RustEmbed,
 {
-    type Watcher = ();
-
     fn get_file(&self, file_path: &str) -> Option<Cow<'_, [u8]>> {
         Self::get(file_path).map(|file| file.data)
     }
 
-    fn filenames_iter(&self) -> impl Iterator<Item = String> {
-        Self::iter().map(|filename| filename.to_string())
+    fn filenames_iter(&self) -> Box<dyn Iterator<Item = String>> {
+        Box::new(Self::iter().map(|filename| filename.to_string()))
     }
 
     #[allow(unused_variables)]
-    fn subscribe_changed<F>(&self, changed: F) -> Result<Self::Watcher, I18nEmbedError>
-    where
-        F: Fn() -> () + Send + Sync + 'static,
-    {
-        Ok(())
+    fn subscribe_changed(
+        &self,
+        changed: Box<dyn Fn() -> () + Send + Sync + 'static>,
+    ) -> Result<Box<dyn Watcher>, I18nEmbedError> {
+        Ok(Box::new(()))
     }
 }
 
@@ -70,22 +70,21 @@ impl<T> I18nAssets for RustEmbedNotifyAssets<T>
 where
     T: RustEmbed,
 {
-    type Watcher = notify::RecommendedWatcher;
-
     fn get_file(&self, file_path: &str) -> Option<Cow<'_, [u8]>> {
         T::get(file_path).map(|file| file.data)
     }
 
-    fn filenames_iter(&self) -> impl Iterator<Item = String> {
-        T::iter().map(|filename| filename.to_string())
+    fn filenames_iter(&self) -> Box<dyn Iterator<Item = String>> {
+        Box::new(T::iter().map(|filename| filename.to_string()))
     }
 
-    fn subscribe_changed<F>(&self, changed: F) -> Result<Self::Watcher, I18nEmbedError>
-    where
-        F: Fn() -> () + Send + Sync + 'static,
-    {
+    fn subscribe_changed(
+        &self,
+        changed: Box<dyn Fn() -> () + Send + Sync + 'static>,
+    ) -> Result<Box<dyn Watcher>, I18nEmbedError> {
         log::debug!("Watching for changed files in {:?}", self.base_dir);
-        notify_watcher(self, &self.base_dir, changed).map_err(Into::into)
+        notify_watcher(&self.base_dir, changed)
+            .map_err(Into::into)
     }
 }
 
@@ -126,15 +125,10 @@ pub enum FileSystemAssetsError {
     Notify(#[from] notify::Error),
 }
 
-fn notify_watcher<ASSETS, F>(
-    _assets: &ASSETS,
+fn notify_watcher(
     base_dir: &std::path::Path,
-    changed: F,
-) -> notify::Result<notify::RecommendedWatcher>
-where
-    F: Fn() -> () + Send + Sync + 'static,
-    ASSETS: I18nAssets,
-{
+    changed: Box<dyn Fn() -> () + Send + Sync + 'static>,
+) -> notify::Result<Box<dyn Watcher>> {
     let mut watcher = notify::recommended_watcher(move |event_result| {
         let event: notify::Event = match event_result {
             Ok(event) => event,
@@ -147,12 +141,15 @@ where
 
     notify::Watcher::watch(&mut watcher, base_dir, notify::RecursiveMode::Recursive)?;
 
-    Ok(watcher)
+    Ok(Box::new(watcher))
 }
+
+pub trait Watcher {}
+
+impl Watcher for notify::RecommendedWatcher {}
 
 #[cfg(feature = "filesystem-assets")]
 impl I18nAssets for FileSystemAssets {
-    type Watcher = notify::RecommendedWatcher;
     fn get_file(&self, file_path: &str) -> Option<Cow<'_, [u8]>> {
         let full_path = self.base_dir.join(file_path);
 
@@ -172,41 +169,48 @@ impl I18nAssets for FileSystemAssets {
         }
     }
 
-    fn filenames_iter(&self) -> impl Iterator<Item = String> {
-        walkdir::WalkDir::new(&self.base_dir)
-            .into_iter()
-            .filter_map(|f| match f {
-                Ok(f) => {
-                    if f.file_type().is_file() {
-                        match f.file_name().to_str() {
-                            Some(filename) => Some(filename.to_string()),
-                            None => {
-                                log::error!(
+    fn filenames_iter(&self) -> Box<dyn Iterator<Item = String>> {
+        Box::new(
+            walkdir::WalkDir::new(&self.base_dir)
+                .into_iter()
+                .filter_map(|f| match f {
+                    Ok(f) => {
+                        if f.file_type().is_file() {
+                            match f.file_name().to_str() {
+                                Some(filename) => Some(filename.to_string()),
+                                None => {
+                                    log::error!(
                                 target: "i18n_embed::assets", 
                                 "Filename {:?} is not valid UTF-8.", 
                                 f.file_name());
-                                None
+                                    None
+                                }
                             }
+                        } else {
+                            None
                         }
-                    } else {
-                        None
                     }
-                }
-                Err(err) => {
-                    log::error!(
+                    Err(err) => {
+                        log::error!(
                     target: "i18n_embed::assets", 
                     "Unexpected error while gathering localization asset filenames: {}", 
                     err);
-                    None
-                }
-            })
+                        None
+                    }
+                }),
+        )
     }
 
     // #[cfg(all(feature = "autoreload", feature = "filesystem-assets"))]
-    fn subscribe_changed<F>(&self, changed: F) -> Result<Self::Watcher, I18nEmbedError>
-    where
-        F: Fn() -> () + Send + Sync + 'static,
-    {
-        notify_watcher(self, &self.base_dir, changed).map_err(Into::into)
+    fn subscribe_changed(
+        &self,
+        changed: Box<dyn Fn() -> () + Send + Sync + 'static>,
+    ) -> Result<Box<dyn Watcher>, I18nEmbedError> {
+        notify_watcher(&self.base_dir, changed)
+            .map_err(Into::into)
     }
+}
+
+pub struct MultiAssets {
+    assets: Vec<Box<dyn I18nAssets>>,
 }
