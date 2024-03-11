@@ -97,7 +97,7 @@ impl LanguageLoader for GettextLanguageLoader {
             return Ok(());
         }
 
-        let (_path, file) = match self.language_file(language_id, i18n_assets) {
+        let (_path, file) = match self.language_files(language_id, i18n_assets) {
             (path, Some(f)) => (path, f),
             (path, None) => {
                 log::error!(

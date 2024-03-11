@@ -641,20 +641,20 @@ pub trait LanguageLoader {
     fn domain(&self) -> &str;
     /// The language file name to use for this loader's domain.
     fn language_file_name(&self) -> String;
-    /// The computed path to the language file, and `Cow` of the file
-    /// itself if it exists.
-    fn language_file<'a>(
+    /// The computed path to the language file, and data contained within the files at that path
+    /// itself if they exist.
+    fn language_files<'a>(
         &self,
         language_id: &unic_langid::LanguageIdentifier,
         i18n_assets: &'a dyn I18nAssets,
-    ) -> (String, Option<Cow<'a, [u8]>>) {
+    ) -> (String, Vec<Cow<'a, [u8]>>) {
         let language_id_string = language_id.to_string();
         let file_path = format!("{}/{}", language_id_string, self.language_file_name());
 
         log::debug!("Attempting to load language file: \"{}\"", &file_path);
 
-        let file = i18n_assets.get_file(file_path.as_ref());
-        (file_path, file)
+        let files = i18n_assets.get_files(file_path.as_ref());
+        (file_path, files)
     }
 
     /// Calculate the languages which are available to be loaded.

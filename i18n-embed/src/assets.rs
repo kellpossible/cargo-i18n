@@ -6,12 +6,13 @@ use crate::I18nEmbedError;
 
 /// A trait to handle the retrieval of localization assets.
 pub trait I18nAssets {
-    /// Get a localization asset (returns `None` if the asset does not
-    /// exist, or unable to obtain the asset due to a non-critical
-    /// error).
-    fn get_file(&self, file_path: &str) -> Option<Cow<'_, [u8]>>;
-    /// Get an iterator over the filenames of the localization assets.
-    fn filenames_iter(&self) -> Box<dyn Iterator<Item = String>>;
+    /// Get localization asset files that correspond to the specified `file_path`. Returns an empty
+    /// [`Vec`] if the asset does not exist, or unable to obtain the asset due to a non-critical
+    /// error.
+    fn get_files(&self, file_path: &str) -> Vec<Cow<'_, [u8]>>;
+    /// Get an iterator over the file paths of the localization assets. There may be duplicates
+    /// where multiple files exist for the same file path.
+    fn filenames_iter(&self) -> Box<dyn Iterator<Item = String> + '_>;
     /// A method to allow users of this trait to subscribe to change events, and reload assets when
     /// they have changed. The subscription will be cancelled when the returned [`Watcher`] is
     /// dropped.
@@ -27,8 +28,11 @@ impl<T> I18nAssets for T
 where
     T: RustEmbed,
 {
-    fn get_file(&self, file_path: &str) -> Option<Cow<'_, [u8]>> {
-        Self::get(file_path).map(|file| file.data)
+    fn get_files(&self, file_path: &str) -> Vec<Cow<'_, [u8]>> {
+        Self::get(file_path)
+            .map(|file| file.data)
+            .into_iter()
+            .collect()
     }
 
     fn filenames_iter(&self) -> Box<dyn Iterator<Item = String>> {
@@ -52,6 +56,9 @@ pub enum RustEmbedAssetsError {
     Notify(#[from] notify::Error),
 }
 
+/// A wrapper for [`rust_embed::RustEmbed`] that supports notifications when files have changed on
+/// the file system. A wrapper is required to provide `base_dir` as this is unavailable in the type
+/// derived by the [`rust_embed::RustEmbed`] macro.
 pub struct RustEmbedNotifyAssets<T: rust_embed::RustEmbed> {
     base_dir: std::path::PathBuf,
     embed: PhantomData<T>,
@@ -70,8 +77,11 @@ impl<T> I18nAssets for RustEmbedNotifyAssets<T>
 where
     T: RustEmbed,
 {
-    fn get_file(&self, file_path: &str) -> Option<Cow<'_, [u8]>> {
-        T::get(file_path).map(|file| file.data)
+    fn get_files(&self, file_path: &str) -> Vec<Cow<'_, [u8]>> {
+        T::get(file_path)
+            .map(|file| file.data)
+            .into_iter()
+            .collect()
     }
 
     fn filenames_iter(&self) -> Box<dyn Iterator<Item = String>> {
@@ -83,8 +93,7 @@ where
         changed: Box<dyn Fn() -> () + Send + Sync + 'static>,
     ) -> Result<Box<dyn Watcher>, I18nEmbedError> {
         log::debug!("Watching for changed files in {:?}", self.base_dir);
-        notify_watcher(&self.base_dir, changed)
-            .map_err(Into::into)
+        notify_watcher(&self.base_dir, changed).map_err(Into::into)
     }
 }
 
@@ -150,21 +159,21 @@ impl Watcher for notify::RecommendedWatcher {}
 
 #[cfg(feature = "filesystem-assets")]
 impl I18nAssets for FileSystemAssets {
-    fn get_file(&self, file_path: &str) -> Option<Cow<'_, [u8]>> {
+    fn get_files(&self, file_path: &str) -> Vec<Cow<'_, [u8]>> {
         let full_path = self.base_dir.join(file_path);
 
         if !(full_path.is_file() && full_path.exists()) {
-            return None;
+            return Vec::new();
         }
 
         match std::fs::read(full_path) {
-            Ok(contents) => Some(Cow::from(contents)),
+            Ok(contents) => vec![Cow::from(contents)],
             Err(e) => {
                 log::error!(
                     target: "i18n_embed::assets", 
                     "Unexpected error while reading localization asset file: {}", 
                     e);
-                None
+                Vec::new()
             }
         }
     }
@@ -206,11 +215,55 @@ impl I18nAssets for FileSystemAssets {
         &self,
         changed: Box<dyn Fn() -> () + Send + Sync + 'static>,
     ) -> Result<Box<dyn Watcher>, I18nEmbedError> {
-        notify_watcher(&self.base_dir, changed)
-            .map_err(Into::into)
+        notify_watcher(&self.base_dir, changed).map_err(Into::into)
     }
 }
 
-pub struct MultiAssets {
+pub struct AssetsMultiplexor {
+    /// Assets that are multiplexed, ordered from most to least priority.
     assets: Vec<Box<dyn I18nAssets>>,
+}
+
+impl AssetsMultiplexor {
+    pub fn new<ASSETS: I18nAssets + 'static>(assets: impl IntoIterator<Item = ASSETS>) -> Self {
+        Self {
+            assets: assets
+                .into_iter()
+                .map(|assets| Box::new(assets) as Box<dyn I18nAssets>)
+                .collect(),
+        }
+    }
+}
+
+struct Watchers(Vec<Box<dyn Watcher>>);
+
+impl Watcher for Watchers {}
+
+impl I18nAssets for AssetsMultiplexor {
+    fn get_files(&self, file_path: &str) -> Vec<Cow<'_, [u8]>> {
+        self.assets
+            .iter()
+            .flat_map(|assets| assets.get_files(file_path))
+            .collect()
+    }
+
+    fn filenames_iter(&self) -> Box<dyn Iterator<Item = String> + '_> {
+        Box::new(
+            self.assets
+                .iter()
+                .flat_map(|assets| assets.filenames_iter()),
+        )
+    }
+
+    fn subscribe_changed(
+        &self,
+        changed: Box<dyn Fn() -> () + Send + Sync + 'static>,
+    ) -> Result<Box<dyn Watcher>, I18nEmbedError> {
+        let watchers: Vec<_> = self
+            .assets
+            .iter()
+            .map(|assets| assets.subscribe_changed(changed))
+            .collect::<Result<_, _>>()?;
+        Ok(Box::new(Watchers(watchers)))
+    }
 }
