@@ -448,7 +448,7 @@ extern crate gettext as gettext_system;
 use std::{
     borrow::Cow,
     fmt::Debug,
-    path::{Component, Path},
+    path::{Component, Path, PathBuf},
     string::FromUtf8Error,
 };
 
@@ -475,8 +475,15 @@ pub enum I18nEmbedError {
     #[cfg(feature = "gettext-system")]
     #[error(transparent)]
     Gettext(#[from] gettext_system::Error),
+    #[cfg(feature = "autoreload")]
     #[error(transparent)]
-    Notify(#[from] notify::Error),
+    Notify(#[from] assets::NotifyError),
+    #[cfg(feature = "filesystem-assets")]
+    #[error("The directory {0:?} does not exist")]
+    DirectoryDoesNotExist(PathBuf),
+    #[cfg(feature = "filesystem-assets")]
+    #[error("The path {0:?} is not a directory")]
+    PathIsNotDirectory(PathBuf),
 }
 
 fn error_vec_to_string(errors: &[I18nEmbedError]) -> String {

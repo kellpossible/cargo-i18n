@@ -1,4 +1,4 @@
-use std::{borrow::Cow, marker::PhantomData, sync::Arc};
+use std::{borrow::Cow, marker::PhantomData};
 
 use rust_embed::RustEmbed;
 
@@ -16,10 +16,15 @@ pub trait I18nAssets {
     /// A method to allow users of this trait to subscribe to change events, and reload assets when
     /// they have changed. The subscription will be cancelled when the returned [`Watcher`] is
     /// dropped.
+    ///
+    /// **NOTE**: The implementation of this method is optional, don't rely on it functioning for all
+    /// implementations.
     fn subscribe_changed(
         &self,
-        changed: std::sync::Arc<dyn Fn() -> () + Send + Sync + 'static>,
-    ) -> Result<Box<dyn Watcher>, I18nEmbedError>;
+        #[allow(unused_variables)] changed: std::sync::Arc<dyn Fn() -> () + Send + Sync + 'static>,
+    ) -> Result<Box<dyn Watcher>, I18nEmbedError> {
+        Ok(Box::new(()))
+    }
 }
 
 impl Watcher for () {}
@@ -48,23 +53,21 @@ where
     }
 }
 
-#[cfg(feature = "rust-embed")]
-#[derive(Debug, thiserror::Error)]
-#[non_exhaustive]
-pub enum RustEmbedAssetsError {
-    #[error(transparent)]
-    Notify(#[from] notify::Error),
-}
-
 /// A wrapper for [`rust_embed::RustEmbed`] that supports notifications when files have changed on
 /// the file system. A wrapper is required to provide `base_dir` as this is unavailable in the type
 /// derived by the [`rust_embed::RustEmbed`] macro.
+///
+/// ⚠️ *This type requires the following crate features to be activated: `autoreload`.*
+#[cfg(feature = "autoreload")]
+#[derive(Debug)]
 pub struct RustEmbedNotifyAssets<T: rust_embed::RustEmbed> {
     base_dir: std::path::PathBuf,
     embed: PhantomData<T>,
 }
 
+#[cfg(feature = "autoreload")]
 impl<T: rust_embed::RustEmbed> RustEmbedNotifyAssets<T> {
+    /// Construct a new [`RustEmbedNotifyAssets`].
     pub fn new(base_dir: impl Into<std::path::PathBuf>) -> Self {
         Self {
             base_dir: base_dir.into(),
@@ -73,6 +76,7 @@ impl<T: rust_embed::RustEmbed> RustEmbedNotifyAssets<T> {
     }
 }
 
+#[cfg(feature = "autoreload")]
 impl<T> I18nAssets for RustEmbedNotifyAssets<T>
 where
     T: RustEmbed,
@@ -103,37 +107,72 @@ where
 #[derive(Debug)]
 pub struct FileSystemAssets {
     base_dir: std::path::PathBuf,
+    #[cfg(feature = "autoreload")]
+    notify_changes_enabled: bool,
 }
 
 #[cfg(feature = "filesystem-assets")]
 impl FileSystemAssets {
     /// Create a new `FileSystemAssets` instance, all files will be
-    /// read from within the specified base directory. Will panic if
-    /// the specified `base_dir` does not exist, or is not a valid
-    /// directory.
-    pub fn new<P: Into<std::path::PathBuf>>(base_dir: P) -> Self {
+    /// read from within the specified base directory.
+    pub fn try_new<P: Into<std::path::PathBuf>>(base_dir: P) -> Result<Self, I18nEmbedError> {
         let base_dir = base_dir.into();
 
         if !base_dir.exists() {
-            panic!("specified `base_dir` ({:?}) does not exist", base_dir);
+            return Err(I18nEmbedError::DirectoryDoesNotExist(base_dir));
         }
 
         if !base_dir.is_dir() {
-            panic!("specified `base_dir` ({:?}) is not a directory", base_dir);
+            return Err(I18nEmbedError::PathIsNotDirectory(base_dir));
         }
 
-        Self { base_dir }
+        Ok(Self {
+            base_dir,
+            #[cfg(feature = "autoreload")]
+            notify_changes_enabled: false,
+        })
+    }
+
+    /// Enable the notification of changes in the [`I18nAssets`] implementation.
+    #[cfg(feature = "autoreload")]
+    pub fn notify_changes_enabled(mut self, enabled: bool) -> Self {
+        self.notify_changes_enabled = enabled;
+        self
     }
 }
 
-#[cfg(feature = "filesystem-assets")]
-#[derive(Debug, thiserror::Error)]
-#[non_exhaustive]
-pub enum FileSystemAssetsError {
-    #[error(transparent)]
-    Notify(#[from] notify::Error),
+/// An error that occurs during notification of changes when the `autoreload feature is enabled.`
+///
+/// ⚠️ *This type requires the following crate features to be activated: `filesystem-assets`.*
+#[cfg(feature = "autoreload")]
+#[derive(Debug)]
+pub struct NotifyError(notify::Error);
+
+#[cfg(feature = "autoreload")]
+impl From<notify::Error> for NotifyError {
+    fn from(value: notify::Error) -> Self {
+        Self(value)
+    }
 }
 
+#[cfg(feature = "autoreload")]
+impl From<notify::Error> for I18nEmbedError {
+    fn from(value: notify::Error) -> Self {
+        Self::Notify(value.into())
+    }
+}
+
+#[cfg(feature = "autoreload")]
+impl std::fmt::Display for NotifyError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        self.0.fmt(f)
+    }
+}
+
+#[cfg(feature = "autoreload")]
+impl std::error::Error for NotifyError {}
+
+#[cfg(feature = "autoreload")]
 fn notify_watcher(
     base_dir: &std::path::Path,
     changed: std::sync::Arc<dyn Fn() -> () + Send + Sync + 'static>,
@@ -146,6 +185,14 @@ fn notify_watcher(
                 return;
             }
         };
+        match event.kind {
+            notify::EventKind::Any
+            | notify::EventKind::Create(_)
+            | notify::EventKind::Modify(_)
+            | notify::EventKind::Remove(_)
+            | notify::EventKind::Other => changed(),
+            _ => {}
+        }
     })?;
 
     notify::Watcher::watch(&mut watcher, base_dir, notify::RecursiveMode::Recursive)?;
@@ -153,8 +200,10 @@ fn notify_watcher(
     Ok(Box::new(watcher))
 }
 
+/// An entity that watches for changes to localization resources.
 pub trait Watcher {}
 
+#[cfg(feature = "autoreload")]
 impl Watcher for notify::RecommendedWatcher {}
 
 #[cfg(feature = "filesystem-assets")]
@@ -210,27 +259,46 @@ impl I18nAssets for FileSystemAssets {
         )
     }
 
-    // #[cfg(all(feature = "autoreload", feature = "filesystem-assets"))]
+    /// See [`FileSystemAssets::notify_changes_enabled`] to enable this implementation.
+    /// ⚠️ *This method requires the following crate features to be activated: `autoreload`.*
+    #[cfg(feature = "autoreload")]
     fn subscribe_changed(
         &self,
         changed: std::sync::Arc<dyn Fn() -> () + Send + Sync + 'static>,
     ) -> Result<Box<dyn Watcher>, I18nEmbedError> {
-        notify_watcher(&self.base_dir, changed).map_err(Into::into)
+        if self.notify_changes_enabled {
+            notify_watcher(&self.base_dir, changed).map_err(Into::into)
+        } else {
+            Ok(Box::new(()))
+        }
     }
 }
 
+/// A way to multiplex implmentations of [`I18nAssets`].
 pub struct AssetsMultiplexor {
     /// Assets that are multiplexed, ordered from most to least priority.
-    assets: Vec<Box<dyn I18nAssets>>,
+    assets: Vec<Box<dyn I18nAssets + Send + Sync + 'static>>,
+}
+
+impl std::fmt::Debug for AssetsMultiplexor {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("AssetsMultiplexor")
+            .field(
+                "assets",
+                &self.assets.iter().map(|_| "<ASSET>").collect::<Vec<_>>(),
+            )
+            .finish()
+    }
 }
 
 impl AssetsMultiplexor {
-    pub fn new<ASSETS: I18nAssets + 'static>(assets: impl IntoIterator<Item = ASSETS>) -> Self {
+    /// Construct a new [`AssetsMultiplexor`]. `assets` are specified in order of priority of
+    /// processing for the [`crate::LanguageLoader`].
+    pub fn new(
+        assets: impl IntoIterator<Item = Box<dyn I18nAssets + Send + Sync + 'static>>,
+    ) -> Self {
         Self {
-            assets: assets
-                .into_iter()
-                .map(|assets| Box::new(assets) as Box<dyn I18nAssets>)
-                .collect(),
+            assets: assets.into_iter().collect(),
         }
     }
 }

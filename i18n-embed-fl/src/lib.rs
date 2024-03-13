@@ -376,7 +376,7 @@ pub fn fl(input: TokenStream) -> TokenStream {
         });
 
         let assets_dir = Path::new(&crate_paths.crate_dir).join(fluent_config.assets_dir);
-        let assets = FileSystemAssets::new(assets_dir);
+        let assets = FileSystemAssets::try_new(assets_dir).unwrap();
 
         let fallback_language: LanguageIdentifier = config.fallback_language;
 

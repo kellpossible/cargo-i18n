@@ -1,9 +1,10 @@
-use crate::{I18nEmbedError, LanguageLoader, Localizer};
+use crate::{I18nEmbedError, Localizer};
 use std::{collections::HashMap, sync::Weak};
 
 /// A trait used by [I18nAssets](crate::I18nAssets) to ascertain which
 /// languages are being requested.
 pub trait LanguageRequester<'a> {
+    /// The [`Localizer`] being used with this [`LanguageRequester`].
     type Localizer: crate::Localizer;
     /// Add a listener to this `LanguageRequester`. When the system
     /// reports that the currently requested languages has changed,
