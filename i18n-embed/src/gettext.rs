@@ -82,10 +82,10 @@ impl LanguageLoader for GettextLanguageLoader {
     /// as multiple fallbacks. We only load the first of the requested
     /// languages, and the fallback is the src language.
     #[allow(single_use_lifetimes)]
-    fn load_languages<'a, ASSETS: I18nAssets>(
+    fn load_languages(
         &self,
-        i18n_assets: &ASSETS,
-        language_ids: impl IntoIterator<Item = &'a unic_langid::LanguageIdentifier>,
+        i18n_assets: &dyn I18nAssets,
+        language_ids: &[unic_langid::LanguageIdentifier],
     ) -> Result<(), I18nEmbedError> {
         let language_id = language_ids
             .into_iter()
@@ -96,10 +96,16 @@ impl LanguageLoader for GettextLanguageLoader {
             self.load_src_language();
             return Ok(());
         }
-
-        let (_path, file) = match self.language_files(language_id, i18n_assets) {
-            (path, Some(f)) => (path, f),
-            (path, None) => {
+        let (path, files) = self.language_files(language_id, i18n_assets);
+        let file = match files.as_slice() {
+            [first_file] => first_file,
+            [first_file, ..] => {
+                log::warn!(
+                    "Gettext system does not yet support merging language files for {path:?}"
+                );
+                first_file
+            }
+            [] => {
                 log::error!(
                     target:"i18n_embed::gettext", 
                     "{} Setting current_language to fallback locale: \"{}\".", 
@@ -110,14 +116,14 @@ impl LanguageLoader for GettextLanguageLoader {
             }
         };
 
-        let catalog = gettext_system::Catalog::parse(&*file).expect("could not parse the catalog");
+        let catalog = gettext_system::Catalog::parse(&**file).expect("could not parse the catalog");
         tr::internal::set_translator(self.module, catalog);
         *(self.current_language.write()) = language_id.clone();
 
         Ok(())
     }
 
-    fn reload<ASSETS: I18nAssets>(&self, i18n_assets: &ASSETS) -> Result<(), I18nEmbedError> {
-        self.load_languages(i18n_assets, [&self.current_language()])
+    fn reload(&self, i18n_assets: &dyn I18nAssets) -> Result<(), I18nEmbedError> {
+        self.load_languages(i18n_assets, &[self.current_language()])
     }
 }

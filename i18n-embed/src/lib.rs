@@ -568,11 +568,13 @@ impl<
     pub fn with_autoreload(mut self) -> Result<Self, I18nEmbedError> {
         let assets = self.i18n_assets;
         let loader = self.language_loader;
-        let watcher = self.i18n_assets.subscribe_changed(Box::new(move || {
-            if let Err(error) = loader.reload(assets) {
-                log::error!("Error autoreloading assets: {error:?}")
-            }
-        }))?;
+        let watcher = self
+            .i18n_assets
+            .subscribe_changed(std::sync::Arc::new(move || {
+                if let Err(error) = loader.reload(assets) {
+                    log::error!("Error autoreloading assets: {error:?}")
+                }
+            }))?;
         self.watchers.push(watcher);
         Ok(self)
     }
@@ -641,8 +643,9 @@ pub trait LanguageLoader {
     fn domain(&self) -> &str;
     /// The language file name to use for this loader's domain.
     fn language_file_name(&self) -> String;
-    /// The computed path to the language file, and data contained within the files at that path
-    /// itself if they exist.
+    /// The computed path to the language files, and data contained within the files at that path
+    /// itself if they exist. There can be multiple files at a given path, in order of preference
+    /// from high to low.
     fn language_files<'a>(
         &self,
         language_id: &unic_langid::LanguageIdentifier,
