@@ -96,8 +96,14 @@ where
         &self,
         changed: std::sync::Arc<dyn Fn() + Send + Sync + 'static>,
     ) -> Result<Box<dyn Watcher>, I18nEmbedError> {
-        log::debug!("Watching for changed files in {:?}", self.base_dir);
-        notify_watcher(&self.base_dir, changed).map_err(Into::into)
+        let base_dir = &self.base_dir;
+        if base_dir.is_dir() {
+            log::debug!("Watching for changed files in {:?}", self.base_dir);
+            notify_watcher(base_dir, changed).map_err(Into::into)
+        } else {
+            log::debug!("base_dir {base_dir:?} does not yet exist, unable to watch for changes");
+            Ok(Box::new(()))
+        }
     }
 }
 
