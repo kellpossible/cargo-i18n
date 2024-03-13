@@ -294,8 +294,7 @@ impl FluentLanguageLoader {
             .language_bundles
             .iter()
             .flat_map(|language_bundles| language_bundles.iter())
-            .find(|language_bundle| language_bundle.bundle.has_message(message_id))
-            .is_some()
+            .any(|language_bundle| language_bundle.bundle.has_message(message_id))
     }
 
     /// Determines if an attribute associated with the specified `message_id`
@@ -499,7 +498,7 @@ impl LanguageLoader for FluentLanguageLoader {
         i18n_assets: &dyn I18nAssets,
         language_ids: &[unic_langid::LanguageIdentifier],
     ) -> Result<(), I18nEmbedError> {
-        let mut language_ids = language_ids.into_iter().peekable();
+        let mut language_ids = language_ids.iter().peekable();
         if language_ids.peek().is_none() {
             return Err(I18nEmbedError::RequestedLanguagesEmpty);
         }

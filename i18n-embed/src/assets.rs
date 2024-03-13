@@ -1,4 +1,4 @@
-use std::{borrow::Cow, marker::PhantomData};
+use std::borrow::Cow;
 
 use rust_embed::RustEmbed;
 
@@ -21,7 +21,7 @@ pub trait I18nAssets {
     /// implementations.
     fn subscribe_changed(
         &self,
-        #[allow(unused_variables)] changed: std::sync::Arc<dyn Fn() -> () + Send + Sync + 'static>,
+        #[allow(unused_variables)] changed: std::sync::Arc<dyn Fn() + Send + Sync + 'static>,
     ) -> Result<Box<dyn Watcher>, I18nEmbedError> {
         Ok(Box::new(()))
     }
@@ -47,7 +47,7 @@ where
     #[allow(unused_variables)]
     fn subscribe_changed(
         &self,
-        changed: std::sync::Arc<dyn Fn() -> () + Send + Sync + 'static>,
+        changed: std::sync::Arc<dyn Fn() + Send + Sync + 'static>,
     ) -> Result<Box<dyn Watcher>, I18nEmbedError> {
         Ok(Box::new(()))
     }
@@ -62,7 +62,7 @@ where
 #[derive(Debug)]
 pub struct RustEmbedNotifyAssets<T: rust_embed::RustEmbed> {
     base_dir: std::path::PathBuf,
-    embed: PhantomData<T>,
+    embed: core::marker::PhantomData<T>,
 }
 
 #[cfg(feature = "autoreload")]
@@ -71,7 +71,7 @@ impl<T: rust_embed::RustEmbed> RustEmbedNotifyAssets<T> {
     pub fn new(base_dir: impl Into<std::path::PathBuf>) -> Self {
         Self {
             base_dir: base_dir.into(),
-            embed: PhantomData,
+            embed: core::marker::PhantomData,
         }
     }
 }
@@ -94,7 +94,7 @@ where
 
     fn subscribe_changed(
         &self,
-        changed: std::sync::Arc<dyn Fn() -> () + Send + Sync + 'static>,
+        changed: std::sync::Arc<dyn Fn() + Send + Sync + 'static>,
     ) -> Result<Box<dyn Watcher>, I18nEmbedError> {
         log::debug!("Watching for changed files in {:?}", self.base_dir);
         notify_watcher(&self.base_dir, changed).map_err(Into::into)
@@ -175,7 +175,7 @@ impl std::error::Error for NotifyError {}
 #[cfg(feature = "autoreload")]
 fn notify_watcher(
     base_dir: &std::path::Path,
-    changed: std::sync::Arc<dyn Fn() -> () + Send + Sync + 'static>,
+    changed: std::sync::Arc<dyn Fn() + Send + Sync + 'static>,
 ) -> notify::Result<Box<dyn Watcher>> {
     let mut watcher = notify::recommended_watcher(move |event_result| {
         let event: notify::Event = match event_result {
@@ -264,7 +264,7 @@ impl I18nAssets for FileSystemAssets {
     #[cfg(feature = "autoreload")]
     fn subscribe_changed(
         &self,
-        changed: std::sync::Arc<dyn Fn() -> () + Send + Sync + 'static>,
+        changed: std::sync::Arc<dyn Fn() + Send + Sync + 'static>,
     ) -> Result<Box<dyn Watcher>, I18nEmbedError> {
         if self.notify_changes_enabled {
             notify_watcher(&self.base_dir, changed).map_err(Into::into)
@@ -325,7 +325,7 @@ impl I18nAssets for AssetsMultiplexor {
 
     fn subscribe_changed(
         &self,
-        changed: std::sync::Arc<dyn Fn() -> () + Send + Sync + 'static>,
+        changed: std::sync::Arc<dyn Fn() + Send + Sync + 'static>,
     ) -> Result<Box<dyn Watcher>, I18nEmbedError> {
         let watchers: Vec<_> = self
             .assets

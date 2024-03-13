@@ -448,7 +448,7 @@ extern crate gettext as gettext_system;
 use std::{
     borrow::Cow,
     fmt::Debug,
-    path::{Component, Path, PathBuf},
+    path::{Component, Path},
     string::FromUtf8Error,
 };
 
@@ -480,10 +480,10 @@ pub enum I18nEmbedError {
     Notify(#[from] assets::NotifyError),
     #[cfg(feature = "filesystem-assets")]
     #[error("The directory {0:?} does not exist")]
-    DirectoryDoesNotExist(PathBuf),
+    DirectoryDoesNotExist(std::path::PathBuf),
     #[cfg(feature = "filesystem-assets")]
     #[error("The path {0:?} is not a directory")]
-    PathIsNotDirectory(PathBuf),
+    PathIsNotDirectory(std::path::PathBuf),
 }
 
 fn error_vec_to_string(errors: &[I18nEmbedError]) -> String {
@@ -679,7 +679,7 @@ pub trait LanguageLoader {
 
                 let components: Vec<Component<'_>> = path.components().collect();
 
-                let locale: Option<String> = match components.get(0) {
+                let locale: Option<String> = match components.first() {
                     Some(Component::Normal(s)) => {
                         Some(s.to_str().expect("path should be valid utf-8").to_string())
                     }

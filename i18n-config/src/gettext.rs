@@ -99,9 +99,10 @@ impl GettextConfig {
     }
 }
 
-#[derive(Deserialize, Debug, Clone)]
+#[derive(Deserialize, Debug, Clone, Default)]
 #[serde(rename_all = "lowercase")]
 pub enum GettextAddLocation {
+    #[default]
     Full,
     File,
     Never,
@@ -114,11 +115,5 @@ impl GettextAddLocation {
             GettextAddLocation::File => "file",
             GettextAddLocation::Never => "never",
         }
-    }
-}
-
-impl Default for GettextAddLocation {
-    fn default() -> Self {
-        GettextAddLocation::Full
     }
 }

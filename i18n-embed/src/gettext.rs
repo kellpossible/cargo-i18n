@@ -88,7 +88,7 @@ impl LanguageLoader for GettextLanguageLoader {
         language_ids: &[unic_langid::LanguageIdentifier],
     ) -> Result<(), I18nEmbedError> {
         let language_id = language_ids
-            .into_iter()
+            .iter()
             .next()
             .ok_or(I18nEmbedError::RequestedLanguagesEmpty)?;
 
