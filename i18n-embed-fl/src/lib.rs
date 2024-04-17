@@ -340,10 +340,13 @@ pub fn fl(input: TokenStream) -> TokenStream {
     let fluent_loader = input.fluent_loader;
     let message_id = input.message_id;
 
-    let manifest = find_crate::Manifest::new().expect("Error reading Cargo.toml");
-    let current_crate_package = manifest.crate_package().expect("Error parsing Cargo.toml");
-
-    let domain = current_crate_package.name;
+    let domain = {
+        let manifest = find_crate::Manifest::new().expect("Error reading Cargo.toml");
+        manifest.crate_package().map(|pkg| pkg.name).unwrap_or(
+            std::env::var("CARGO_PKG_NAME")
+                .expect("Error fetching `CARGO_PKG_NAME` env"),
+        )
+    };
 
     let domain_data = if let Some(domain_data) = DOMAINS.get(&domain) {
         domain_data
