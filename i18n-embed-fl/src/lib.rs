@@ -343,7 +343,7 @@ pub fn fl(input: TokenStream) -> TokenStream {
     let manifest = find_crate::Manifest::new().expect("Error reading Cargo.toml");
     let current_crate_package = manifest.crate_package().expect("Error parsing Cargo.toml");
 
-    let domain = current_crate_package.name;
+    let mut domain = current_crate_package.name;
 
     let domain_data = if let Some(domain_data) = DOMAINS.get(&domain) {
         domain_data
@@ -374,6 +374,9 @@ pub fn fl(input: TokenStream) -> TokenStream {
                         along with its required `assets_dir`.";
             }
         });
+
+        // we will only override the domain in entry if it did not exist before
+        domain = fluent_config.domain.unwrap_or(domain);
 
         let assets_dir = Path::new(&crate_paths.crate_dir).join(fluent_config.assets_dir);
         let assets = FileSystemAssets::new(assets_dir);
