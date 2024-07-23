@@ -11,7 +11,7 @@ license = "MIT"
 proc-macro = true
 
 [dependencies]
-dashmap = "^5.1"
+dashmap = "6.0"
 find-crate = { workspace = true }
 fluent = { workspace = true }
 fluent-syntax = { workspace = true }
