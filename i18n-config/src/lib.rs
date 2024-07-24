@@ -39,7 +39,7 @@ pub enum I18nConfigError {
     #[error("Cannot parse Cargo configuration file {0:?} because {1}.")]
     CannotParseCargoToml(PathBuf, String),
     #[error("Cannot deserialize toml file {0:?} because {1}.")]
-    CannotDeserializeToml(PathBuf, toml::de::Error),
+    CannotDeserializeToml(PathBuf, basic_toml::Error),
     #[error("Cannot parse i18n configuration file {0:?} because {1}.")]
     CannotPaseI18nToml(PathBuf, String),
     #[error("There is no i18n configuration file present for the crate {0}.")]
@@ -54,6 +54,18 @@ pub enum I18nConfigError {
     NoParentI18nConfig(String, String),
     #[error("Cannot read `CARGO_MANIFEST_DIR` environment variable.")]
     CannotReadCargoManifestDir,
+}
+
+#[derive(Deserialize)]
+struct RawCrate {
+    #[serde(alias = "workspace")]
+    package: RawPackage,
+}
+
+#[derive(Deserialize)]
+struct RawPackage {
+    name: String,
+    version: String,
 }
 
 /// Represents a rust crate.
@@ -98,55 +110,9 @@ impl<'a> Crate<'a> {
         let toml_str = read_to_string(cargo_path.clone()).map_err(|err| {
             I18nConfigError::CannotReadFile(cargo_path.clone(), std::env::current_dir(), err)
         })?;
-        let cargo_toml: toml::Value = toml::from_str(toml_str.as_ref())
+
+        let cargo_toml: RawCrate = basic_toml::from_str(&toml_str)
             .map_err(|err| I18nConfigError::CannotDeserializeToml(cargo_path.clone(), err))?;
-
-        let package = cargo_toml
-            .as_table()
-            .ok_or_else(|| I18nConfigError::CannotParseCargoToml(cargo_path.clone(), "Cargo.toml needs have sections (such as the \"gettext\" section when using gettext.".to_string()))?
-            .get("package")
-            .ok_or_else(|| {
-                match cargo_toml.get("workspace") {
-                    Some(_) => I18nConfigError::NotACrate(cargo_path.clone(), WhyNotCrate::Workspace),
-                    None => I18nConfigError::CannotParseCargoToml(cargo_path.clone(), "Cargo.toml needs to have a \"package\" section.".to_string())
-                }
-            })?
-            .as_table()
-            .ok_or_else(|| I18nConfigError::CannotParseCargoToml(cargo_path.clone(),
-                "Cargo.toml's \"package\" section needs to contain values.".to_string()
-            ))?;
-
-        let name = package
-            .get("name")
-            .ok_or_else(|| {
-                I18nConfigError::CannotParseCargoToml(
-                    cargo_path.clone(),
-                    "Cargo.toml needs to specify a package name.".to_string(),
-                )
-            })?
-            .as_str()
-            .ok_or_else(|| {
-                I18nConfigError::CannotParseCargoToml(
-                    cargo_path.clone(),
-                    "Cargo.toml's package name needs to be a string.".to_string(),
-                )
-            })?;
-
-        let version = package
-            .get("version")
-            .ok_or_else(|| {
-                I18nConfigError::CannotParseCargoToml(
-                    cargo_path.clone(),
-                    "Cargo.toml needs to specify a package version.".to_string(),
-                )
-            })?
-            .as_str()
-            .ok_or_else(|| {
-                I18nConfigError::CannotParseCargoToml(
-                    cargo_path,
-                    "Cargo.toml's package version needs to be a string.".to_string(),
-                )
-            })?;
 
         let full_config_file_path = path_into.join(&config_file_path_into);
         let i18n_config = if full_config_file_path.exists() {
@@ -156,8 +122,8 @@ impl<'a> Crate<'a> {
         };
 
         Ok(Crate {
-            name: String::from(name),
-            version: String::from(version),
+            name: cargo_toml.package.name,
+            version: cargo_toml.package.version,
             path: path_into,
             parent,
             config_file_path: config_file_path_into,
@@ -395,7 +361,7 @@ impl I18nConfig {
                 err,
             )
         })?;
-        let config: I18nConfig = toml::from_str(toml_str.as_ref()).map_err(|err| {
+        let config: I18nConfig = basic_toml::from_str(toml_str.as_ref()).map_err(|err| {
             I18nConfigError::CannotDeserializeToml(toml_path_final.to_path_buf(), err)
         })?;
 
