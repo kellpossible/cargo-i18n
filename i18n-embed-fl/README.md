@@ -47,7 +47,7 @@ struct Localizations;
 
 let loader: FluentLanguageLoader = fluent_language_loader!();
 loader
-    .load_languages(&Localizations, &[loader.fallback_language()])
+    .load_languages(&Localizations, &[loader.fallback_language().clone()])
     .unwrap();
 
 assert_eq!(

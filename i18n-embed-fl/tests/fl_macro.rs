@@ -14,7 +14,7 @@ struct Localizations;
 fn with_args_hashmap() {
     let loader: FluentLanguageLoader = fluent_language_loader!();
     loader
-        .load_languages(&Localizations, &[loader.fallback_language()])
+        .load_languages(&Localizations, &[loader.fallback_language().clone()])
         .unwrap();
 
     let mut args: HashMap<&str, &str> = HashMap::new();
@@ -27,7 +27,7 @@ fn with_args_hashmap() {
 fn with_args_hashmap_expr() {
     let loader: FluentLanguageLoader = fluent_language_loader!();
     loader
-        .load_languages(&Localizations, &[loader.fallback_language()])
+        .load_languages(&Localizations, &[loader.fallback_language().clone()])
         .unwrap();
 
     let args_expr = || {
@@ -47,7 +47,7 @@ fn with_loader_expr() {
     let loader = || {
         let loader: FluentLanguageLoader = fluent_language_loader!();
         loader
-            .load_languages(&Localizations, &[loader.fallback_language()])
+            .load_languages(&Localizations, &[loader.fallback_language().clone()])
             .unwrap();
         loader
     };
@@ -59,7 +59,7 @@ fn with_loader_expr() {
 fn with_one_arg_lit() {
     let loader: FluentLanguageLoader = fluent_language_loader!();
     loader
-        .load_languages(&Localizations, &[loader.fallback_language()])
+        .load_languages(&Localizations, &[loader.fallback_language().clone()])
         .unwrap();
 
     pretty_assertions::assert_eq!(
@@ -72,7 +72,7 @@ fn with_one_arg_lit() {
 fn with_attr() {
     let loader: FluentLanguageLoader = fluent_language_loader!();
     loader
-        .load_languages(&Localizations, &[loader.fallback_language()])
+        .load_languages(&Localizations, &[loader.fallback_language().clone()])
         .unwrap();
 
     pretty_assertions::assert_eq!("Hello, attribute!", fl!(loader, "hello-attr", "text"));
@@ -82,7 +82,7 @@ fn with_attr() {
 fn with_attr_and_args() {
     let loader: FluentLanguageLoader = fluent_language_loader!();
     loader
-        .load_languages(&Localizations, &[loader.fallback_language()])
+        .load_languages(&Localizations, &[loader.fallback_language().clone()])
         .unwrap();
 
     pretty_assertions::assert_eq!(

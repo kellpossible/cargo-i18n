@@ -206,7 +206,7 @@ lazy_static::lazy_static! {
 ///
 /// let loader: FluentLanguageLoader = fluent_language_loader!();
 /// loader
-///     .load_languages(&Localizations, &[loader.fallback_language()])
+///     .load_languages(&Localizations, &[loader.fallback_language().clone()])
 ///     .unwrap();
 ///
 /// // Invoke the fl!() macro to obtain the translated message, and
@@ -249,7 +249,7 @@ lazy_static::lazy_static! {
 /// # struct Localizations;
 /// # let loader: FluentLanguageLoader = fluent_language_loader!();
 /// # loader
-/// #     .load_languages(&Localizations, &[loader.fallback_language()])
+/// #     .load_languages(&Localizations, &[loader.fallback_language().clone()])
 /// #     .unwrap();
 /// let calc_james = || "James".to_string();
 /// pretty_assertions::assert_eq!(
@@ -293,7 +293,7 @@ lazy_static::lazy_static! {
 /// # struct Localizations;
 /// # let loader: FluentLanguageLoader = fluent_language_loader!();
 /// # loader
-/// #     .load_languages(&Localizations, &[loader.fallback_language()])
+/// #     .load_languages(&Localizations, &[loader.fallback_language().clone()])
 /// #     .unwrap();
 /// use std::collections::HashMap;
 ///
@@ -323,7 +323,7 @@ lazy_static::lazy_static! {
 /// # struct Localizations;
 /// # let loader: FluentLanguageLoader = fluent_language_loader!();
 /// # loader
-/// #     .load_languages(&Localizations, &[loader.fallback_language()])
+/// #     .load_languages(&Localizations, &[loader.fallback_language().clone()])
 /// #     .unwrap();
 /// use std::collections::HashMap;
 ///

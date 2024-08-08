@@ -78,8 +78,8 @@ fn main() -> Result<()> {
     let cargo_i18n_localizer: DefaultLocalizer<'static, _, _> =
         DefaultLocalizer::new(&*LANGUAGE_LOADER, &TRANSLATIONS);
 
-    let cargo_i18n_localizer_rc = Arc::new(cargo_i18n_localizer);
-    let i18n_build_localizer_rc = Arc::new(i18n_build::localizer());
+    let cargo_i18n_localizer_rc: Arc<dyn Localizer> = Arc::new(cargo_i18n_localizer);
+    let i18n_build_localizer_rc: Arc<dyn Localizer> = Arc::new(i18n_build::localizer());
 
     language_requester.add_listener(Arc::downgrade(&cargo_i18n_localizer_rc));
     language_requester.add_listener(Arc::downgrade(&i18n_build_localizer_rc));
