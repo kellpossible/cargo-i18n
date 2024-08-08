@@ -25,6 +25,8 @@
   + `LanguageConfig::get_lang_attr_args()`
   + `LanguageConfig::lang()` - Please use `select_languages(...)` instead.
 + Extra bounds on the arguments for `DefaultLocalizer::new()` (`Send + Sync + 'static`) to allow it to be used with `autoreload` feature.
++ `LanguageLoader::load_languages()` now accepts `&[unic_langid::LanguageIdentifier]` instead of `&[&unic_langid::LanguageIdentifier]`.
++ `LanguageLoader:reload()` - Added a new trait method which is used to reload the currently loaded languages.
 
 ## v0.14.1
 
