@@ -85,7 +85,7 @@ mod localize_feature {
     /// Obtain a [Localizer](i18n_embed::Localizer) for localizing this library.
     ///
     /// ⚠️ *This API requires the following crate features to be activated: `localize`.*
-    pub fn localizer() -> DefaultLocalizer<'static, Translations, GettextLanguageLoader> {
+    pub fn localizer() -> DefaultLocalizer<'static> {
         DefaultLocalizer::new(&*LANGUAGE_LOADER, &TRANSLATIONS)
     }
 }

@@ -373,7 +373,7 @@
 //! /// Get the `Localizer` to be used for localizing this library,
 //! /// using the provided embedded source of language files `embed`.
 //! # #[allow(unused)]
-//! pub fn localizer<ASSETS: I18nAssets>(embed: &ASSETS) -> Arc<dyn Localizer + '_> {
+//! pub fn localizer<'a>(embed: &'a (dyn I18nAssets + Send + Sync + 'static)) -> Arc<dyn Localizer + 'a> {
 //!     Arc::new(DefaultLocalizer::new(
 //!         &*LANGUAGE_LOADER,
 //!         embed
@@ -523,15 +523,15 @@ pub trait Localizer {
 }
 
 /// A simple default implemenation of the [Localizer](Localizer) trait.
-pub struct DefaultLocalizer<'a, ASSETS, LOADER> {
+pub struct DefaultLocalizer<'a> {
     /// The source of assets used by this localizer.
-    pub i18n_assets: &'a ASSETS,
+    pub i18n_assets: &'a (dyn I18nAssets + Send + Sync + 'static),
     /// The [LanguageLoader] used by this localizer.
-    pub language_loader: &'a LOADER,
+    pub language_loader: &'a (dyn LanguageLoader + Send + Sync + 'static),
     watchers: Vec<Box<dyn Watcher>>,
 }
 
-impl<ASSETS, LOADER> Debug for DefaultLocalizer<'_, ASSETS, LOADER> {
+impl Debug for DefaultLocalizer<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
@@ -542,10 +542,7 @@ impl<ASSETS, LOADER> Debug for DefaultLocalizer<'_, ASSETS, LOADER> {
 }
 
 #[allow(single_use_lifetimes)]
-impl<'a, ASSETS, LOADER> Localizer for DefaultLocalizer<'a, ASSETS, LOADER>
-where
-    ASSETS: I18nAssets,
-    LOADER: LanguageLoader,
+impl<'a> Localizer for DefaultLocalizer<'a>
 {
     fn i18n_assets(&self) -> &'_ dyn I18nAssets {
         self.i18n_assets
@@ -555,9 +552,9 @@ where
     }
 }
 
-impl<'a, ASSETS, LOADER> DefaultLocalizer<'a, ASSETS, LOADER> {
+impl<'a> DefaultLocalizer<'a> {
     /// Create a new [DefaultLocalizer](DefaultLocalizer).
-    pub fn new(language_loader: &'a LOADER, i18n_assets: &'a ASSETS) -> Self {
+    pub fn new(language_loader: &'a (dyn LanguageLoader + Send + Sync + 'static), i18n_assets: &'a (dyn I18nAssets + Send + Sync + 'static)) -> Self {
         Self {
             i18n_assets,
             language_loader,
@@ -566,10 +563,7 @@ impl<'a, ASSETS, LOADER> DefaultLocalizer<'a, ASSETS, LOADER> {
     }
 }
 
-impl<
-        ASSETS: I18nAssets + Send + Sync + 'static,
-        LOADER: LanguageLoader + Send + Sync + 'static,
-    > DefaultLocalizer<'static, ASSETS, LOADER>
+impl DefaultLocalizer<'static>
 {
     /// Create a new [DefaultLocalizer](DefaultLocalizer).
     pub fn with_autoreload(mut self) -> Result<Self, I18nEmbedError> {

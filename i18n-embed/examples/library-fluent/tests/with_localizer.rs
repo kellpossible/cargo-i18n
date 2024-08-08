@@ -1,4 +1,4 @@
-use i18n_embed::{LanguageLoader, Localizer};
+use i18n_embed::Localizer;
 use library_fluent::{hello_world, localizer};
 
 use std::collections::HashSet;

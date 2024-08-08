@@ -75,7 +75,7 @@ fn main() -> Result<()> {
     env_logger::init();
     let mut language_requester = DesktopLanguageRequester::new();
 
-    let cargo_i18n_localizer: DefaultLocalizer<'static, _, _> =
+    let cargo_i18n_localizer: DefaultLocalizer<'static> =
         DefaultLocalizer::new(&*LANGUAGE_LOADER, &TRANSLATIONS);
 
     let cargo_i18n_localizer_rc: Arc<dyn Localizer> = Arc::new(cargo_i18n_localizer);

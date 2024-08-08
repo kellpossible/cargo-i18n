@@ -44,6 +44,6 @@ pub fn hello_world() -> String {
 
 // Get the `Localizer` to be used for localizing this library.
 pub fn localizer(
-) -> DefaultLocalizer<'static, RustEmbedNotifyAssets<LocalizationsEmbed>, FluentLanguageLoader> {
-    DefaultLocalizer::new(&*LANGUAGE_LOADER, &LOCALIZATIONS)
+) -> DefaultLocalizer<'static> {
+    DefaultLocalizer::new(&*LANGUAGE_LOADER, &*LOCALIZATIONS)
 }
