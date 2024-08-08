@@ -1,5 +1,12 @@
 # Changelog for `i18n-embed-fl`
 
+## v0.9.1
+
+### Fixes
+
++ Fix broken test/build due to version bump needed in root Cargo.toml.
++ Use domain override thanks to @Matt3o12 [#124](https://github.com/kellpossible/cargo-i18n/pull/124).
+
 ## v0.9.0
 
 ### Internal
