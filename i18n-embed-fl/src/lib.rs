@@ -377,6 +377,9 @@ pub fn fl(input: TokenStream) -> TokenStream {
             }
         });
 
+        // Use the domain override in the configuration.
+        let domain = fluent_config.domain.unwrap_or(domain);
+
         let assets_dir = Path::new(&crate_paths.crate_dir).join(fluent_config.assets_dir);
         let assets = FileSystemAssets::try_new(assets_dir).unwrap();
 
