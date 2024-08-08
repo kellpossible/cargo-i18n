@@ -74,7 +74,7 @@ mod localize_feature {
 
     #[derive(RustEmbed)]
     #[folder = "i18n/mo"]
-    struct Translations;
+    pub struct Translations;
 
     lazy_static! {
         static ref LANGUAGE_LOADER: GettextLanguageLoader = gettext_language_loader!();
@@ -85,7 +85,7 @@ mod localize_feature {
     /// Obtain a [Localizer](i18n_embed::Localizer) for localizing this library.
     ///
     /// ⚠️ *This API requires the following crate features to be activated: `localize`.*
-    pub fn localizer() -> DefaultLocalizer<'static> {
+    pub fn localizer() -> DefaultLocalizer<'static, Translations, GettextLanguageLoader> {
         DefaultLocalizer::new(&*LANGUAGE_LOADER, &TRANSLATIONS)
     }
 }

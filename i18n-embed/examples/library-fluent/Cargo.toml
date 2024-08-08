@@ -7,7 +7,7 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-i18n-embed = { workspace = true, features = ["fluent-system"] }
+i18n-embed = { workspace = true, features = ["fluent-system", "autoreload"] }
 i18n-embed-fl = { workspace = true }
 once_cell = { workspace = true }
 rust-embed = { workspace = true }

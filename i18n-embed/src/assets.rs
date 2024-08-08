@@ -207,6 +207,9 @@ fn notify_watcher(
 }
 
 /// An entity that watches for changes to localization resources.
+///
+/// NOTE: Currently we rely in the implicit [`Drop`] implementation to remove file system watches,
+/// in the future ther may be new methods added to this trait.
 pub trait Watcher {}
 
 #[cfg(feature = "autoreload")]
@@ -309,6 +312,7 @@ impl AssetsMultiplexor {
     }
 }
 
+#[allow(dead_code)] // We rely on the Drop implementation of the Watcher to remove the file system watch.
 struct Watchers(Vec<Box<dyn Watcher>>);
 
 impl Watcher for Watchers {}

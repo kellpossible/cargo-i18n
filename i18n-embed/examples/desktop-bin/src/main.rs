@@ -1,10 +1,10 @@
 use std::time::Duration;
 
 use i18n_embed::{
-    fluent::FluentLanguageLoader, DefaultLocalizer, DesktopLanguageRequester, I18nAssets,
-    Localizer, RustEmbedNotifyAssets,
+    fluent::FluentLanguageLoader, DefaultLocalizer, DesktopLanguageRequester, Localizer,
+    RustEmbedNotifyAssets,
 };
-use library_fluent::{hello_world, localizer, LocalizationsEmbed, LOCALIZATIONS};
+use library_fluent::{hello_world, localizer, LocalizationsEmbed};
 
 fn main() {
     env_logger::init();

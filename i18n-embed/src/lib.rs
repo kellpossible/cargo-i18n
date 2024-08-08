@@ -557,7 +557,7 @@ where
 
 impl<'a, ASSETS, LOADER> DefaultLocalizer<'a, ASSETS, LOADER> {
     /// Create a new [DefaultLocalizer](DefaultLocalizer).
-    pub fn new(i18n_assets: &'a ASSETS, language_loader: &'a LOADER) -> Self {
+    pub fn new(language_loader: &'a LOADER, i18n_assets: &'a ASSETS) -> Self {
         Self {
             i18n_assets,
             language_loader,

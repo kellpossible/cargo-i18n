@@ -1,6 +1,6 @@
 use i18n_embed::{
     fluent::{fluent_language_loader, FluentLanguageLoader},
-    DefaultLocalizer, I18nAssets, LanguageLoader, Localizer, RustEmbedNotifyAssets,
+    DefaultLocalizer, LanguageLoader, RustEmbedNotifyAssets,
 };
 use i18n_embed_fl::fl;
 use once_cell::sync::Lazy;
