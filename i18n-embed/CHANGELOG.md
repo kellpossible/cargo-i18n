@@ -1,6 +1,6 @@
 # Changelog for `i18n-embed`
 
-## v0.15.0
+## main
 
 ### New Features
 
