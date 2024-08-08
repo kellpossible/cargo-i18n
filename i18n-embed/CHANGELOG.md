@@ -7,6 +7,7 @@
 + New `autoreload` crate feature.
   + `RustEmbedNotifyAssets` - A wrapper for `rust_embed::RustEmbed` that supports notifications when files have changed on the file system.
   + `FileSystemAssets::notify_changes_enabled()` - A new method to enable watching for changes.
++ `AssetsMultiplexor` - A way to multiplex implmentations of [`I18nAssets`] where assets are multiplexed by a priority.
 
 ### Breaking
 
@@ -23,7 +24,7 @@
   + `LanguageConfig::get_lang_attr_args_fluent()`
   + `LanguageConfig::get_lang_attr_args()`
   + `LanguageConfig::lang()` - Please use `select_languages(...)` instead.
-+ `DefaultLocalizer` now requires two type parameters `ASSETS` and `LOADER`. TODO
++ Extra bounds on the arguments for `DefaultLocalizer::new()` (`Send + Sync + 'static`) to allow it to be used with `autoreload` feature.
 
 ## v0.14.1
 

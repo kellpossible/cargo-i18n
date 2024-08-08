@@ -22,7 +22,7 @@ pub trait I18nAssets {
     fn subscribe_changed(
         &self,
         #[allow(unused_variables)] changed: std::sync::Arc<dyn Fn() + Send + Sync + 'static>,
-    ) -> Result<Box<dyn Watcher>, I18nEmbedError> {
+    ) -> Result<Box<dyn Watcher + Send + Sync + 'static>, I18nEmbedError> {
         Ok(Box::new(()))
     }
 }
@@ -48,7 +48,7 @@ where
     fn subscribe_changed(
         &self,
         changed: std::sync::Arc<dyn Fn() + Send + Sync + 'static>,
-    ) -> Result<Box<dyn Watcher>, I18nEmbedError> {
+    ) -> Result<Box<dyn Watcher + Send + Sync + 'static>, I18nEmbedError> {
         Ok(Box::new(()))
     }
 }
@@ -95,7 +95,7 @@ where
     fn subscribe_changed(
         &self,
         changed: std::sync::Arc<dyn Fn() + Send + Sync + 'static>,
-    ) -> Result<Box<dyn Watcher>, I18nEmbedError> {
+    ) -> Result<Box<dyn Watcher + Send + Sync + 'static>, I18nEmbedError> {
         let base_dir = &self.base_dir;
         if base_dir.is_dir() {
             log::debug!("Watching for changed files in {:?}", self.base_dir);
@@ -182,7 +182,7 @@ impl std::error::Error for NotifyError {}
 fn notify_watcher(
     base_dir: &std::path::Path,
     changed: std::sync::Arc<dyn Fn() + Send + Sync + 'static>,
-) -> notify::Result<Box<dyn Watcher>> {
+) -> notify::Result<Box<dyn Watcher + Send + Sync + 'static>> {
     let mut watcher = notify::recommended_watcher(move |event_result| {
         let event: notify::Event = match event_result {
             Ok(event) => event,
@@ -274,7 +274,7 @@ impl I18nAssets for FileSystemAssets {
     fn subscribe_changed(
         &self,
         changed: std::sync::Arc<dyn Fn() + Send + Sync + 'static>,
-    ) -> Result<Box<dyn Watcher>, I18nEmbedError> {
+    ) -> Result<Box<dyn Watcher + Send + Sync + 'static>, I18nEmbedError> {
         if self.notify_changes_enabled {
             notify_watcher(&self.base_dir, changed).map_err(Into::into)
         } else {
@@ -313,7 +313,7 @@ impl AssetsMultiplexor {
 }
 
 #[allow(dead_code)] // We rely on the Drop implementation of the Watcher to remove the file system watch.
-struct Watchers(Vec<Box<dyn Watcher>>);
+struct Watchers(Vec<Box<dyn Watcher + Send + Sync + 'static>>);
 
 impl Watcher for Watchers {}
 
@@ -336,7 +336,7 @@ impl I18nAssets for AssetsMultiplexor {
     fn subscribe_changed(
         &self,
         changed: std::sync::Arc<dyn Fn() + Send + Sync + 'static>,
-    ) -> Result<Box<dyn Watcher>, I18nEmbedError> {
+    ) -> Result<Box<dyn Watcher + Send + Sync + 'static>, I18nEmbedError> {
         let watchers: Vec<_> = self
             .assets
             .iter()

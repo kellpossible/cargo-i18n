@@ -528,7 +528,7 @@ pub struct DefaultLocalizer<'a> {
     pub i18n_assets: &'a (dyn I18nAssets + Send + Sync + 'static),
     /// The [LanguageLoader] used by this localizer.
     pub language_loader: &'a (dyn LanguageLoader + Send + Sync + 'static),
-    watchers: Vec<Box<dyn Watcher>>,
+    watchers: Vec<Box<dyn Watcher + Send + Sync + 'static>>,
 }
 
 impl Debug for DefaultLocalizer<'_> {
@@ -542,8 +542,7 @@ impl Debug for DefaultLocalizer<'_> {
 }
 
 #[allow(single_use_lifetimes)]
-impl<'a> Localizer for DefaultLocalizer<'a>
-{
+impl<'a> Localizer for DefaultLocalizer<'a> {
     fn i18n_assets(&self) -> &'_ dyn I18nAssets {
         self.i18n_assets
     }
@@ -554,7 +553,10 @@ impl<'a> Localizer for DefaultLocalizer<'a>
 
 impl<'a> DefaultLocalizer<'a> {
     /// Create a new [DefaultLocalizer](DefaultLocalizer).
-    pub fn new(language_loader: &'a (dyn LanguageLoader + Send + Sync + 'static), i18n_assets: &'a (dyn I18nAssets + Send + Sync + 'static)) -> Self {
+    pub fn new(
+        language_loader: &'a (dyn LanguageLoader + Send + Sync + 'static),
+        i18n_assets: &'a (dyn I18nAssets + Send + Sync + 'static),
+    ) -> Self {
         Self {
             i18n_assets,
             language_loader,
@@ -563,8 +565,7 @@ impl<'a> DefaultLocalizer<'a> {
     }
 }
 
-impl DefaultLocalizer<'static>
-{
+impl DefaultLocalizer<'static> {
     /// Create a new [DefaultLocalizer](DefaultLocalizer).
     pub fn with_autoreload(mut self) -> Result<Self, I18nEmbedError> {
         let assets = self.i18n_assets;

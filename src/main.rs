@@ -137,7 +137,7 @@ fn main() -> Result<()> {
                 .long("language")
                 .short('l')
                 .num_args(1)
-                .default_value(&*fallback_locale)
+                .default_value(fallback_locale)
                 .value_parser(PossibleValuesParser::new(available_languages_slice))
             )
         )
