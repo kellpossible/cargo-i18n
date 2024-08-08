@@ -2,6 +2,11 @@
 
 ## master
 
+### Internal
+
++ Bump `strsim` to `0.11`.
++ Bump `dashmap` to `6.0`.
+
 ### Fixes
 
 + Fallback to `std::env::var("CARGO_PKG_NAME")` Fixes [#97](https://github.com/kellpossible/cargo-i18n/issues/97)
