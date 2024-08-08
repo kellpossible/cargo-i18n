@@ -1,5 +1,11 @@
 # `i18n-config` Changelog
 
+## master
+
+### Internal
+
++ Use `basic-toml` instead of `toml`.
+
 ## v0.4.6
 
 ### Internal
