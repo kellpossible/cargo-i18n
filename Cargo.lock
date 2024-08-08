@@ -572,7 +572,7 @@ checksum = "9a3a5bfb195931eeb336b2a7b4d761daec841b97f947d34394601737a7bba5e4"
 
 [[package]]
 name = "i18n-build"
-version = "0.9.0"
+version = "0.10.0"
 dependencies = [
  "anyhow",
  "gettext",
@@ -589,7 +589,7 @@ dependencies = [
 
 [[package]]
 name = "i18n-config"
-version = "0.4.6"
+version = "0.4.7"
 dependencies = [
  "basic-toml",
  "log",
@@ -601,7 +601,7 @@ dependencies = [
 
 [[package]]
 name = "i18n-embed"
-version = "0.14.0"
+version = "0.15.0"
 dependencies = [
  "arc-swap",
  "doc-comment",
@@ -630,7 +630,7 @@ dependencies = [
 
 [[package]]
 name = "i18n-embed-fl"
-version = "0.8.0"
+version = "0.8.1"
 dependencies = [
  "dashmap",
  "doc-comment",

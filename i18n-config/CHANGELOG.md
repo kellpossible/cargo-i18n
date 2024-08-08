@@ -1,6 +1,6 @@
 # `i18n-config` Changelog
 
-## master
+## v0.4.7
 
 ### Internal
 

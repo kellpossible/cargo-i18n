@@ -1,15 +1,15 @@
 # Changelog for `i18n-build`
 
-## main
-
-+ Update i18n-embed to version `0.15`.
-
-## v0.9.0
+## v0.10.0
 
 ### Internal
 
 + Fix clippy warnings.
 + Bump dependencies and use workspace dependencies.
+
+### Breaking
+
++ Update i18n-embed to version `0.15.0`.
 
 ## v0.8.2
 

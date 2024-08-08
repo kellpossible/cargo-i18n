@@ -1,11 +1,15 @@
 # Changelog for `i18n-embed-fl`
 
-## master
+## v0.9.0
 
 ### Internal
 
 + Bump `strsim` to `0.11`.
 + Bump `dashmap` to `6.0`.
+
+### Breaking
+
++ Bump `i18n-embed` to `0.15.0`.
 
 ### Fixes
 
