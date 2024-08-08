@@ -1,5 +1,11 @@
 # Changelog for `i18n-embed-fl`
 
+## master
+
+### Fixes
+
++ Fallback to `std::env::var("CARGO_PKG_NAME")` Fixes [#97](https://github.com/kellpossible/cargo-i18n/issues/97)
+
 ## v0.8.0
 
 ### Breaking

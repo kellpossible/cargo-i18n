@@ -16,8 +16,7 @@ pub fn gettext_language_loader(_: proc_macro::TokenStream) -> proc_macro::TokenS
     let manifest = find_crate::Manifest::new().expect("Error reading Cargo.toml");
     let current_crate_package_name = {
         manifest.crate_package().map(|pkg| pkg.name).unwrap_or(
-            std::env::var("CARGO_PKG_NAME")
-                .expect("Error fetching `CARGO_PKG_NAME` env"),
+            std::env::var("CARGO_PKG_NAME").expect("Error fetching `CARGO_PKG_NAME` env"),
         )
     };
 
@@ -89,10 +88,10 @@ pub fn gettext_language_loader(_: proc_macro::TokenStream) -> proc_macro::TokenS
 #[cfg(feature = "fluent-system")]
 pub fn fluent_language_loader(_: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let manifest = find_crate::Manifest::new().expect("Error reading Cargo.toml");
-    let current_crate_package_name = manifest.crate_package().map(|pkg| pkg.name).unwrap_or(
-        std::env::var("CARGO_PKG_NAME")
-            .expect("Error fetching `CARGO_PKG_NAME` env"),
-    );
+    let current_crate_package_name = manifest
+        .crate_package()
+        .map(|pkg| pkg.name)
+        .unwrap_or(std::env::var("CARGO_PKG_NAME").expect("Error fetching `CARGO_PKG_NAME` env"));
 
     // Special case for when this macro is invoked in i18n-embed tests/docs
     let i18n_embed_crate_name = if current_crate_package_name == "i18n_embed" {
