@@ -1,5 +1,30 @@
 # Changelog for `i18n-embed`
 
+## v0.15.0
+
+### New Features
+
++ New `autoreload` crate feature.
+  + `RustEmbedNotifyAssets` - A wrapper for `rust_embed::RustEmbed` that supports notifications when files have changed on the file system.
+  + `FileSystemAssets::notify_changes_enabled()` - A new method to enable watching for changes.
+
+### Breaking
+
++ Modified `I18nAssets` trait.
+  + Support multiple files referencing the same asset (to allow a heirachy of overrides).
+  + Support for subscribing to updates to assets.
++ Remove deprecated methods for `LanguageConfig`, Please use `lang(...).get_attr_args(...)` etc instead.
+  + `LanguageConfig::get_lang()`
+  + `LanguageConfig::get_lang_args_concrete()`
+  + `LanguageConfig::get_lang_args_fluent()`
+  + `LanguageConfig::get_lang_args()`
+  + `LanguageConfig::get_lang_attr()`
+  + `LanguageConfig::get_lang_attr_args_concrete()`
+  + `LanguageConfig::get_lang_attr_args_fluent()`
+  + `LanguageConfig::get_lang_attr_args()`
+  + `LanguageConfig::lang()` - Please use `select_languages(...)` instead.
++ `DefaultLocalizer` now requires two type parameters `ASSETS` and `LOADER`. TODO
+
 ## v0.14.1
 
 ## Internal
