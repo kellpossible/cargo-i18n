@@ -1,6 +1,6 @@
 # Changelog for `i18n-embed`
 
-## main
+## master
 
 ### New Features
 
@@ -27,6 +27,10 @@
 + Extra bounds on the arguments for `DefaultLocalizer::new()` (`Send + Sync + 'static`) to allow it to be used with `autoreload` feature.
 + `LanguageLoader::load_languages()` now accepts `&[unic_langid::LanguageIdentifier]` instead of `&[&unic_langid::LanguageIdentifier]`.
 + `LanguageLoader:reload()` - Added a new trait method which is used to reload the currently loaded languages.
+
+### Fixes
+
++ Fallback to `std::env::var("CARGO_PKG_NAME")` Fixes [#97](https://github.com/kellpossible/cargo-i18n/issues/97)
 
 ## v0.14.1
 

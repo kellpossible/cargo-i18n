@@ -14,10 +14,14 @@
 #[cfg(feature = "gettext-system")]
 pub fn gettext_language_loader(_: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let manifest = find_crate::Manifest::new().expect("Error reading Cargo.toml");
-    let current_crate_package = manifest.crate_package().expect("Error reading Cargo.toml");
+    let current_crate_package_name = {
+        manifest.crate_package().map(|pkg| pkg.name).unwrap_or(
+            std::env::var("CARGO_PKG_NAME").expect("Error fetching `CARGO_PKG_NAME` env"),
+        )
+    };
 
     // Special case for when this macro is invoked in i18n-embed tests/docs
-    let i18n_embed_crate_name = if current_crate_package.name == "i18n_embed" {
+    let i18n_embed_crate_name = if current_crate_package_name == "i18n_embed" {
         "i18n_embed".to_string()
     } else {
         manifest
@@ -84,10 +88,13 @@ pub fn gettext_language_loader(_: proc_macro::TokenStream) -> proc_macro::TokenS
 #[cfg(feature = "fluent-system")]
 pub fn fluent_language_loader(_: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let manifest = find_crate::Manifest::new().expect("Error reading Cargo.toml");
-    let current_crate_package = manifest.crate_package().expect("Error reading Cargo.toml");
+    let current_crate_package_name = manifest
+        .crate_package()
+        .map(|pkg| pkg.name)
+        .unwrap_or(std::env::var("CARGO_PKG_NAME").expect("Error fetching `CARGO_PKG_NAME` env"));
 
     // Special case for when this macro is invoked in i18n-embed tests/docs
-    let i18n_embed_crate_name = if current_crate_package.name == "i18n_embed" {
+    let i18n_embed_crate_name = if current_crate_package_name == "i18n_embed" {
         "i18n_embed".to_string()
     } else {
         manifest
@@ -131,7 +138,7 @@ pub fn fluent_language_loader(_: proc_macro::TokenStream) -> proc_macro::TokenSt
     let domain_str = config
         .fluent
         .and_then(|f| f.domain)
-        .unwrap_or(current_crate_package.name);
+        .unwrap_or(current_crate_package_name);
     let domain = syn::LitStr::new(&domain_str, proc_macro2::Span::call_site());
 
     let gen = quote::quote! {
