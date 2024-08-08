@@ -371,9 +371,9 @@
 //! }
 //!
 //! /// Get the `Localizer` to be used for localizing this library,
-//! /// using the provided embeddes source of language files `embed`.
+//! /// using the provided embedded source of language files `embed`.
 //! # #[allow(unused)]
-//! pub fn localizer(embed: &dyn I18nAssets) -> Arc<dyn Localizer + '_> {
+//! pub fn localizer<ASSETS: I18nAssets>(embed: &ASSETS) -> Arc<dyn Localizer + '_> {
 //!     Arc::new(DefaultLocalizer::new(
 //!         &*LANGUAGE_LOADER,
 //!         embed

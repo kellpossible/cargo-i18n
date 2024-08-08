@@ -4,8 +4,6 @@ use std::{collections::HashMap, sync::Weak};
 /// A trait used by [I18nAssets](crate::I18nAssets) to ascertain which
 /// languages are being requested.
 pub trait LanguageRequester<'a> {
-    /// The [`Localizer`] being used with this [`LanguageRequester`].
-    type Localizer: crate::Localizer;
     /// Add a listener to this `LanguageRequester`. When the system
     /// reports that the currently requested languages has changed,
     /// each listener will have its
@@ -17,7 +15,7 @@ pub trait LanguageRequester<'a> {
     /// If you haven't already selected a language for the localizer
     /// you are adding here, you may want to manually call
     /// [#poll()](#poll()) after adding the listener/s.
-    fn add_listener(&mut self, listener: Weak<Self::Localizer>);
+    fn add_listener(&mut self, listener: Weak<dyn Localizer>);
     /// Add a listener to this `LanguageRequester`. When the system
     /// reports that the currently requested languages has changed,
     /// each listener will have its
@@ -28,7 +26,7 @@ pub trait LanguageRequester<'a> {
     /// If you haven't already selected a language for the localizer
     /// you are adding here, you may want to manually call
     /// [#poll()](#poll()) after adding the listener/s.
-    fn add_listener_ref(&mut self, listener: &'a Self::Localizer);
+    fn add_listener_ref(&mut self, listener: &'a dyn Localizer);
     /// Poll the system's currently selected language, and call
     /// [Localizer#select()](Localizer#select()) on each of the
     /// listeners.
@@ -57,18 +55,15 @@ pub trait LanguageRequester<'a> {
 
 /// Provide the functionality for overrides and listeners for a
 /// [LanguageRequester](LanguageRequester) implementation.
-pub struct LanguageRequesterImpl<'a, LOCALIZER> {
-    arc_listeners: Vec<Weak<LOCALIZER>>,
-    ref_listeners: Vec<&'a LOCALIZER>,
+pub struct LanguageRequesterImpl<'a> {
+    arc_listeners: Vec<Weak<dyn Localizer>>,
+    ref_listeners: Vec<&'a dyn Localizer>,
     language_override: Option<unic_langid::LanguageIdentifier>,
 }
 
-impl<'a, LOCALIZER> LanguageRequesterImpl<'a, LOCALIZER>
-where
-    LOCALIZER: Localizer,
-{
+impl<'a> LanguageRequesterImpl<'a> {
     /// Create a new [LanguageRequesterImpl](LanguageRequesterImpl).
-    pub fn new() -> LanguageRequesterImpl<'a, LOCALIZER> {
+    pub fn new() -> LanguageRequesterImpl<'a> {
         LanguageRequesterImpl {
             arc_listeners: Vec::new(),
             ref_listeners: Vec::new(),
@@ -89,13 +84,13 @@ where
 
     /// Add a weak reference to a [Localizer], which listens to
     /// changes to the current language.
-    pub fn add_listener(&mut self, listener: Weak<LOCALIZER>) {
+    pub fn add_listener(&mut self, listener: Weak<dyn Localizer>) {
         self.arc_listeners.push(listener);
     }
 
     /// Add a reference to [Localizer], which listens to changes to
     /// the current language.
-    pub fn add_listener_ref(&mut self, listener: &'a LOCALIZER) {
+    pub fn add_listener_ref(&mut self, listener: &'a dyn Localizer) {
         self.ref_listeners.push(listener);
     }
 
@@ -200,13 +195,13 @@ where
     }
 }
 
-impl<LOCALIZER: Localizer> Default for LanguageRequesterImpl<'_, LOCALIZER> {
+impl Default for LanguageRequesterImpl<'_> {
     fn default() -> Self {
-        LanguageRequesterImpl::<LOCALIZER>::new()
+        LanguageRequesterImpl::new()
     }
 }
 
-impl<LOCALIZER> std::fmt::Debug for LanguageRequesterImpl<'_, LOCALIZER> {
+impl std::fmt::Debug for LanguageRequesterImpl<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let listeners_debug: String = self
             .arc_listeners
@@ -233,25 +228,21 @@ impl<LOCALIZER> std::fmt::Debug for LanguageRequesterImpl<'_, LOCALIZER> {
 /// ⚠️ *This API requires the following crate features to be activated: `desktop-requester`.*
 #[cfg(feature = "desktop-requester")]
 #[derive(Debug)]
-pub struct DesktopLanguageRequester<'a, LOCALIZER> {
-    implementation: LanguageRequesterImpl<'a, LOCALIZER>,
+pub struct DesktopLanguageRequester<'a> {
+    implementation: LanguageRequesterImpl<'a>,
 }
 
 #[cfg(feature = "desktop-requester")]
-impl<'a, LOCALIZER> LanguageRequester<'a> for DesktopLanguageRequester<'a, LOCALIZER>
-where
-    LOCALIZER: Localizer,
-{
-    type Localizer = LOCALIZER;
+impl<'a> LanguageRequester<'a> for DesktopLanguageRequester<'a> {
     fn requested_languages(&self) -> Vec<unic_langid::LanguageIdentifier> {
-        DesktopLanguageRequester::<'a, LOCALIZER>::requested_languages()
+        DesktopLanguageRequester::requested_languages()
     }
 
-    fn add_listener(&mut self, listener: Weak<Self::Localizer>) {
+    fn add_listener(&mut self, listener: Weak<dyn Localizer>) {
         self.implementation.add_listener(listener)
     }
 
-    fn add_listener_ref(&mut self, listener: &'a Self::Localizer) {
+    fn add_listener_ref(&mut self, listener: &'a dyn Localizer) {
         self.implementation.add_listener_ref(listener)
     }
 
@@ -276,14 +267,14 @@ where
 }
 
 #[cfg(feature = "desktop-requester")]
-impl<LOCALIZER: Localizer> Default for DesktopLanguageRequester<'_, LOCALIZER> {
+impl Default for DesktopLanguageRequester<'_> {
     fn default() -> Self {
         DesktopLanguageRequester::new()
     }
 }
 
 #[cfg(feature = "desktop-requester")]
-impl<LOCALIZER: Localizer> DesktopLanguageRequester<'_, LOCALIZER> {
+impl DesktopLanguageRequester<'_> {
     /// Create a new `DesktopLanguageRequester`.
     pub fn new() -> Self {
         DesktopLanguageRequester {
@@ -321,12 +312,12 @@ impl<LOCALIZER: Localizer> DesktopLanguageRequester<'_, LOCALIZER> {
 /// ⚠️ *This API requires the following crate features to be activated: `web-sys-requester`.*
 #[cfg(feature = "web-sys-requester")]
 #[derive(Debug)]
-pub struct WebLanguageRequester<'a, LOCALIZER> {
-    implementation: LanguageRequesterImpl<'a, LOCALIZER>,
+pub struct WebLanguageRequester<'a> {
+    implementation: LanguageRequesterImpl<'a>,
 }
 
 #[cfg(feature = "web-sys-requester")]
-impl<LOCALIZER: Localizer> WebLanguageRequester<'_, LOCALIZER> {
+impl WebLanguageRequester<'_> {
     /// Create a new `WebLanguageRequester`.
     pub fn new() -> Self {
         WebLanguageRequester {
@@ -353,27 +344,23 @@ impl<LOCALIZER: Localizer> WebLanguageRequester<'_, LOCALIZER> {
 }
 
 #[cfg(feature = "web-sys-requester")]
-impl<LOCALIZER: Localizer> Default for WebLanguageRequester<'_, LOCALIZER> {
+impl Default for WebLanguageRequester<'_> {
     fn default() -> Self {
         WebLanguageRequester::new()
     }
 }
 
 #[cfg(feature = "web-sys-requester")]
-impl<'a, LOCALIZER> LanguageRequester<'a> for WebLanguageRequester<'a, LOCALIZER>
-where
-    LOCALIZER: Localizer,
-{
-    type Localizer = LOCALIZER;
+impl<'a> LanguageRequester<'a> for WebLanguageRequester<'a> {
     fn requested_languages(&self) -> Vec<unic_langid::LanguageIdentifier> {
         Self::requested_languages()
     }
 
-    fn add_listener(&mut self, listener: Weak<Self::Localizer>) {
+    fn add_listener(&mut self, listener: Weak<dyn Localizer>) {
         self.implementation.add_listener(listener)
     }
 
-    fn add_listener_ref(&mut self, listener: &'a Self::Localizer) {
+    fn add_listener_ref(&mut self, listener: &'a dyn Localizer) {
         self.implementation.add_listener_ref(listener)
     }
 
