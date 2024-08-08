@@ -1,5 +1,9 @@
 # Changelog for `i18n-build`
 
+## main
+
++ Update i18n-embed to version `0.15`.
+
 ## v0.9.0
 
 ### Internal

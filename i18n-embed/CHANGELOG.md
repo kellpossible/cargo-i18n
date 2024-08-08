@@ -2,6 +2,32 @@
 
 ## master
 
+### New Features
+
++ New `autoreload` crate feature.
+  + `RustEmbedNotifyAssets` - A wrapper for `rust_embed::RustEmbed` that supports notifications when files have changed on the file system.
+  + `FileSystemAssets::notify_changes_enabled()` - A new method to enable watching for changes.
++ `AssetsMultiplexor` - A way to multiplex implmentations of [`I18nAssets`] where assets are multiplexed by a priority.
+
+### Breaking
+
++ Modified `I18nAssets` trait.
+  + Support multiple files referencing the same asset (to allow a heirachy of overrides).
+  + Support for subscribing to updates to assets.
++ Remove deprecated methods for `LanguageConfig`, Please use `lang(...).get_attr_args(...)` etc instead.
+  + `LanguageConfig::get_lang()`
+  + `LanguageConfig::get_lang_args_concrete()`
+  + `LanguageConfig::get_lang_args_fluent()`
+  + `LanguageConfig::get_lang_args()`
+  + `LanguageConfig::get_lang_attr()`
+  + `LanguageConfig::get_lang_attr_args_concrete()`
+  + `LanguageConfig::get_lang_attr_args_fluent()`
+  + `LanguageConfig::get_lang_attr_args()`
+  + `LanguageConfig::lang()` - Please use `select_languages(...)` instead.
++ Extra bounds on the arguments for `DefaultLocalizer::new()` (`Send + Sync + 'static`) to allow it to be used with `autoreload` feature.
++ `LanguageLoader::load_languages()` now accepts `&[unic_langid::LanguageIdentifier]` instead of `&[&unic_langid::LanguageIdentifier]`.
++ `LanguageLoader:reload()` - Added a new trait method which is used to reload the currently loaded languages.
+
 ### Fixes
 
 + Fallback to `std::env::var("CARGO_PKG_NAME")` Fixes [#97](https://github.com/kellpossible/cargo-i18n/issues/97)

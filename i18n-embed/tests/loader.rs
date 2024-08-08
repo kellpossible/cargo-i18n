@@ -20,7 +20,7 @@ mod fluent {
         setup();
         let en_us: LanguageIdentifier = "en-US".parse().unwrap();
         let loader = FluentLanguageLoader::new("test", en_us.clone());
-        loader.load_languages(&Localizations, &[&en_us]).unwrap();
+        loader.load_languages(&Localizations, &[en_us]).unwrap();
         pretty_assertions::assert_eq!("Hello World Localization!", loader.get("hello-world"));
     }
 
@@ -31,7 +31,7 @@ mod fluent {
         let en_gb: LanguageIdentifier = "en-GB".parse().unwrap();
 
         let loader = FluentLanguageLoader::new("test", en_us.clone());
-        loader.load_languages(&Localizations, &[&en_gb]).unwrap();
+        loader.load_languages(&Localizations, &[en_gb]).unwrap();
         pretty_assertions::assert_eq!("Hello World Localisation!", loader.get("hello-world"));
         pretty_assertions::assert_eq!("only US", loader.get("only-us"));
     }
@@ -44,9 +44,7 @@ mod fluent {
         let en_gb: LanguageIdentifier = "en-GB".parse().unwrap();
 
         let loader = FluentLanguageLoader::new("test", en_us.clone());
-        loader
-            .load_languages(&Localizations, &[&ru, &en_gb])
-            .unwrap();
+        loader.load_languages(&Localizations, &[ru, en_gb]).unwrap();
         pretty_assertions::assert_eq!("Привет Мир Локализация!", loader.get("hello-world"));
         pretty_assertions::assert_eq!("only GB", loader.get("only-gb"));
         pretty_assertions::assert_eq!("only US", loader.get("only-us"));
@@ -60,7 +58,7 @@ mod fluent {
         let ru: LanguageIdentifier = "ru".parse().unwrap();
 
         let loader = FluentLanguageLoader::new("test", en_us.clone());
-        loader.load_languages(&Localizations, &[&ru]).unwrap();
+        loader.load_languages(&Localizations, &[ru]).unwrap();
 
         let args = maplit::hashmap! {
             "userName" => "Tanya"
@@ -76,7 +74,7 @@ mod fluent {
         setup();
         let en_us: LanguageIdentifier = "en-US".parse().unwrap();
         let loader = FluentLanguageLoader::new("test", en_us.clone());
-        loader.load_languages(&Localizations, &[&en_us]).unwrap();
+        loader.load_languages(&Localizations, &[en_us]).unwrap();
         pretty_assertions::assert_eq!("World (US version)!", loader.get_attr("with-attr", "attr"));
     }
 
@@ -86,7 +84,7 @@ mod fluent {
         let en_us: LanguageIdentifier = "en-US".parse().unwrap();
         let en_gb: LanguageIdentifier = "en-GB".parse().unwrap();
         let loader = FluentLanguageLoader::new("test", en_us.clone());
-        loader.load_languages(&Localizations, &[&en_gb]).unwrap();
+        loader.load_languages(&Localizations, &[en_gb]).unwrap();
         let args = maplit::hashmap! {
             "name" => "Joe Doe"
         };
@@ -103,7 +101,7 @@ mod fluent {
         let ru: LanguageIdentifier = "ru".parse().unwrap();
 
         let loader = FluentLanguageLoader::new("test", en_us.clone());
-        loader.load_languages(&Localizations, &[&ru]).unwrap();
+        loader.load_languages(&Localizations, &[ru]).unwrap();
 
         assert!(loader.has("only-ru-args"));
         assert!(loader.has("only-us"));
@@ -115,7 +113,7 @@ mod fluent {
         setup();
         let en_us: LanguageIdentifier = "en-US".parse().unwrap();
         let loader = FluentLanguageLoader::new("test", en_us.clone());
-        loader.load_languages(&Localizations, &[&en_us]).unwrap();
+        loader.load_languages(&Localizations, &[en_us]).unwrap();
         loader.set_use_isolating(false);
         let args = maplit::hashmap! {
             "thing" => "thing"
@@ -129,7 +127,7 @@ mod fluent {
         setup();
         let en_us: LanguageIdentifier = "en-US".parse().unwrap();
         let loader = FluentLanguageLoader::new("test", en_us.clone());
-        loader.load_languages(&Localizations, &[&en_us]).unwrap();
+        loader.load_languages(&Localizations, &[en_us]).unwrap();
         let args = maplit::hashmap! {
             "thing" => "thing"
         };
@@ -142,7 +140,7 @@ mod fluent {
         setup();
         let en_us: LanguageIdentifier = "en-US".parse().unwrap();
         let loader = FluentLanguageLoader::new("test", en_us.clone());
-        loader.load_languages(&Localizations, &[&en_us]).unwrap();
+        loader.load_languages(&Localizations, &[en_us]).unwrap();
 
         let msg = loader.get("multi-line");
         assert_eq!(
@@ -158,7 +156,7 @@ mod fluent {
         setup();
         let ru: LanguageIdentifier = "ru".parse().unwrap();
         let loader = FluentLanguageLoader::new("test", ru.clone());
-        loader.load_languages(&Localizations, &[&ru]).unwrap();
+        loader.load_languages(&Localizations, &[ru]).unwrap();
 
         let msg = loader.get("multi-line");
         assert_eq!(
@@ -174,7 +172,7 @@ mod fluent {
         setup();
         let en_us: LanguageIdentifier = "en-US".parse().unwrap();
         let loader = FluentLanguageLoader::new("test", en_us.clone());
-        loader.load_languages(&Localizations, &[&en_us]).unwrap();
+        loader.load_languages(&Localizations, &[en_us]).unwrap();
 
         let args = maplit::hashmap! {
             "argOne" => "1",
@@ -197,7 +195,7 @@ mod fluent {
         setup();
         let ru: LanguageIdentifier = "ru".parse().unwrap();
         let loader = FluentLanguageLoader::new("test", ru.clone());
-        loader.load_languages(&Localizations, &[&ru]).unwrap();
+        loader.load_languages(&Localizations, &[ru]).unwrap();
 
         let args = maplit::hashmap! {
             "argOne" => "1",
@@ -224,13 +222,13 @@ mod fluent {
         let loader = FluentLanguageLoader::new("test", en_us);
 
         loader
-            .load_languages(&Localizations, &[&ru, &en_gb])
+            .load_languages(&Localizations, &[ru.clone(), en_gb])
             .unwrap();
 
-        let msg = loader.select_languages(&[&ru]).get("only-ru");
+        let msg = loader.select_languages(&[ru.clone()]).get("only-ru");
         assert_eq!("только русский", msg);
 
-        let msg = loader.select_languages(&[&ru]).get("only-gb");
+        let msg = loader.select_languages(&[ru]).get("only-gb");
         assert_eq!("only GB (US Version)", msg);
     }
 
@@ -243,7 +241,7 @@ mod fluent {
         let loader = FluentLanguageLoader::new("test", en_us);
 
         loader
-            .load_languages(&Localizations, &[&ru, &en_gb])
+            .load_languages(&Localizations, &[ru.clone(), en_gb])
             .unwrap();
 
         let args = maplit::hashmap! {
@@ -252,7 +250,7 @@ mod fluent {
         };
 
         let msg = loader
-            .select_languages(&[&ru])
+            .select_languages(&[ru])
             .get_args("multi-line-args", args);
         assert_eq!(
             "Это многострочное сообщение с параметрами.\n\n\
@@ -273,13 +271,15 @@ mod fluent {
         let loader = FluentLanguageLoader::new("test", en_us);
 
         loader
-            .load_languages(&Localizations, &[&ru, &en_gb])
+            .load_languages(&Localizations, &[ru.clone(), en_gb.clone()])
             .unwrap();
 
-        let msg = loader.select_languages(&[&ru, &en_gb]).get("only-gb");
+        let msg = loader
+            .select_languages(&[ru.clone(), en_gb.clone()])
+            .get("only-gb");
         assert_eq!("only GB", msg);
 
-        let msg = loader.select_languages(&[&ru, &en_gb]).get("only-us");
+        let msg = loader.select_languages(&[ru, en_gb]).get("only-us");
         assert_eq!("only US", msg);
     }
 
@@ -292,7 +292,7 @@ mod fluent {
         let loader = FluentLanguageLoader::new("test", en_us);
 
         loader
-            .load_languages(&Localizations, &[&ru, &en_gb])
+            .load_languages(&Localizations, &[ru.clone(), en_gb.clone()])
             .unwrap();
 
         let args = maplit::hashmap! {
@@ -300,12 +300,12 @@ mod fluent {
         };
 
         let msg = loader
-            .select_languages(&[&ru])
+            .select_languages(&[ru.clone()])
             .get_args("only-gb-args", args.clone());
         assert_eq!("Hello \u{2068}username\u{2069}! (US Version)", msg);
 
         let msg = loader
-            .select_languages(&[&ru, &en_gb])
+            .select_languages(&[ru, en_gb])
             .get_args("only-gb-args", args.clone());
         assert_eq!("Hello \u{2068}username\u{2069}!", msg);
     }
@@ -357,10 +357,10 @@ mod gettext {
         let ru: LanguageIdentifier = "ru".parse().unwrap();
         let en: LanguageIdentifier = "en".parse().unwrap();
 
-        loader.load_languages(&Localizations, &[&ru]).unwrap();
+        loader.load_languages(&Localizations, &[ru]).unwrap();
 
         // It should replace the ru with en
-        loader.load_languages(&Localizations, &[&en]).unwrap();
+        loader.load_languages(&Localizations, &[en]).unwrap();
 
         pretty_assertions::assert_eq!("only en", tr("only en"));
         pretty_assertions::assert_eq!("only ru", tr("only ru"));
@@ -376,7 +376,7 @@ mod gettext {
         let ru: LanguageIdentifier = "ru".parse().unwrap();
 
         assert!(Localizations::get("ru/i18n_embed.mo").is_some());
-        loader.load_languages(&Localizations, &[&ru]).unwrap();
+        loader.load_languages(&Localizations, &[ru]).unwrap();
 
         pretty_assertions::assert_eq!("только ру", tr("only ru"));
         pretty_assertions::assert_eq!("only en", tr("only en"));

@@ -1,3 +1,4 @@
+use i18n_embed::Localizer;
 use library_fluent::{hello_world, localizer};
 
 use std::collections::HashSet;
@@ -9,7 +10,7 @@ use std::iter::FromIterator;
 fn test_available_languages() {
     let localizer = localizer();
     assert_eq!(
-        &localizer.language_loader().fallback_language().to_string(),
+        &localizer.language_loader.fallback_language().to_string(),
         "en"
     );
 

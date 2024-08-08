@@ -206,7 +206,7 @@ lazy_static::lazy_static! {
 ///
 /// let loader: FluentLanguageLoader = fluent_language_loader!();
 /// loader
-///     .load_languages(&Localizations, &[loader.fallback_language()])
+///     .load_languages(&Localizations, &[loader.fallback_language().clone()])
 ///     .unwrap();
 ///
 /// // Invoke the fl!() macro to obtain the translated message, and
@@ -249,7 +249,7 @@ lazy_static::lazy_static! {
 /// # struct Localizations;
 /// # let loader: FluentLanguageLoader = fluent_language_loader!();
 /// # loader
-/// #     .load_languages(&Localizations, &[loader.fallback_language()])
+/// #     .load_languages(&Localizations, &[loader.fallback_language().clone()])
 /// #     .unwrap();
 /// let calc_james = || "James".to_string();
 /// pretty_assertions::assert_eq!(
@@ -293,7 +293,7 @@ lazy_static::lazy_static! {
 /// # struct Localizations;
 /// # let loader: FluentLanguageLoader = fluent_language_loader!();
 /// # loader
-/// #     .load_languages(&Localizations, &[loader.fallback_language()])
+/// #     .load_languages(&Localizations, &[loader.fallback_language().clone()])
 /// #     .unwrap();
 /// use std::collections::HashMap;
 ///
@@ -323,7 +323,7 @@ lazy_static::lazy_static! {
 /// # struct Localizations;
 /// # let loader: FluentLanguageLoader = fluent_language_loader!();
 /// # loader
-/// #     .load_languages(&Localizations, &[loader.fallback_language()])
+/// #     .load_languages(&Localizations, &[loader.fallback_language().clone()])
 /// #     .unwrap();
 /// use std::collections::HashMap;
 ///
@@ -378,14 +378,14 @@ pub fn fl(input: TokenStream) -> TokenStream {
         });
 
         let assets_dir = Path::new(&crate_paths.crate_dir).join(fluent_config.assets_dir);
-        let assets = FileSystemAssets::new(assets_dir);
+        let assets = FileSystemAssets::try_new(assets_dir).unwrap();
 
         let fallback_language: LanguageIdentifier = config.fallback_language;
 
         let loader = FluentLanguageLoader::new(&domain, fallback_language.clone());
 
         loader
-            .load_languages(&assets, &[&fallback_language])
+            .load_languages(&assets, &[fallback_language.clone()])
             .unwrap_or_else(|err| match err {
                 i18n_embed::I18nEmbedError::LanguageNotAvailable(file, language_id) => {
                     if fallback_language != language_id {

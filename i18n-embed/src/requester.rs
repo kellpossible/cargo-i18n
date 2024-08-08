@@ -197,7 +197,7 @@ impl<'a> LanguageRequesterImpl<'a> {
 
 impl Default for LanguageRequesterImpl<'_> {
     fn default() -> Self {
-        Self::new()
+        LanguageRequesterImpl::new()
     }
 }
 
@@ -235,7 +235,7 @@ pub struct DesktopLanguageRequester<'a> {
 #[cfg(feature = "desktop-requester")]
 impl<'a> LanguageRequester<'a> for DesktopLanguageRequester<'a> {
     fn requested_languages(&self) -> Vec<unic_langid::LanguageIdentifier> {
-        Self::requested_languages()
+        DesktopLanguageRequester::requested_languages()
     }
 
     fn add_listener(&mut self, listener: Weak<dyn Localizer>) {

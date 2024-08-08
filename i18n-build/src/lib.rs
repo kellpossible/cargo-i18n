@@ -74,7 +74,7 @@ mod localize_feature {
 
     #[derive(RustEmbed)]
     #[folder = "i18n/mo"]
-    struct Translations;
+    pub struct Translations;
 
     lazy_static! {
         static ref LANGUAGE_LOADER: GettextLanguageLoader = gettext_language_loader!();

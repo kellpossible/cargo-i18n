@@ -4,8 +4,7 @@ use i18n_build::run;
 use i18n_config::Crate;
 use i18n_embed::{
     gettext::{gettext_language_loader, GettextLanguageLoader},
-    DefaultLocalizer, DesktopLanguageRequester, I18nAssets, LanguageLoader, LanguageRequester,
-    Localizer,
+    DefaultLocalizer, DesktopLanguageRequester, LanguageLoader, LanguageRequester, Localizer,
 };
 use lazy_static::lazy_static;
 use rust_embed::RustEmbed;
@@ -32,7 +31,7 @@ fn short_about() -> String {
     tr!("A Cargo sub-command to extract and build localization resources.")
 }
 
-fn available_languages(localizer: &Arc<dyn Localizer>) -> Result<Vec<String>> {
+fn available_languages(localizer: &dyn Localizer) -> Result<Vec<String>> {
     Ok(localizer
         .available_languages()?
         .iter()
@@ -76,11 +75,11 @@ fn main() -> Result<()> {
     env_logger::init();
     let mut language_requester = DesktopLanguageRequester::new();
 
-    let cargo_i18n_localizer =
-        DefaultLocalizer::new(&*LANGUAGE_LOADER, &TRANSLATIONS as &dyn I18nAssets);
+    let cargo_i18n_localizer: DefaultLocalizer<'static> =
+        DefaultLocalizer::new(&*LANGUAGE_LOADER, &TRANSLATIONS);
 
     let cargo_i18n_localizer_rc: Arc<dyn Localizer> = Arc::new(cargo_i18n_localizer);
-    let i18n_build_localizer_rc = Arc::new(i18n_build::localizer()) as Arc<dyn Localizer>;
+    let i18n_build_localizer_rc: Arc<dyn Localizer> = Arc::new(i18n_build::localizer());
 
     language_requester.add_listener(Arc::downgrade(&cargo_i18n_localizer_rc));
     language_requester.add_listener(Arc::downgrade(&i18n_build_localizer_rc));
@@ -88,7 +87,7 @@ fn main() -> Result<()> {
 
     let fallback_locale: &'static str =
         String::leak(LANGUAGE_LOADER.fallback_language().to_string());
-    let available_languages = available_languages(&cargo_i18n_localizer_rc)?;
+    let available_languages = available_languages(&*cargo_i18n_localizer_rc)?;
     let available_languages_slice: Vec<&'static str> = available_languages
         .into_iter()
         .map(|l| String::leak(l) as &str)
@@ -138,7 +137,7 @@ fn main() -> Result<()> {
                 .long("language")
                 .short('l')
                 .num_args(1)
-                .default_value(&*fallback_locale)
+                .default_value(fallback_locale)
                 .value_parser(PossibleValuesParser::new(available_languages_slice))
             )
         )
