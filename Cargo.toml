@@ -21,7 +21,7 @@ i18n-build = { workspace = true, features = ["localize"] }
 i18n-config = { workspace = true }
 anyhow = { workspace = true }
 gettext = { workspace = true }
-tr = { workspace = true, default-features = false, features = ["gettext"] }
+tr = { workspace = true, features = ["gettext"] }
 clap = { version = "4.4.5", features = ["cargo"] }
 rust-embed = { workspace = true } 
 unic-langid = { workspace = true }
