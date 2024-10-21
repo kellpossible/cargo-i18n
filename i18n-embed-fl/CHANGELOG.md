@@ -1,5 +1,12 @@
 # Changelog for `i18n-embed-fl`
 
+## v0.9.2
+
+### Fixes
+
++ Switch to proc-macro-error2 [#133](https://github.com/kellpossible/cargo-i18n/pull/133), fixes [#113](https://github.com/kellpossible/cargo-i18n/issues/113), thanks to [@mrtryhard](https://github.com/mrtryhard).
++ Fix compile warning for default features of `syn` crate.
+
 ## v0.9.1
 
 ### Fixes
