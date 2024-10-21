@@ -3,7 +3,7 @@
 
 use crate::error::{PathError, PathType};
 use crate::util;
-use i18n_config::{Crate, GettextConfig, I18nConfigError};
+use i18n_config::{module_name, Crate, GettextConfig, I18nConfigError};
 
 use std::ffi::OsStr;
 use std::fs::{create_dir_all, File};
@@ -41,20 +41,23 @@ pub fn run_xtr(
     );
     let mut rs_files: Vec<Box<Path>> = Vec::new();
 
-    for result in WalkDir::new(src_dir) {
-        match result {
-            Ok(entry) => {
-                let path = entry.path();
-
-                if let Some(extension) = path.extension() {
-                    if extension.to_str() == Some("rs") {
-                        rs_files.push(Box::from(path))
+    if crt.package.is_some() {
+        for result in WalkDir::new(src_dir) {
+            match result {
+                Ok(entry) => {
+                    let path = entry.path();
+    
+                    if let Some(extension) = path.extension() {
+                        if extension.to_str() == Some("rs") {
+                            rs_files.push(Box::from(path))
+                        }
                     }
                 }
+                Err(err) => return Err(anyhow!("error walking directory {:?}: {}", src_dir, err)),
             }
-            Err(err) => return Err(anyhow!("error walking directory {}/src: {}", crt.name, err)),
         }
     }
+    
 
     let mut pot_paths = Vec::new();
 
@@ -67,13 +70,16 @@ pub fn run_xtr(
     // create pot and pot/tmp if they don't exist
     util::create_dir_all_if_not_exists(&pot_src_dir)?;
 
+    let crate_name = crate_name(crt, gettext_config)?;
+    let module_name = module_name(crate_name);
+
     for rs_file_path in rs_files {
         let parent_dir = rs_file_path.parent().context(format!(
             "the rs file {0} is not inside a directory",
             rs_file_path.to_string_lossy()
         ))?;
         let src_dir_relative = parent_dir.strip_prefix(src_dir).map_err(|_| {
-            PathError::not_inside_dir(parent_dir, format!("crate {0}/src", crt.name), src_dir)
+            PathError::not_inside_dir(parent_dir, format!("crate {:?}", src_dir), src_dir)
         })?;
         let file_stem = rs_file_path.file_stem().context(format!(
             "expected rs file path {0} would have a filename",
@@ -109,14 +115,17 @@ pub fn run_xtr(
             }
             None => {}
         }
-
+ 
         xtr.args([
             "--package-name",
-            crt.name.as_str(),
+            crate_name,
             "--package-version",
-            crt.version.as_str(),
+            crt.package.as_ref()
+                .map(|p| &p.version)
+                .or(gettext_config.version.as_ref())
+                .ok_or_else(|| anyhow!("Crate has no version specified either in [package] or in i18n.toml"))?.as_str(),
             "--default-domain",
-            crt.module_name().as_str(),
+            &module_name,
             "--add-location",
             gettext_config.add_location.to_str(),
             "-o",
@@ -139,7 +148,7 @@ pub fn run_xtr(
         msgcat_args.push(Box::from(path.as_os_str()));
     }
 
-    let combined_pot_file_path = crate_module_pot_file_path(crt, pot_dir);
+    let combined_pot_file_path = crate_module_pot_file_path(&module_name, pot_dir);
 
     run_msgcat(&pot_paths, &combined_pot_file_path)
         .context("There was a problem while trying to run the \"msgcat\" command.")?;
@@ -147,10 +156,17 @@ pub fn run_xtr(
     Ok(())
 }
 
-fn crate_module_pot_file_path<P: AsRef<Path>>(crt: &Crate<'_>, pot_dir: P) -> PathBuf {
+fn crate_name<'a>(crt: &'a Crate, gettext_config: &'a GettextConfig) -> Result<&'a str> {
+    Ok(crt.package.as_ref()
+    .map(|p| &p.name)
+    .or(gettext_config.name.as_ref())
+    .ok_or_else(|| anyhow!("Crate has no name specified either in [package] or in i18n.toml"))?.as_str())
+}
+
+fn crate_module_pot_file_path<P: AsRef<Path>>(module_name: &str, pot_dir: P) -> PathBuf {
     pot_dir
         .as_ref()
-        .join(crt.module_name())
+        .join(module_name)
         .with_extension("pot")
 }
 
@@ -224,12 +240,13 @@ pub fn run_msgcat<P: AsRef<Path>, I: IntoIterator<Item = P>>(
 ///
 /// `po_dir` is the directory where the output `po` files will be
 /// stored.
-pub fn run_msginit(crt: &Crate, pot_dir: &Path, po_dir: &Path) -> Result<()> {
+pub fn run_msginit(crt: &Crate, gettext_config: &GettextConfig, pot_dir: &Path, po_dir: &Path) -> Result<()> {
     info!(
         "Initializing new po files with `msginit` for crate \"{0}\"",
         crt.path.to_string_lossy()
     );
-    let pot_file_path = pot_dir.join(crt.module_name()).with_extension("pot");
+    let module_name = module_name(crate_name(crt, gettext_config)?);
+    let pot_file_path = pot_dir.join(&module_name).with_extension("pot");
 
     util::check_path_exists(&pot_file_path)?;
 
@@ -238,11 +255,11 @@ pub fn run_msginit(crt: &Crate, pot_dir: &Path, po_dir: &Path) -> Result<()> {
     let msginit_command_name = "msginit";
 
     let gettext_config = crt.gettext_config_or_err()?;
-    let target_locales = &gettext_config.target_languages;
+    let target_locales = gettext_config.target_languages(crt).ok_or_else(|| anyhow!("No target languages found"))?;
 
     for locale in target_locales {
         let po_locale_dir = po_dir.join(locale.clone());
-        let po_path = po_locale_dir.join(crt.module_name()).with_extension("po");
+        let po_path = po_locale_dir.join(&module_name).with_extension("po");
 
         if !po_path.exists() {
             create_dir_all(po_locale_dir.clone())
@@ -284,24 +301,25 @@ pub fn run_msginit(crt: &Crate, pot_dir: &Path, po_dir: &Path) -> Result<()> {
 /// `pot_dir` is the directory where the input `pot` files are stored.
 ///
 /// `po_dir` is the directory where the `po` files are stored.
-pub fn run_msgmerge(crt: &Crate, pot_dir: &Path, po_dir: &Path) -> Result<()> {
+pub fn run_msgmerge(crt: &Crate, gettext_config: &GettextConfig, pot_dir: &Path, po_dir: &Path) -> Result<()> {
     info!(
         "Merging message changes in pot files to po files with `msgmerge` for crate \"{0}\"",
         crt.path.to_string_lossy()
     );
-    let pot_file_path = pot_dir.join(crt.module_name()).with_extension("pot");
+    let module_name = module_name(crate_name(crt, gettext_config)?);
+    let pot_file_path = pot_dir.join(&module_name).with_extension("pot");
 
     util::check_path_exists(&pot_file_path)?;
 
     let msgmerge_command_name = "msgmerge";
 
     let gettext_config = crt.gettext_config_or_err()?;
-    let target_locales = &gettext_config.target_languages;
+    let target_locales = gettext_config.target_languages(crt).ok_or_else(|| anyhow!("No target languages found"))?;
 
     for locale in target_locales {
         let po_file_path = po_dir
             .join(locale)
-            .join(crt.module_name())
+            .join(&module_name)
             .with_extension("po");
 
         util::check_path_exists(&po_file_path)?;
@@ -331,20 +349,21 @@ pub fn run_msgmerge(crt: &Crate, pot_dir: &Path, po_dir: &Path) -> Result<()> {
 /// `po_dir` is the directory where the input `po` files are stored.
 ///
 /// `mo_dir` is the directory where the output `mo` files will be stored.
-pub fn run_msgfmt(crt: &Crate, po_dir: &Path, mo_dir: &Path) -> Result<()> {
+pub fn run_msgfmt(crt: &Crate, gettext_config: &GettextConfig, po_dir: &Path, mo_dir: &Path) -> Result<()> {
     info!(
         "Compiling po files to mo files with `msgfmt` for crate \"{0}\"",
         crt.path.to_string_lossy()
     );
+    let module_name = module_name(crate_name(crt, gettext_config)?);
     let msgfmt_command_name = "msgfmt";
 
     let gettext_config = crt.gettext_config_or_err()?;
-    let target_locales = &gettext_config.target_languages;
+    let target_locales = gettext_config.target_languages(crt).ok_or_else(|| anyhow!("No target languages found"))?;;
 
     for locale in target_locales {
         let po_file_path = po_dir
             .join(locale.clone())
-            .join(crt.module_name())
+            .join(&module_name)
             .with_extension("po");
 
         util::check_path_exists(&po_file_path)?;
@@ -355,7 +374,7 @@ pub fn run_msgfmt(crt: &Crate, po_dir: &Path, mo_dir: &Path) -> Result<()> {
             create_dir_all(mo_locale_dir.clone()).context("trouble creating mo directory")?;
         }
 
-        let mo_file_path = mo_locale_dir.join(crt.module_name()).with_extension("mo");
+        let mo_file_path = mo_locale_dir.join(&module_name).with_extension("mo");
 
         let mut msgfmt = Command::new(msgfmt_command_name);
         let msgfmt_arg_output_file = format!(
@@ -392,9 +411,8 @@ pub fn run(crt: &Crate) -> Result<()> {
     );
     let (config_crate, _i18n_config) = crt.active_config()?.unwrap_or_else(|| {
         panic!(
-            "expected that there would be an active config for the crate: \"{0}\" at \"{1}\"",
-            crt.name,
-            crt.path.to_string_lossy()
+            "expected that there would be an active config for the crate: {:?}",
+            crt.path
         )
     });
 
@@ -409,11 +427,11 @@ pub fn run(crt: &Crate) -> Result<()> {
     // in an infinite loop.
     let subcrates: Vec<Crate> = match &crt.i18n_config {
         Some(config) => {
-            let subcrates: Result<Vec<Crate>, I18nConfigError> = config
+            let subcrates_result: Result<Vec<Crate>, I18nConfigError> = config
                 .subcrates
                 .iter()
                 .map(|subcrate_path| {
-                    Crate::from(
+                    Crate::try_from(
                         subcrate_path.clone(),
                         Some(crt),
                         crt.config_file_path.clone(),
@@ -421,7 +439,7 @@ pub fn run(crt: &Crate) -> Result<()> {
                 })
                 .collect();
 
-            subcrates.with_context(|| {
+            subcrates_result.with_context(|| {
                 let subcrate_path_strings: Vec<String> = config
                     .subcrates
                     .iter()
@@ -437,7 +455,7 @@ pub fn run(crt: &Crate) -> Result<()> {
         None => vec![],
     };
 
-    let src_dir = crt.path.join("src");
+    let src_dir = crt.path.join(gettext_config.src_dir());
     let pot_dir = config_crate.path.join(gettext_config.pot_dir());
     let po_dir = config_crate.path.join(gettext_config.po_dir());
     let mo_dir = config_crate.path.join(gettext_config.mo_dir());
@@ -452,7 +470,7 @@ pub fn run(crt: &Crate) -> Result<()> {
             src_dir.as_path(),
             pot_dir.as_path(),
             prepend_crate_path,
-        )?;
+        ).with_context(|| format!("Error running xtr on crate at {:?}", crt.path))?;
     }
 
     // figure out where there are any subcrates which need their output
@@ -472,25 +490,25 @@ pub fn run(crt: &Crate) -> Result<()> {
 
         let concatinate_crate_paths: Vec<PathBuf> = concatinate_crates
             .iter()
-            .map(|concat_crt: &&Crate| crate_module_pot_file_path(concat_crt, &pot_dir))
-            .collect();
+            .map(|concat_crt: &&Crate| Ok(crate_module_pot_file_path( &module_name(crate_name(concat_crt, gettext_config)?), &pot_dir)))
+            .collect::<anyhow::Result<Vec<_>>>()?;
 
-        let output_pot_path = crate_module_pot_file_path(crt, &pot_dir);
+        let output_pot_path = crate_module_pot_file_path(&module_name(crate_name(crt, gettext_config)?), &pot_dir);
         run_msgcat(concatinate_crate_paths, output_pot_path)?;
 
         // remove this crate from the list because we don't want to delete it's pot file
         concatinate_crates.remove(0);
 
         for subcrate in concatinate_crates {
-            let subcrate_output_pot_path = crate_module_pot_file_path(subcrate, &pot_dir);
+            let subcrate_output_pot_path = crate_module_pot_file_path(&module_name(crate_name(subcrate, gettext_config)?), &pot_dir);
             util::remove_file_or_error(subcrate_output_pot_path)?;
         }
     }
 
     if !(crt.collated_subcrate()) {
-        run_msginit(crt, pot_dir.as_path(), po_dir.as_path())?;
-        run_msgmerge(crt, pot_dir.as_path(), po_dir.as_path())?;
-        run_msgfmt(crt, po_dir.as_path(), mo_dir.as_path())?;
+        run_msginit(crt, gettext_config, pot_dir.as_path(), po_dir.as_path())?;
+        run_msgmerge(crt, gettext_config, pot_dir.as_path(), po_dir.as_path())?;
+        run_msgfmt(crt, gettext_config, po_dir.as_path(), mo_dir.as_path())?;
     }
 
     Ok(())

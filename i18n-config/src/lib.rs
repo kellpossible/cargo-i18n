@@ -58,8 +58,7 @@ pub enum I18nConfigError {
 
 #[derive(Deserialize)]
 struct RawCrate {
-    #[serde(alias = "workspace")]
-    package: RawPackage,
+    package: Option<RawPackage>,
 }
 
 #[derive(Deserialize)]
@@ -68,13 +67,18 @@ struct RawPackage {
     version: String,
 }
 
-/// Represents a rust crate.
 #[derive(Debug, Clone)]
-pub struct Crate<'a> {
+pub struct Package {
     /// The name of the crate.
     pub name: String,
     /// The version of the crate.
     pub version: String,
+}
+
+/// Represents a rust crate.
+#[derive(Debug, Clone)]
+pub struct Crate<'a> {
+    pub package: Option<Package>,
     /// The path to the crate.
     pub path: PathBuf,
     /// Path to the parent crate which is triggering the localization
@@ -86,10 +90,16 @@ pub struct Crate<'a> {
     pub i18n_config: Option<I18nConfig>,
 }
 
+/// The name of the module/library used for a crate. Replaces
+/// `-` characters with `_` in the crate name.
+pub fn module_name(crate_name: &str) -> String {
+    crate_name.replace('-', "_")
+}
+
 impl<'a> Crate<'a> {
     /// Read crate from `Cargo.toml` i18n config using the
     /// `config_file_path` (if there is one).
-    pub fn from<P1: Into<PathBuf>, P2: Into<PathBuf>>(
+    pub fn try_from<P1: Into<PathBuf>, P2: Into<PathBuf>>(
         path: P1,
         parent: Option<&'a Crate>,
         config_file_path: P2,
@@ -122,8 +132,7 @@ impl<'a> Crate<'a> {
         };
 
         Ok(Crate {
-            name: cargo_toml.package.name,
-            version: cargo_toml.package.version,
+            package: cargo_toml.package.map(|p| Package { name: p.name, version: p.version }),
             path: path_into,
             parent,
             config_file_path: config_file_path_into,
@@ -131,11 +140,6 @@ impl<'a> Crate<'a> {
         })
     }
 
-    /// The name of the module/library used for this crate. Replaces
-    /// `-` characters with `_` in the crate name.
-    pub fn module_name(&self) -> String {
-        self.name.replace('-', "_")
-    }
 
     /// If there is a parent, get it's
     /// [I18nConfig#active_config()](I18nConfig#active_config()),
@@ -245,7 +249,7 @@ impl<'a> Crate<'a> {
             .ok()
             .unwrap_or(None)
         {
-            Some(parent_path) => match Crate::from(parent_path, None, "i18n.toml") {
+            Some(parent_path) => match Crate::try_from(parent_path, None, "i18n.toml") {
                 Ok(parent_crate) => {
                     debug!("Found parent ({0}) of {1}.", parent_crate, self);
                     Some(parent_crate)
@@ -320,12 +324,24 @@ impl<'a> Crate<'a> {
 
 impl<'a> Display for Crate<'a> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "Crate \"{0}\" at \"{1}\"",
-            self.name,
-            self.path.to_string_lossy()
-        )
+        match &self.package {
+            Some(p) => {
+                write!(
+                    f,
+                    "Crate \"{0}\" at \"{1}\"",
+                    p.name,
+                    self.path.to_string_lossy()
+                )
+            },
+            None => {
+                write!(
+                    f,
+                    "Virtual workspace at \"{0}\"",
+                    self.path.to_string_lossy()
+                )
+            }
+        }
+        
     }
 }
 

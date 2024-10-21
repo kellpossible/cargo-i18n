@@ -1,12 +1,20 @@
 use serde::Deserialize;
 use std::path::PathBuf;
 
+use crate::Crate;
+
 /// The data structure representing what is stored (and possible to
 /// store) within the `gettext` subsection of a `i18n.toml` file.
 #[derive(Deserialize, Debug, Clone)]
 pub struct GettextConfig {
+    /// Override the name of the crate, only required if the crate is a virtual
+    /// workspace.
+    pub name: Option<String>,
+    /// Override the version of the crate, only required if the crate is a
+    /// virtual workspace.
+    pub version: Option<String>,
     /// The languages that the software will be translated into.
-    pub target_languages: Vec<String>,
+    target_languages: Option<Vec<String>>,
     /// Path to the output directory, relative to `i18n.toml` of the
     /// crate being localized.
     pub output_dir: PathBuf,
@@ -51,6 +59,8 @@ pub struct GettextConfig {
     /// Path to where the mo files will be written to by the
     /// `msgfmt` command.
     mo_dir: Option<PathBuf>,
+    /// Path to where source files are located to have their messages extracted.
+    src_dir: Option<PathBuf>,
     /// Enable the `--use-fuzzy` option for the `msgfmt` command.
     ///
     /// By default this is **false**.
@@ -96,6 +106,20 @@ impl GettextConfig {
         self.mo_dir
             .clone()
             .unwrap_or_else(|| self.output_dir.join("mo"))
+    }
+
+    /// Path to where source files are located to have their messages extracted.
+    ///
+    /// By default is **`src`**.
+    pub fn src_dir(&self) -> PathBuf {
+        self.src_dir.clone().unwrap_or_else(|| PathBuf::from("src"))
+    }
+
+    pub fn target_languages<'a>(&'a self, crt: &'a Crate) -> Option<Vec<String>> {
+        self.target_languages.clone().or(crt
+            .find_parent()
+            .and_then(|p| p.gettext_config_or_err().ok().map(|c| c.target_languages.clone()))
+            .flatten())
     }
 }
 

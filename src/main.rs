@@ -1,4 +1,4 @@
-use anyhow::Result;
+use anyhow::{Context, Result};
 use clap::{builder::PossibleValuesParser, crate_authors, crate_version, Arg, Command};
 use i18n_build::run;
 use i18n_config::Crate;
@@ -156,17 +156,19 @@ fn main() -> Result<()> {
         language_requester.set_language_override(Some(li))?;
         language_requester.poll()?;
 
-        let path = i18n_matches
-            .get_one::<PathBuf>("path")
+        let path = PathBuf::from(i18n_matches
+            .get_one::<String>("path")
             .map(ToOwned::to_owned)
-            .unwrap_or_else(|| PathBuf::from("."));
+            .unwrap_or_else(|| String::from(".")));
 
         let config_file_path = Path::new(config_file_name).to_path_buf();
 
         i18n_build::util::check_path_exists(&path)?;
         i18n_build::util::check_path_exists(path.join(&config_file_path))?;
 
-        let crt: Crate = Crate::from(path, None, config_file_path)?;
+        let crt: Crate = Crate::try_from(&path, None, &config_file_path).with_context(|| {
+            format!("Error loading crate config from {config_file_path:?} in path {path:?}")
+        })?;
         run(crt)?;
     }
 
