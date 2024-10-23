@@ -1,6 +1,10 @@
 # Changelog for `i18n-embed`
 
-## v0.15.1
+## v0.15.2
+
++ Fix incorrect workspace package specification for `i18n-embed-impl`.
+
+## v0.15.1 (Yanked)
 
 ### Fixes
 

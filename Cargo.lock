@@ -601,7 +601,7 @@ dependencies = [
 
 [[package]]
 name = "i18n-embed"
-version = "0.15.0"
+version = "0.15.2"
 dependencies = [
  "arc-swap",
  "doc-comment",
