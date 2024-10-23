@@ -9,7 +9,7 @@ license = "MIT"
 name = "i18n-embed"
 readme = "README.md"
 repository = "https://github.com/kellpossible/cargo-i18n/tree/master/i18n-embed"
-version = "0.15.0"
+version = "0.15.1"
 
 [package.metadata.docs.rs]
 all-features = true
@@ -23,7 +23,7 @@ arc-swap = { version = "1", optional = true }
 fluent-langneg = { workspace = true }
 fluent-syntax = { workspace = true, optional = true }
 gettext = { workspace = true, optional = true }
-i18n-embed-impl = { version = "0.8.1", path = "./i18n-embed-impl", optional = true }
+i18n-embed-impl = { workspace = true, optional = true }
 intl-memoizer = "0.5"
 lazy_static = { workspace = true }
 locale_config = { version = "0.3", optional = true }

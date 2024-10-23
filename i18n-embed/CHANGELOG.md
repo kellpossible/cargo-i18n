@@ -1,5 +1,15 @@
 # Changelog for `i18n-embed`
 
+## v0.15.1
+
+### Fixes
+
++ Fix for [#97](https://github.com/kellpossible/cargo-i18n/issues/97) Error when using workspace defined package metadata. Contributed by [@Umio-Yasuno](https://github.com/Umio-Yasuno).
+
+### Internal
+
++ Use workspace dependency for `i18n-embed-impl` crate.
+
 ## v0.15.0
 
 ### New Features
