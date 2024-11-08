@@ -248,32 +248,34 @@
 //! ```
 //! # #[cfg(all(feature = "fluent-system", feature = "desktop-requester"))]
 //! # {
-//! use std::sync::Arc;
+//! use std::sync::{Arc, OnceLock};
 //! use i18n_embed::{
 //!     DesktopLanguageRequester, LanguageRequester,
 //!     DefaultLocalizer, Localizer, fluent::FluentLanguageLoader     
 //! };
-//! use rust_embed::RustEmbed; use lazy_static::lazy_static;
+//! use rust_embed::RustEmbed;
 //! use unic_langid::LanguageIdentifier;
 //!
 //! #[derive(RustEmbed)]
 //! #[folder = "i18n/ftl"] // path to localization resources
 //! struct Localizations;
 //!
-//! lazy_static! {
-//!     static ref LANGUAGE_LOADER: FluentLanguageLoader = {
+//! pub fn language_loader() -> &'static FluentLanguageLoader {
+//!     static LANGUAGE_LOADER: OnceLock<FluentLanguageLoader> = OnceLock::new();
+//!
+//!     LANGUAGE_LOADER.get_or_init(|| {
 //!         // Usually you could use the fluent_language_loader!() macro
 //!         // to pull values from i18n.toml configuration and current
 //!         // module here at compile time, but instantiating the loader
 //!         // manually here instead so the example compiles.
 //!         let fallback: LanguageIdentifier = "en-US".parse().unwrap();
 //!         FluentLanguageLoader::new("test", fallback)
-//!     };
+//!     })
 //! }
 //!
 //! # #[allow(dead_code)]
 //! fn main() {
-//!     let localizer = DefaultLocalizer::new(&*LANGUAGE_LOADER, &Localizations);
+//!     let localizer = DefaultLocalizer::new(&*language_loader(), &Localizations);
 //!
 //!     let localizer_arc: Arc<dyn Localizer> = Arc::new(localizer);
 //!
@@ -297,7 +299,7 @@
 //! [DefaultLocalizer](DefaultLocalizer), but you can also implement
 //! the [Localizer](Localizer) trait yourself for a custom solution.
 //! It also makes use of
-//! [lazy_static](https://crates.io/crates/lazy_static) to allow the
+//! [OnceLock](https://doc.rust-lang.org/beta/std/sync/struct.OnceLock.html) to allow the
 //! [LanguageLoader](LanguageLoader) implementation to be stored
 //! statically, because its constructor is not `const`.
 //!
@@ -309,21 +311,23 @@
 //! ```
 //! # #[cfg(feature = "fluent-system")]
 //! # {
-//! use std::sync::Arc;
+//! use std::sync::{Arc, OnceLock};
 //! use i18n_embed::{
 //!     DefaultLocalizer, Localizer, LanguageLoader,
 //!     fluent::{
 //!         fluent_language_loader, FluentLanguageLoader     
 //! }};
-//! use rust_embed::RustEmbed; use lazy_static::lazy_static;
+//! use rust_embed::RustEmbed;
 //!
 //! #[derive(RustEmbed)]
 //! #[folder = "i18n/mo"] // path to the compiled localization resources
 //! struct Localizations;
 //!
-//! lazy_static! {
-//!     static ref LANGUAGE_LOADER: FluentLanguageLoader = {
-//!         let loader = fluent_language_loader!();
+//! fn language_loader() -> &'static FluentLanguageLoader {
+//!     static LANGUAGE_LOADER: OnceLock<FluentLanguageLoader> = OnceLock::new();
+//!
+//!     LANGUAGE_LOADER.get_or_init(|| {
+//!        let loader = fluent_language_loader!();
 //!
 //!         // Load the fallback langauge by default so that users of the
 //!         // library don't need to if they don't care about localization.
@@ -332,13 +336,13 @@
 //!             .expect("Error while loading fallback language");
 //!
 //!         loader
-//!     };
+//!     })
 //! }
 //!
 //! // Get the `Localizer` to be used for localizing this library.
 //! # #[allow(unused)]
 //! pub fn localizer() -> Arc<dyn Localizer> {
-//!     Arc::new(DefaultLocalizer::new(&*LANGUAGE_LOADER, &Localizations))
+//!     Arc::new(DefaultLocalizer::new(&*language_loader(), &Localizations))
 //! }
 //! # }
 //! ```
@@ -355,19 +359,19 @@
 //! for the library:
 //!
 //! ```
-//! # #[cfg(feature = "gettext-system")]
+//! #[cfg(feature = "gettext-system")]
 //! # {
-//! use std::sync::Arc;
+//! use std::sync::{Arc, OnceLock};
 //! use i18n_embed::{
 //!     DefaultLocalizer, Localizer, gettext::{
 //!     gettext_language_loader, GettextLanguageLoader     
 //! }};
 //! use i18n_embed::I18nAssets;
-//! use lazy_static::lazy_static;
 //!
-//! lazy_static! {
-//!     static ref LANGUAGE_LOADER: GettextLanguageLoader =
-//!         gettext_language_loader!();
+//! fn language_loader() -> &'static GettextLanguageLoader {
+//!     static LANGUAGE_LOADER: OnceLock<GettextLanguageLoader> = OnceLock::new();
+//!
+//!     LANGUAGE_LOADER.get_or_init(|| gettext_language_loader!())
 //! }
 //!
 //! /// Get the `Localizer` to be used for localizing this library,
@@ -375,7 +379,7 @@
 //! # #[allow(unused)]
 //! pub fn localizer<'a>(embed: &'a (dyn I18nAssets + Send + Sync + 'static)) -> Arc<dyn Localizer + 'a> {
 //!     Arc::new(DefaultLocalizer::new(
-//!         &*LANGUAGE_LOADER,
+//!         &*language_loader(),
 //!         embed
 //!     ))
 //! }
