@@ -1,5 +1,11 @@
 # Changelog for `i18n-embed-fl`
 
+## v0.9.3
+
+### Internal
+
++ Removed dependency on `lazy_static` #135 thanks to [@mrtryhard](https://github.com/mrtryhard).
+
 ## v0.9.2
 
 ### Fixes

@@ -1,5 +1,11 @@
 # Changelog for `i18n-embed`
 
+## v0.15.3
+
+### Internal
+
++ Removed dependency on `lazy_static` #135 thanks to [@mrtryhard](https://github.com/mrtryhard).
+
 ## v0.15.2
 
 + Fix incorrect workspace package specification for `i18n-embed-impl`.
