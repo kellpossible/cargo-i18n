@@ -25,7 +25,6 @@ fluent-syntax = { workspace = true, optional = true }
 gettext = { workspace = true, optional = true }
 i18n-embed-impl = { workspace = true, optional = true }
 intl-memoizer = "0.5"
-lazy_static = { workspace = true }
 locale_config = { version = "0.3", optional = true }
 log = { workspace = true }
 notify = { version = "6.1.1", optional = true }

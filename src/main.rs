@@ -6,11 +6,10 @@ use i18n_embed::{
     gettext::{gettext_language_loader, GettextLanguageLoader},
     DefaultLocalizer, DesktopLanguageRequester, LanguageLoader, LanguageRequester, Localizer,
 };
-use lazy_static::lazy_static;
 use rust_embed::RustEmbed;
 use std::{
     path::{Path, PathBuf},
-    sync::Arc,
+    sync::{Arc, OnceLock},
 };
 use tr::tr;
 use unic_langid::LanguageIdentifier;
@@ -19,11 +18,13 @@ use unic_langid::LanguageIdentifier;
 #[folder = "i18n/mo"]
 struct Translations;
 
-lazy_static! {
-    static ref LANGUAGE_LOADER: GettextLanguageLoader = gettext_language_loader!();
-}
-
 static TRANSLATIONS: Translations = Translations {};
+
+fn language_loader() -> &'static GettextLanguageLoader {
+    static LANGUAGE_LOADER: OnceLock<GettextLanguageLoader> = OnceLock::new();
+
+    LANGUAGE_LOADER.get_or_init(|| gettext_language_loader!())
+}
 
 /// Produce the message to be displayed when running `cargo i18n -h`.
 fn short_about() -> String {
@@ -76,7 +77,7 @@ fn main() -> Result<()> {
     let mut language_requester = DesktopLanguageRequester::new();
 
     let cargo_i18n_localizer: DefaultLocalizer<'static> =
-        DefaultLocalizer::new(&*LANGUAGE_LOADER, &TRANSLATIONS);
+        DefaultLocalizer::new(&*language_loader(), &TRANSLATIONS);
 
     let cargo_i18n_localizer_rc: Arc<dyn Localizer> = Arc::new(cargo_i18n_localizer);
     let i18n_build_localizer_rc: Arc<dyn Localizer> = Arc::new(i18n_build::localizer());
@@ -86,7 +87,7 @@ fn main() -> Result<()> {
     language_requester.poll()?;
 
     let fallback_locale: &'static str =
-        String::leak(LANGUAGE_LOADER.fallback_language().to_string());
+        String::leak(language_loader().fallback_language().to_string());
     let available_languages = available_languages(&*cargo_i18n_localizer_rc)?;
     let available_languages_slice: Vec<&'static str> = available_languages
         .into_iter()

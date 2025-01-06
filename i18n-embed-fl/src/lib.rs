@@ -7,6 +7,7 @@ use quote::quote;
 use std::{
     collections::{HashMap, HashSet},
     path::Path,
+    sync::OnceLock,
 };
 use syn::{parse::Parse, parse_macro_input, spanned::Spanned};
 use unic_langid::LanguageIdentifier;
@@ -164,11 +165,10 @@ struct DomainSpecificData {
     _assets: FileSystemAssets,
 }
 
-lazy_static::lazy_static! {
-    /// Cached data specific to each localization domain, to improve
-    /// performance of subsequent macro invocations.
-    static ref DOMAINS: dashmap::DashMap<String, DomainSpecificData> =
-        dashmap::DashMap::new();
+fn domains() -> &'static dashmap::DashMap<String, DomainSpecificData> {
+    static DOMAINS: OnceLock<dashmap::DashMap<String, DomainSpecificData>> = OnceLock::new();
+
+    DOMAINS.get_or_init(|| dashmap::DashMap::new())
 }
 
 /// A macro to obtain localized messages and optionally their attributes, and check the `message_id`, `attribute_id`
@@ -347,7 +347,7 @@ pub fn fl(input: TokenStream) -> TokenStream {
         )
     };
 
-    let domain_data = if let Some(domain_data) = DOMAINS.get(&domain) {
+    let domain_data = if let Some(domain_data) = domains().get(&domain) {
         domain_data
     } else {
         let crate_paths = i18n_config::locate_crate_paths()
@@ -421,7 +421,7 @@ pub fn fl(input: TokenStream) -> TokenStream {
             _assets: assets,
         };
 
-        DOMAINS.entry(domain.clone()).or_insert(data).downgrade()
+        domains().entry(domain.clone()).or_insert(data).downgrade()
     };
 
     let message_id_string = match &message_id {

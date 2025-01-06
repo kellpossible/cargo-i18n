@@ -63,12 +63,11 @@ pub fn run(crt: Crate) -> Result<()> {
 
 #[cfg(feature = "localize")]
 mod localize_feature {
-    use lazy_static::lazy_static;
-
     use i18n_embed::{
         gettext::{gettext_language_loader, GettextLanguageLoader},
         DefaultLocalizer,
     };
+    use std::sync::OnceLock;
 
     use rust_embed::RustEmbed;
 
@@ -76,17 +75,19 @@ mod localize_feature {
     #[folder = "i18n/mo"]
     pub struct Translations;
 
-    lazy_static! {
-        static ref LANGUAGE_LOADER: GettextLanguageLoader = gettext_language_loader!();
-    }
-
     static TRANSLATIONS: Translations = Translations {};
+
+    fn language_loader() -> &'static GettextLanguageLoader {
+        static LANGUAGE_LOADER: OnceLock<GettextLanguageLoader> = OnceLock::new();
+
+        LANGUAGE_LOADER.get_or_init(|| gettext_language_loader!())
+    }
 
     /// Obtain a [Localizer](i18n_embed::Localizer) for localizing this library.
     ///
     /// ⚠️ *This API requires the following crate features to be activated: `localize`.*
     pub fn localizer() -> DefaultLocalizer<'static> {
-        DefaultLocalizer::new(&*LANGUAGE_LOADER, &TRANSLATIONS)
+        DefaultLocalizer::new(&*language_loader(), &TRANSLATIONS)
     }
 }
 

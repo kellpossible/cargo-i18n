@@ -29,10 +29,9 @@ i18n-config = { workspace = true }
 gettext = { workspace = true, optional = true }
 log = { workspace = true }
 rust-embed = { workspace = true }
-lazy_static = { workspace = true, optional = true }
 
 [features]
 default = []
 
 # A feature to localize this library
-localize = ["i18n-embed", "gettext", "lazy_static"]
+localize = ["i18n-embed", "gettext"]

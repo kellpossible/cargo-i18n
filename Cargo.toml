@@ -27,7 +27,6 @@ rust-embed = { workspace = true }
 unic-langid = { workspace = true }
 env_logger = { workspace = true }
 log = { workspace = true }
-lazy_static = { workspace = true }
 
 [dev-dependencies]
 doc-comment = { workspace = true }
@@ -57,7 +56,6 @@ i18n-embed-fl = { version = "0.9.1", path = "./i18n-embed-fl" }
 thiserror = "1.0"
 log = "0.4"
 unic-langid = "0.9"
-lazy_static = "1.4.0"
 anyhow = "1.0"
 gettext = "0.4"
 tr = "0.1"
