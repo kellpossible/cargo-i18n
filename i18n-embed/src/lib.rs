@@ -4,7 +4,7 @@
 //! runtime. Works in unison with
 //! [cargo-i18n](https://crates.io/crates/cargo_i18n).
 //!
-//! This library recommends tha you make use of
+//! This library recommends that you make use of
 //! [rust-embed](https://crates.io/crates/rust-embed) to perform the
 //! actual embedding of the language files, unfortunately using this
 //! currently requires you to manually add it as a dependency to your
