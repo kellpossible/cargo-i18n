@@ -9,6 +9,13 @@ use std::{
     path::Path,
     sync::OnceLock,
 };
+
+#[cfg(not(feature = "performance"))]
+use std::sync::{Arc, RwLock};
+
+#[cfg(feature = "performance")]
+use dashmap::{DashMap, Entry, mapref::one::Ref};
+
 use syn::{parse::Parse, parse_macro_input, spanned::Spanned};
 use unic_langid::LanguageIdentifier;
 
@@ -165,10 +172,44 @@ struct DomainSpecificData {
     _assets: FileSystemAssets,
 }
 
-fn domains() -> &'static dashmap::DashMap<String, DomainSpecificData> {
-    static DOMAINS: OnceLock<dashmap::DashMap<String, DomainSpecificData>> = OnceLock::new();
+#[derive(Default)]
+struct DomainsMap {
+    #[cfg(not(feature = "performance"))]
+    map: RwLock<HashMap<String, Arc<DomainSpecificData>>>,
 
-    DOMAINS.get_or_init(|| dashmap::DashMap::new())
+    #[cfg(feature = "performance")]
+    map: dashmap::DashMap<String, DomainSpecificData>
+}
+
+impl DomainsMap {
+    #[cfg(not(feature = "performance"))]
+    fn get(&self, domain: &String) -> Option<Arc<DomainSpecificData>> {
+        match self.map.read().unwrap().get(domain) {
+            None => { None}
+            Some(data) => { Some(data.clone()) }
+        }
+    }
+
+    #[cfg(not(feature = "performance"))]
+    fn entry_or_insert(&self, domain: &String, data: DomainSpecificData) -> Arc<DomainSpecificData> {
+        self.map.write().unwrap().entry(domain.clone()).or_insert(Arc::new(data)).clone()
+    }
+
+    #[cfg(feature = "performance")]
+    fn get(&self, domain: &String) -> Option<Ref<String, DomainSpecificData>> {
+        self.map.get(domain)
+    }
+
+    #[cfg(feature = "performance")]
+    fn entry_or_insert(&self, domain: &String, data: DomainSpecificData) -> Ref<String, DomainSpecificData> {
+        self.map.entry(domain.clone()).or_insert(data).downgrade()
+    }
+}
+
+fn domains() -> &'static DomainsMap {
+    static DOMAINS: OnceLock<DomainsMap> = OnceLock::new();
+
+    DOMAINS.get_or_init(|| DomainsMap::default())
 }
 
 /// A macro to obtain localized messages and optionally their attributes, and check the `message_id`, `attribute_id`
@@ -421,7 +462,7 @@ pub fn fl(input: TokenStream) -> TokenStream {
             _assets: assets,
         };
 
-        domains().entry(domain.clone()).or_insert(data).downgrade()
+        domains().entry_or_insert(&domain, data)
     };
 
     let message_id_string = match &message_id {
