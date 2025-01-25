@@ -14,7 +14,7 @@ use std::{
 use std::sync::{Arc, RwLock};
 
 #[cfg(feature = "performance")]
-use dashmap::{DashMap, Entry, mapref::one::Ref};
+use dashmap::{mapref::one::Ref, DashMap, Entry};
 
 use syn::{parse::Parse, parse_macro_input, spanned::Spanned};
 use unic_langid::LanguageIdentifier;
@@ -178,21 +178,30 @@ struct DomainsMap {
     map: RwLock<HashMap<String, Arc<DomainSpecificData>>>,
 
     #[cfg(feature = "performance")]
-    map: dashmap::DashMap<String, DomainSpecificData>
+    map: dashmap::DashMap<String, DomainSpecificData>,
 }
 
 impl DomainsMap {
     #[cfg(not(feature = "performance"))]
     fn get(&self, domain: &String) -> Option<Arc<DomainSpecificData>> {
         match self.map.read().unwrap().get(domain) {
-            None => { None}
-            Some(data) => { Some(data.clone()) }
+            None => None,
+            Some(data) => Some(data.clone()),
         }
     }
 
     #[cfg(not(feature = "performance"))]
-    fn entry_or_insert(&self, domain: &String, data: DomainSpecificData) -> Arc<DomainSpecificData> {
-        self.map.write().unwrap().entry(domain.clone()).or_insert(Arc::new(data)).clone()
+    fn entry_or_insert(
+        &self,
+        domain: &String,
+        data: DomainSpecificData,
+    ) -> Arc<DomainSpecificData> {
+        self.map
+            .write()
+            .unwrap()
+            .entry(domain.clone())
+            .or_insert(Arc::new(data))
+            .clone()
     }
 
     #[cfg(feature = "performance")]
@@ -201,7 +210,11 @@ impl DomainsMap {
     }
 
     #[cfg(feature = "performance")]
-    fn entry_or_insert(&self, domain: &String, data: DomainSpecificData) -> Ref<String, DomainSpecificData> {
+    fn entry_or_insert(
+        &self,
+        domain: &String,
+        data: DomainSpecificData,
+    ) -> Ref<String, DomainSpecificData> {
         self.map.entry(domain.clone()).or_insert(data).downgrade()
     }
 }
