@@ -10,11 +10,10 @@ use std::{
     sync::OnceLock,
 };
 
-#[cfg(not(feature = "performance"))]
+#[cfg(feature = "dashmap")]
+use dashmap::mapref::one::Ref;
+#[cfg(not(feature = "dashmap"))]
 use std::sync::{Arc, RwLock};
-
-#[cfg(feature = "performance")]
-use dashmap::{mapref::one::Ref, DashMap, Entry};
 
 use syn::{parse::Parse, parse_macro_input, spanned::Spanned};
 use unic_langid::LanguageIdentifier;
@@ -174,15 +173,30 @@ struct DomainSpecificData {
 
 #[derive(Default)]
 struct DomainsMap {
-    #[cfg(not(feature = "performance"))]
+    #[cfg(not(feature = "dashmap"))]
     map: RwLock<HashMap<String, Arc<DomainSpecificData>>>,
 
-    #[cfg(feature = "performance")]
+    #[cfg(feature = "dashmap")]
     map: dashmap::DashMap<String, DomainSpecificData>,
 }
 
+#[cfg(feature = "dashmap")]
 impl DomainsMap {
-    #[cfg(not(feature = "performance"))]
+    fn get(&self, domain: &String) -> Option<Ref<String, DomainSpecificData>> {
+        self.map.get(domain)
+    }
+
+    fn entry_or_insert(
+        &self,
+        domain: &String,
+        data: DomainSpecificData,
+    ) -> Ref<String, DomainSpecificData> {
+        self.map.entry(domain.clone()).or_insert(data).downgrade()
+    }
+}
+
+#[cfg(not(feature = "dashmap"))]
+impl DomainsMap {
     fn get(&self, domain: &String) -> Option<Arc<DomainSpecificData>> {
         match self.map.read().unwrap().get(domain) {
             None => None,
@@ -190,7 +204,6 @@ impl DomainsMap {
         }
     }
 
-    #[cfg(not(feature = "performance"))]
     fn entry_or_insert(
         &self,
         domain: &String,
@@ -202,20 +215,6 @@ impl DomainsMap {
             .entry(domain.clone())
             .or_insert(Arc::new(data))
             .clone()
-    }
-
-    #[cfg(feature = "performance")]
-    fn get(&self, domain: &String) -> Option<Ref<String, DomainSpecificData>> {
-        self.map.get(domain)
-    }
-
-    #[cfg(feature = "performance")]
-    fn entry_or_insert(
-        &self,
-        domain: &String,
-        data: DomainSpecificData,
-    ) -> Ref<String, DomainSpecificData> {
-        self.map.entry(domain.clone()).or_insert(data).downgrade()
     }
 }
 

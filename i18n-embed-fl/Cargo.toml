@@ -34,5 +34,5 @@ pretty_assertions = { workspace = true }
 rust-embed = { workspace = true }
 
 [features]
-# Enables more performant version of the crate. May download extra dependencies.
-performance = ["dep:dashmap"]
+# Uses dashmap implementation for `fl!()` macro lookups.
+dashmap = ["dep:dashmap"]
