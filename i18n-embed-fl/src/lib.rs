@@ -9,6 +9,12 @@ use std::{
     path::Path,
     sync::OnceLock,
 };
+
+#[cfg(feature = "dashmap")]
+use dashmap::mapref::one::Ref;
+#[cfg(not(feature = "dashmap"))]
+use std::sync::{Arc, RwLock};
+
 use syn::{parse::Parse, parse_macro_input, spanned::Spanned};
 use unic_langid::LanguageIdentifier;
 
@@ -165,10 +171,57 @@ struct DomainSpecificData {
     _assets: FileSystemAssets,
 }
 
-fn domains() -> &'static dashmap::DashMap<String, DomainSpecificData> {
-    static DOMAINS: OnceLock<dashmap::DashMap<String, DomainSpecificData>> = OnceLock::new();
+#[derive(Default)]
+struct DomainsMap {
+    #[cfg(not(feature = "dashmap"))]
+    map: RwLock<HashMap<String, Arc<DomainSpecificData>>>,
 
-    DOMAINS.get_or_init(|| dashmap::DashMap::new())
+    #[cfg(feature = "dashmap")]
+    map: dashmap::DashMap<String, DomainSpecificData>,
+}
+
+#[cfg(feature = "dashmap")]
+impl DomainsMap {
+    fn get(&self, domain: &String) -> Option<Ref<String, DomainSpecificData>> {
+        self.map.get(domain)
+    }
+
+    fn entry_or_insert(
+        &self,
+        domain: &String,
+        data: DomainSpecificData,
+    ) -> Ref<String, DomainSpecificData> {
+        self.map.entry(domain.clone()).or_insert(data).downgrade()
+    }
+}
+
+#[cfg(not(feature = "dashmap"))]
+impl DomainsMap {
+    fn get(&self, domain: &String) -> Option<Arc<DomainSpecificData>> {
+        match self.map.read().unwrap().get(domain) {
+            None => None,
+            Some(data) => Some(data.clone()),
+        }
+    }
+
+    fn entry_or_insert(
+        &self,
+        domain: &String,
+        data: DomainSpecificData,
+    ) -> Arc<DomainSpecificData> {
+        self.map
+            .write()
+            .unwrap()
+            .entry(domain.clone())
+            .or_insert(Arc::new(data))
+            .clone()
+    }
+}
+
+fn domains() -> &'static DomainsMap {
+    static DOMAINS: OnceLock<DomainsMap> = OnceLock::new();
+
+    DOMAINS.get_or_init(|| DomainsMap::default())
 }
 
 /// A macro to obtain localized messages and optionally their attributes, and check the `message_id`, `attribute_id`
@@ -421,7 +474,7 @@ pub fn fl(input: TokenStream) -> TokenStream {
             _assets: assets,
         };
 
-        domains().entry(domain.clone()).or_insert(data).downgrade()
+        domains().entry_or_insert(&domain, data)
     };
 
     let message_id_string = match &message_id {
