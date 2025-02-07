@@ -20,30 +20,30 @@ fn main() {
 
     println!(
         "requested [en-US], response: {}",
-        hande_request(&loader, &[&"en-US".parse().unwrap()])
+        handle_request(&loader, &[&"en-US".parse().unwrap()])
     );
     println!(
         "requested [ka-GE], response: {}",
-        hande_request(&loader, &[&"ka-GE".parse().unwrap()])
+        handle_request(&loader, &[&"ka-GE".parse().unwrap()])
     );
     println!(
         "requested [en-UK], response: {}",
-        hande_request(&loader, &[&"en-UK".parse().unwrap()])
+        handle_request(&loader, &[&"en-UK".parse().unwrap()])
     );
     println!(
         "requested [de-AT], response: {}",
-        hande_request(&loader, &[&"de-AT".parse().unwrap()])
+        handle_request(&loader, &[&"de-AT".parse().unwrap()])
     );
     println!(
         "requested [ru-RU], response: {}",
-        hande_request(
+        handle_request(
             &loader,
             &[&"ru-RU".parse().unwrap(), &"de-DE".parse().unwrap()]
         )
     );
 }
 
-fn hande_request(
+fn handle_request(
     loader: &FluentLanguageLoader,
     requested_languages: &[&unic_langid::LanguageIdentifier],
 ) -> String {
