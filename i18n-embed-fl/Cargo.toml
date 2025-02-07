@@ -6,6 +6,7 @@ version = "0.9.3"
 authors = ["Luke Frisken <l.frisken@gmail.com>"]
 edition = "2018"
 license = "MIT"
+repository = "https://github.com/kellpossible/cargo-i18n/tree/master/i18n-embed-fl"
 
 [lib]
 proc-macro = true
