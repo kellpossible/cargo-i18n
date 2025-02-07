@@ -209,7 +209,7 @@ fn notify_watcher(
 /// An entity that watches for changes to localization resources.
 ///
 /// NOTE: Currently we rely in the implicit [`Drop`] implementation to remove file system watches,
-/// in the future ther may be new methods added to this trait.
+/// in the future there may be new methods added to this trait.
 pub trait Watcher {}
 
 #[cfg(feature = "autoreload")]
@@ -283,7 +283,7 @@ impl I18nAssets for FileSystemAssets {
     }
 }
 
-/// A way to multiplex implmentations of [`I18nAssets`].
+/// A way to multiplex implementations of [`I18nAssets`].
 pub struct AssetsMultiplexor {
     /// Assets that are multiplexed, ordered from most to least priority.
     assets: Vec<Box<dyn I18nAssets + Send + Sync + 'static>>,

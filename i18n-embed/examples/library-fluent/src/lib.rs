@@ -17,7 +17,7 @@ pub static LOCALIZATIONS: Lazy<RustEmbedNotifyAssets<LocalizationsEmbed>> = Lazy
 static LANGUAGE_LOADER: Lazy<FluentLanguageLoader> = Lazy::new(|| {
     let loader: FluentLanguageLoader = fluent_language_loader!();
 
-    // Load the fallback langauge by default so that users of the
+    // Load the fallback language by default so that users of the
     // library don't need to if they don't care about localization.
     loader
         .load_fallback_language(&*LOCALIZATIONS)

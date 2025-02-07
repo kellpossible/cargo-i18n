@@ -1,4 +1,4 @@
-//! This library contains the configuration stucts (along with their
+//! This library contains the configuration structs (along with their
 //! parsing functions) for the
 //! [cargo-i18n](https://crates.io/crates/cargo_i18n) tool/system.
 
@@ -41,7 +41,7 @@ pub enum I18nConfigError {
     #[error("Cannot deserialize toml file {0:?} because {1}.")]
     CannotDeserializeToml(PathBuf, basic_toml::Error),
     #[error("Cannot parse i18n configuration file {0:?} because {1}.")]
-    CannotPaseI18nToml(PathBuf, String),
+    CannotParseI18nToml(PathBuf, String),
     #[error("There is no i18n configuration file present for the crate {0}.")]
     NoI18nConfig(String),
     #[error("The \"{0}\" is required to be present in the i18n configuration file \"{1}\"")]
@@ -301,7 +301,7 @@ impl<'a> Crate<'a> {
                     if this_is_subcrate {
                         Some(crt)
                     } else {
-                        debug!("Parent {0} does not have {1} correctly listed as one of its subcrates (curently: {2:?}) in its i18n config.", crt, self, config.subcrates);
+                        debug!("Parent {0} does not have {1} correctly listed as one of its subcrates (currently: {2:?}) in its i18n config.", crt, self, config.subcrates);
                         None
                     }
                 }
