@@ -342,6 +342,40 @@ impl FluentLanguageLoader {
             .map(closure)
     }
 
+    /// Searches for a message named `message_id` in all languages that
+    /// are currently loaded, including the fallback language. If the
+    /// message is found, invokes the `closure` with the:
+    ///
+    /// 0. [message](FluentMessage)
+    /// 1. the language-specific [bundle](FluentBundle)
+    ///    that owns it.
+    ///
+    /// Returns `Some` of whatever the closure returns, or `None` if no
+    /// messages were found matching the `message_id`.
+    pub fn with_fluent_message_and_bundle<OUT, C>(
+        &self,
+        message_id: &str,
+        closure: C,
+    ) -> Option<OUT>
+    where
+        C: Fn(FluentMessage<'_>, &FluentBundle<Arc<FluentResource>, IntlLangMemoizer>) -> OUT,
+    {
+        self.inner
+            .load()
+            .language_config
+            .read()
+            .language_bundles
+            .iter()
+            .flat_map(|language_bundles| language_bundles.iter())
+            .find_map(|language_bundle| {
+                Some((
+                    language_bundle.bundle.get_message(message_id)?,
+                    &language_bundle.bundle,
+                ))
+            })
+            .map(|(msg, bundle)| closure(msg, bundle))
+    }
+
     /// Runs the provided `closure` with an iterator over the messages
     /// available for the specified `language`. There may be duplicate
     /// messages when they are duplicated in resources applicable to
