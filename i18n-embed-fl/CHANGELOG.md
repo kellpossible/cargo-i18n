@@ -1,5 +1,15 @@
 # Changelog for `i18n-embed-fl`
 
+## master
+
+### New Features
+
++ Dashmap is now an optional dependency. Part of ongoing fix for [#131](https://github.com/kellpossible/cargo-i18n/issues/144) to reduce the number of dependencies. Thanks to [@mrtryhard](https://github.com/mrtryhard) for the contribution and [@bikeshedder](https://github.com/bikeshedder) for the review!
+
+### Fixes
+
++ Support recursive message argument resolution. Fix for [#144](https://github.com/kellpossible/cargo-i18n/issues/144). Many thanks to [@cbs228](https://github.com/cbs228) for this contribution.
+
 ## v0.9.3
 
 ### Internal
