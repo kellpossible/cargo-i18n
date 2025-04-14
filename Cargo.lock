@@ -590,7 +590,7 @@ dependencies = [
 
 [[package]]
 name = "i18n-embed"
-version = "0.15.3"
+version = "0.15.4"
 dependencies = [
  "arc-swap",
  "doc-comment",
@@ -618,7 +618,7 @@ dependencies = [
 
 [[package]]
 name = "i18n-embed-fl"
-version = "0.9.3"
+version = "0.9.4"
 dependencies = [
  "dashmap",
  "doc-comment",

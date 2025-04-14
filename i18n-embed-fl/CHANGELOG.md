@@ -1,6 +1,6 @@
 # Changelog for `i18n-embed-fl`
 
-## master
+## v0.9.4
 
 ### New Features
 
