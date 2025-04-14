@@ -6,6 +6,10 @@
 
 + Add `FluentLanguageLoader::with_fluent_message_and_bundle()`. This method functions like `with_fluent_message()`, but it also returns the `FluentBundle` which owns the message. As part of implementation of [#144](https://github.com/kellpossible/cargo-i18n/issues/144). Many thanks to [@cbs228](https://github.com/cbs228) for this contribution.
 
+### Internal
+
++ Bump version of `notify` dependency to version `8.0.0`.
+
 ## v0.15.3
 
 ### Internal
