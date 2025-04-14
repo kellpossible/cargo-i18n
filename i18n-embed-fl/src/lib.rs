@@ -1,4 +1,5 @@
-use fluent::{FluentAttribute, FluentMessage};
+use fluent::concurrent::FluentBundle;
+use fluent::{FluentAttribute, FluentMessage, FluentResource};
 use fluent_syntax::ast::{CallArguments, Expression, InlineExpression, Pattern, PatternElement};
 use i18n_embed::{fluent::FluentLanguageLoader, FileSystemAssets, LanguageLoader};
 use proc_macro::TokenStream;
@@ -557,8 +558,8 @@ pub fn fl(input: TokenStream) -> TokenStream {
                 if let Some(message_id_str) = &message_id_string {
                     checked_loader_has_message = domain_data
                         .loader
-                        .with_fluent_message(message_id_str, |message: FluentMessage<'_>| {
-                            check_message_args(message, &specified_args);
+                        .with_fluent_message_and_bundle(message_id_str, |message, bundle| {
+                            check_message_args(message, bundle, &specified_args);
                         })
                         .is_some();
                 }
@@ -577,11 +578,11 @@ pub fn fl(input: TokenStream) -> TokenStream {
             } else {
                 if let Some(message_id_str) = &message_id_string {
                     if let Some(attr_id_str) = &attr_str {
-                        let attr_res = domain_data.loader.with_fluent_message(
+                        let attr_res = domain_data.loader.with_fluent_message_and_bundle(
                             message_id_str,
-                            |message: FluentMessage<'_>| match message.get_attribute(attr_id_str) {
+                            |message, bundle| match message.get_attribute(attr_id_str) {
                                 Some(attr) => {
-                                    check_attribute_args(attr, &specified_args);
+                                    check_attribute_args(attr, bundle, &specified_args);
                                     true
                                 }
                                 None => false,
@@ -721,13 +722,16 @@ fn fuzzy_attribute_suggestions(
         .collect()
 }
 
-fn check_message_args(
+fn check_message_args<R>(
     message: FluentMessage<'_>,
+    bundle: &FluentBundle<R>,
     specified_args: &HashMap<syn::LitStr, Box<syn::Expr>>,
-) {
+) where
+    R: std::borrow::Borrow<FluentResource>,
+{
     if let Some(pattern) = message.value() {
         let mut args = Vec::new();
-        args_from_pattern(pattern, &mut args);
+        args_from_pattern(pattern, bundle, &mut args);
 
         let args_set: HashSet<&str> = args.into_iter().collect();
 
@@ -788,13 +792,16 @@ fn check_message_args(
     }
 }
 
-fn check_attribute_args(
+fn check_attribute_args<R>(
     attr: FluentAttribute<'_>,
+    bundle: &FluentBundle<R>,
     specified_args: &HashMap<syn::LitStr, Box<syn::Expr>>,
-) {
+) where
+    R: std::borrow::Borrow<FluentResource>,
+{
     let pattern = attr.value();
     let mut args = Vec::new();
-    args_from_pattern(pattern, &mut args);
+    args_from_pattern(pattern, bundle, &mut args);
 
     let args_set: HashSet<&str> = args.into_iter().collect();
 
@@ -854,56 +861,101 @@ fn check_attribute_args(
     }
 }
 
-fn args_from_pattern<S: Copy>(pattern: &Pattern<S>, args: &mut Vec<S>) {
+fn args_from_pattern<'m, R>(
+    pattern: &Pattern<&'m str>,
+    bundle: &'m FluentBundle<R>,
+    args: &mut Vec<&'m str>,
+) where
+    R: std::borrow::Borrow<FluentResource>,
+{
     pattern.elements.iter().for_each(|element| {
         if let PatternElement::Placeable { expression } = element {
-            args_from_expression(expression, args)
+            args_from_expression(expression, bundle, args)
         }
     });
 }
 
-fn args_from_expression<S: Copy>(expr: &Expression<S>, args: &mut Vec<S>) {
+fn args_from_expression<'m, R>(
+    expr: &Expression<&'m str>,
+    bundle: &'m FluentBundle<R>,
+    args: &mut Vec<&'m str>,
+) where
+    R: std::borrow::Borrow<FluentResource>,
+{
     match expr {
         Expression::Inline(inline_expr) => {
-            args_from_inline_expression(inline_expr, args);
+            args_from_inline_expression(inline_expr, bundle, args);
         }
         Expression::Select { selector, variants } => {
-            args_from_inline_expression(selector, args);
+            args_from_inline_expression(selector, bundle, args);
 
             variants.iter().for_each(|variant| {
-                args_from_pattern(&variant.value, args);
+                args_from_pattern(&variant.value, bundle, args);
             })
         }
     }
 }
 
-fn args_from_inline_expression<S: Copy>(inline_expr: &InlineExpression<S>, args: &mut Vec<S>) {
+fn args_from_inline_expression<'m, R>(
+    inline_expr: &InlineExpression<&'m str>,
+    bundle: &'m FluentBundle<R>,
+    args: &mut Vec<&'m str>,
+) where
+    R: std::borrow::Borrow<FluentResource>,
+{
     match inline_expr {
         InlineExpression::FunctionReference {
             id: _,
             arguments: call_args,
         } => {
-            args_from_call_arguments(call_args, args);
+            args_from_call_arguments(call_args, bundle, args);
         }
         InlineExpression::TermReference {
             id: _,
             attribute: _,
             arguments: Some(call_args),
         } => {
-            args_from_call_arguments(call_args, args);
+            args_from_call_arguments(call_args, bundle, args);
         }
         InlineExpression::VariableReference { id } => args.push(id.name),
-        InlineExpression::Placeable { expression } => args_from_expression(expression, args),
+        InlineExpression::Placeable { expression } => {
+            args_from_expression(expression, bundle, args)
+        }
+        InlineExpression::MessageReference {
+            id,
+            attribute: None,
+        } => {
+            bundle
+                .get_message(&id.name)
+                .and_then(|m| m.value())
+                .map(|p| args_from_pattern(p, bundle, args));
+        }
+        InlineExpression::MessageReference {
+            id,
+            attribute: Some(attribute),
+        } => {
+            bundle
+                .get_message(&id.name)
+                .and_then(|m| m.get_attribute(&attribute.name))
+                .map(|m| m.value())
+                .map(|p| args_from_pattern(p, bundle, args));
+        }
         _ => {}
     }
 }
 
-fn args_from_call_arguments<S: Copy>(call_args: &CallArguments<S>, args: &mut Vec<S>) {
+fn args_from_call_arguments<'m, R>(
+    call_args: &CallArguments<&'m str>,
+    bundle: &'m FluentBundle<R>,
+    args: &mut Vec<&'m str>,
+) where
+    R: std::borrow::Borrow<FluentResource>,
+{
     call_args.positional.iter().for_each(|expr| {
-        args_from_inline_expression(expr, args);
+        args_from_inline_expression(expr, bundle, args);
     });
 
     call_args.named.iter().for_each(|named_arg| {
-        args_from_inline_expression(&named_arg.value, args);
+        args_from_inline_expression(&named_arg.value, bundle, args);
     })
 }
