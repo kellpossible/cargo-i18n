@@ -49,7 +49,7 @@ members = [
 [workspace.dependencies]
 rust-embed = "8.0"
 i18n-build = { version = "0.10.0", path = "./i18n-build" }
-i18n-embed = { version = "0.15.0", path = "./i18n-embed" }
+i18n-embed = { version = "0.15.4", path = "./i18n-embed" }
 i18n-embed-impl = { version = "0.8.4", path = "./i18n-embed/i18n-embed-impl" }
 i18n-config = { version = "0.4.7", path = "./i18n-config" }
 i18n-embed-fl = { version = "0.9.1", path = "./i18n-embed-fl" }
