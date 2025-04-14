@@ -41,7 +41,7 @@ pub enum I18nConfigError {
     #[error("Cannot deserialize toml file {0:?} because {1}.")]
     CannotDeserializeToml(PathBuf, basic_toml::Error),
     #[error("Cannot parse i18n configuration file {0:?} because {1}.")]
-    CannotPaseI18nToml(PathBuf, String),
+    CannotParseI18nToml(PathBuf, String),
     #[error("There is no i18n configuration file present for the crate {0}.")]
     NoI18nConfig(String),
     #[error("The \"{0}\" is required to be present in the i18n configuration file \"{1}\"")]
