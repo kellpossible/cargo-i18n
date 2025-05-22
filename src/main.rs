@@ -77,7 +77,7 @@ fn main() -> Result<()> {
     let mut language_requester = DesktopLanguageRequester::new();
 
     let cargo_i18n_localizer: DefaultLocalizer<'static> =
-        DefaultLocalizer::new(&*language_loader(), &TRANSLATIONS);
+        DefaultLocalizer::new(language_loader(), &TRANSLATIONS);
 
     let cargo_i18n_localizer_rc: Arc<dyn Localizer> = Arc::new(cargo_i18n_localizer);
     let i18n_build_localizer_rc: Arc<dyn Localizer> = Arc::new(i18n_build::localizer());
