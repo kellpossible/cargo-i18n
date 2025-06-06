@@ -38,7 +38,7 @@
 //!     [LanguageRequester](LanguageRequester) trait called
 //!     `DesktopLanguageRequester for the desktop platform (windows,
 //!     mac, linux), which makes use of the
-//!     [locale_config](https://crates.io/crates/locale_config) crate
+//!     [sys-locale](https://crates.io/crates/sys-locale) crate
 //!     for resolving the current system locale.
 //! + `web-sys-requester`
 //!   + Enables a convenience implementation of

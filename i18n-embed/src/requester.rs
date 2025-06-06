@@ -222,7 +222,7 @@ impl std::fmt::Debug for LanguageRequesterImpl<'_> {
 
 /// A [LanguageRequester](LanguageRequester) for the desktop platform,
 /// supporting windows, linux and mac. It uses
-/// [locale_config](locale_config) to select the language based on the
+/// [sys-locale](sys-locale) to select the language based on the
 /// system selected language.
 ///
 /// ⚠️ *This API requires the following crate features to be activated: `desktop-requester`.*
@@ -283,16 +283,11 @@ impl DesktopLanguageRequester<'_> {
     }
 
     /// The languages being requested by the operating
-    /// system/environment according to the [locale_config] crate's
+    /// system/environment according to the [sys-locale] crate's
     /// implementation.
     pub fn requested_languages() -> Vec<unic_langid::LanguageIdentifier> {
-        use locale_config::{LanguageRange, Locale};
-
-        let current_locale = Locale::current();
-
-        let ids: Vec<unic_langid::LanguageIdentifier> = current_locale
-            .tags_for("messages")
-            .filter_map(|tag: LanguageRange<'_>| match tag.to_string().parse() {
+        let ids: Vec<unic_langid::LanguageIdentifier> = sys_locale::get_locales()
+            .filter_map(|tag| match tag.parse() {
                 Ok(tag) => Some(tag),
                 Err(err) => {
                     log::error!("Unable to parse your locale: {:?}", err);

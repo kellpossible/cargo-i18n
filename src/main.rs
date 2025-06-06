@@ -63,7 +63,7 @@ localizations inside your application.
 
 The display language used for this command is selected automatically \
 using your system settings (as described at 
-https://github.com/rust-locale/locale_config#supported-systems ) \
+https://github.com/1Password/sys-locale?tab=readme-ov-file#sys-locale ) \
 however you can override it using the -l, --language option.
 
 Logging for this command is available using the \"env_logger\" crate. \
