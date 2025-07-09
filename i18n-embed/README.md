@@ -15,7 +15,7 @@ The `i18n-embed` crate has the following optional Cargo features:
 + `gettext-system`
   + Enable support for the [gettext](https://www.gnu.org/software/gettext/) localization system using the [tr macro](https://docs.rs/tr/0.1.3/tr/) and the [gettext crate](https://docs.rs/gettext/0.4.0/gettext/) via the `GettextLanguageLoader`.
 + `desktop-requester`
-  + Enables a convenience implementation of `LanguageRequester` trait called `DesktopLanguageRequester` for the desktop platform (windows, mac, linux),which makes use of the [locale_config](https://crates.io/crates/locale_config) crate for resolving the current system locale.
+  + Enables a convenience implementation of `LanguageRequester` trait called `DesktopLanguageRequester` for the desktop platform (windows, mac, linux),which makes use of the [sys-locale](https://crates.io/crates/sys-locale) crate for resolving the current system locale.
 + `web-sys-requester`
   + Enables a convenience implementation of `LanguageRequester` trait called `WebLanguageRequester` which makes use of the [web-sys](https://crates.io/crates/web-sys) crate for resolving the language being requested by the user's web browser in a WASM context.
 
