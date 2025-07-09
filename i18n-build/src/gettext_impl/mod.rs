@@ -96,18 +96,12 @@ pub fn run_xtr(
         let xtr_command_name = "xtr";
         let mut xtr = Command::new(xtr_command_name);
 
-        match &gettext_config.copyright_holder {
-            Some(copyright_holder) => {
-                xtr.args(["--copyright-holder", copyright_holder.as_str()]);
-            }
-            None => {}
+        if let Some(copyright_holder) = &gettext_config.copyright_holder {
+            xtr.args(["--copyright-holder", copyright_holder.as_str()]);
         }
 
-        match &gettext_config.msgid_bugs_address {
-            Some(msgid_bugs_address) => {
-                xtr.args(["--msgid-bugs-address", msgid_bugs_address.as_str()]);
-            }
-            None => {}
+        if let Some(msgid_bugs_address) = &gettext_config.msgid_bugs_address {
+            xtr.args(["--msgid-bugs-address", msgid_bugs_address.as_str()]);
         }
 
         xtr.args([
@@ -154,7 +148,7 @@ fn crate_module_pot_file_path<P: AsRef<Path>>(crt: &Crate<'_>, pot_dir: P) -> Pa
         .with_extension("pot")
 }
 
-/// Run the gettext utils `msgcat` command to concatinate pot files
+/// Run the gettext utils `msgcat` command to concatenate pot files
 /// into a single pot file.
 pub fn run_msgcat<P: AsRef<Path>, I: IntoIterator<Item = P>>(
     input_pot_paths: I,
@@ -174,7 +168,7 @@ pub fn run_msgcat<P: AsRef<Path>, I: IntoIterator<Item = P>>(
     }
 
     info!(
-        "Concatinating pot files {0:?} with `msgcat` into \"{1}\"",
+        "Concatenating pot files {0:?} with `msgcat` into \"{1}\"",
         input_pot_paths_strings,
         output_pot_path.as_ref().to_string_lossy()
     );
@@ -456,32 +450,32 @@ pub fn run(crt: &Crate) -> Result<()> {
     }
 
     // figure out where there are any subcrates which need their output
-    // pot files concatinated with this crate's pot file
-    let mut concatinate_crates = vec![];
+    // pot files concatenated with this crate's pot file
+    let mut concatenate_crates = vec![];
     for subcrate in &subcrates {
         run(subcrate)?;
         if subcrate.collated_subcrate() {
-            concatinate_crates.push(subcrate);
+            concatenate_crates.push(subcrate);
         }
     }
 
-    // Perform the concatination (if there are any required)
-    if !concatinate_crates.is_empty() {
+    // Perform the concatenation (if there are any required)
+    if !concatenate_crates.is_empty() {
         assert!(crt.gettext_config_or_err()?.collate_extracted_subcrates);
-        concatinate_crates.insert(0, crt);
+        concatenate_crates.insert(0, crt);
 
-        let concatinate_crate_paths: Vec<PathBuf> = concatinate_crates
+        let concatenate_crate_paths: Vec<PathBuf> = concatenate_crates
             .iter()
             .map(|concat_crt: &&Crate| crate_module_pot_file_path(concat_crt, &pot_dir))
             .collect();
 
         let output_pot_path = crate_module_pot_file_path(crt, &pot_dir);
-        run_msgcat(concatinate_crate_paths, output_pot_path)?;
+        run_msgcat(concatenate_crate_paths, output_pot_path)?;
 
         // remove this crate from the list because we don't want to delete it's pot file
-        concatinate_crates.remove(0);
+        concatenate_crates.remove(0);
 
-        for subcrate in concatinate_crates {
+        for subcrate in concatenate_crates {
             let subcrate_output_pot_path = crate_module_pot_file_path(subcrate, &pot_dir);
             util::remove_file_or_error(subcrate_output_pot_path)?;
         }

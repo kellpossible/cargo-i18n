@@ -87,7 +87,7 @@ mod localize_feature {
     ///
     /// ⚠️ *This API requires the following crate features to be activated: `localize`.*
     pub fn localizer() -> DefaultLocalizer<'static> {
-        DefaultLocalizer::new(&*language_loader(), &TRANSLATIONS)
+        DefaultLocalizer::new(language_loader(), &TRANSLATIONS)
     }
 }
 

@@ -329,7 +329,7 @@
 //!     LANGUAGE_LOADER.get_or_init(|| {
 //!        let loader = fluent_language_loader!();
 //!
-//!         // Load the fallback langauge by default so that users of the
+//!         // Load the fallback language by default so that users of the
 //!         // library don't need to if they don't care about localization.
 //!         // This isn't required for the `gettext` localization system.
 //!         loader.load_fallback_language(&Localizations)
@@ -526,7 +526,7 @@ pub trait Localizer {
     }
 }
 
-/// A simple default implemenation of the [Localizer](Localizer) trait.
+/// A simple default implementation of the [Localizer](Localizer) trait.
 pub struct DefaultLocalizer<'a> {
     /// The source of assets used by this localizer.
     pub i18n_assets: &'a (dyn I18nAssets + Send + Sync + 'static),

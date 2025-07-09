@@ -37,12 +37,12 @@
 + New `autoreload` crate feature.
   + `RustEmbedNotifyAssets` - A wrapper for `rust_embed::RustEmbed` that supports notifications when files have changed on the file system.
   + `FileSystemAssets::notify_changes_enabled()` - A new method to enable watching for changes.
-+ `AssetsMultiplexor` - A way to multiplex implmentations of [`I18nAssets`] where assets are multiplexed by a priority.
++ `AssetsMultiplexor` - A way to multiplex implementations of [`I18nAssets`] where assets are multiplexed by a priority.
 
 ### Breaking
 
 + Modified `I18nAssets` trait.
-  + Support multiple files referencing the same asset (to allow a heirachy of overrides).
+  + Support multiple files referencing the same asset (to allow a hierarchy of overrides).
   + Support for subscribing to updates to assets.
 + Remove deprecated methods for `LanguageConfig`, Please use `lang(...).get_attr_args(...)` etc instead.
   + `LanguageConfig::get_lang()`
@@ -92,7 +92,7 @@
 
 - A new `LanguageLoader::load_available_languages()` method to load all available languages.
 - A new `FluentLanguageLoader::select_languages()` method (renamed `FluentLanguageLoader::lang()`).
-- A new `FluentLanguageLoader::select_languages_negotiate()` method to select languages based on a negotiation strategy using the available languges.
+- A new `FluentLanguageLoader::select_languages_negotiate()` method to select languages based on a negotiation strategy using the available languages.
 
 ### Deprecated
 
@@ -189,7 +189,7 @@ done in #84.
 
 ### Internal Changes
 
-- Updated `FluentLanguageLoader` to use a thread safe [IntlLangMemoizer](https://docs.rs/intl-memoizer/0.5.1/intl_memoizer/concurrent/struct.IntlLangMemoizer.html) as per the notes on [FluentBundle's concurrency](https://docs.rs/fluent-bundle/0.15.0/fluent_bundle/bundle/struct.FluentBundle.html#concurrency). This was required to solve a compilation error in `i18n-embed-fl` and may also fix problems for other downstream users who were expecting `FluentLangaugeLoader` to be `Send + Sync`. It might impact performance for those who are not using this in multi-threaded context, please report this, and in which case support for switching the `IntlLangMemoizer` added.
+- Updated `FluentLanguageLoader` to use a thread safe [IntlLangMemoizer](https://docs.rs/intl-memoizer/0.5.1/intl_memoizer/concurrent/struct.IntlLangMemoizer.html) as per the notes on [FluentBundle's concurrency](https://docs.rs/fluent-bundle/0.15.0/fluent_bundle/bundle/struct.FluentBundle.html#concurrency). This was required to solve a compilation error in `i18n-embed-fl` and may also fix problems for other downstream users who were expecting `FluentLanguageLoader` to be `Send + Sync`. It might impact performance for those who are not using this in multi-threaded context, please report this, and in which case support for switching the `IntlLangMemoizer` added.
 
 ## v0.11.0
 
@@ -205,7 +205,7 @@ done in #84.
 
 ### New Features
 
-- New `LanguageRequester::add_listener_ref()` method to add permenant listeners of type `&dyn Localizer`. This also affects `DesktopLanguageRequester` and `WebLanguageRequester`.
+- New `LanguageRequester::add_listener_ref()` method to add permanent listeners of type `&dyn Localizer`. This also affects `DesktopLanguageRequester` and `WebLanguageRequester`.
 
 ### Internal Changes
 
@@ -265,7 +265,7 @@ done in #84.
 
 ## v0.8.6
 
-- Update documentation and example to more accurately reflect the current state of `LangaugeRequester::poll()` on various systems.
+- Update documentation and example to more accurately reflect the current state of `LanguageRequester::poll()` on various systems.
 
 ## v0.8.5
 
@@ -288,7 +288,7 @@ done in #84.
 
 ### New Features
 
-- Added a new `with_mesage_iter()` method to `FluentLanguageLoader`, to allow iterating over the messages available for a particular language.
+- Added a new `with_message_iter()` method to `FluentLanguageLoader`, to allow iterating over the messages available for a particular language.
 - Added `Default` implementation for `WebLanguageRequester`.
 
 ## v0.8.2
@@ -316,7 +316,7 @@ Changes to support the new `i18n-embed-fl` crate's `fl!()` macro, and some major
 
 - Removed `I18nEmbed` trait, and derive macro, it was replaced with the new `I18nAssets` trait.
 - Clarified the `domain` and `module` arguments/variable inputs to `FluentLanguageLoader` and `GettextLanguageLoader`, and in the `LanguageLoader` trait with some renaming.
-- Removed a bunch of unecessary lifetimes, and `'static` bounds on types, methods and arguments.
+- Removed a bunch of unnecessary lifetimes, and `'static` bounds on types, methods and arguments.
 - `LanguageRequester::current_languages()`'s return type now uses `String` as the `HashMap` key instead of `&'static str`.
 - `available_languages()` implementation moved from `I18nEmbed` to `LanguageLoader`.
 

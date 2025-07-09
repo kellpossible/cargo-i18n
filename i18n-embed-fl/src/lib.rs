@@ -66,7 +66,7 @@ enum FlArgs {
     ///     arg3 = calc_value());
     /// ```
     KeyValuePairs {
-        specified_args: HashMap<syn::LitStr, Box<syn::Expr>>,
+        specified_args: Vec<(syn::LitStr, Box<syn::Expr>)>,
     },
     /// `fl!(LOADER, "message", "optional-attribute")` no arguments after the message id and optional attribute id.
     None,
@@ -83,7 +83,7 @@ impl Parse for FlArgs {
                 return Ok(FlArgs::HashMap(hash_map));
             }
 
-            let mut args_map: HashMap<syn::LitStr, Box<syn::Expr>> = HashMap::new();
+            let mut args: Vec<(syn::LitStr, Box<syn::Expr>)> = Vec::new();
 
             while let Ok(expr) = input.parse::<syn::ExprAssign>() {
                 let argument_name_ident_opt = match &*expr.left {
@@ -108,7 +108,10 @@ impl Parse for FlArgs {
 
                 let argument_value = expr.right;
 
-                if let Some(_duplicate) = args_map.insert(argument_name_lit_str, argument_value) {
+                if args
+                    .iter()
+                    .any(|(key, _value)| argument_name_lit_str == *key)
+                {
                     // There's no Clone implementation by default.
                     let argument_name_lit_str =
                         syn::LitStr::new(&argument_name_string, argument_name_ident.span());
@@ -120,20 +123,22 @@ impl Parse for FlArgs {
                         ),
                     ));
                 }
+                args.push((argument_name_lit_str, argument_value));
 
                 // parse the next comma if there is one
                 let _result = input.parse::<syn::Token![,]>();
             }
 
-            if args_map.is_empty() {
+            if args.is_empty() {
                 let span = match input.fork().parse::<syn::Expr>() {
                     Ok(expr) => expr.span(),
                     Err(_) => input.span(),
                 };
                 Err(syn::Error::new(span, "fl!() unable to parse args input"))
             } else {
+                args.sort_by_key(|(s, _)| s.value());
                 Ok(FlArgs::KeyValuePairs {
-                    specified_args: args_map,
+                    specified_args: args,
                 })
             }
         } else {
@@ -330,7 +335,7 @@ fn domains() -> &'static DomainsMap {
 /// runtime using a [HashMap](std::collections::HashMap), using the
 /// same signature as in
 /// [FluentLanguageLoader::get_args()](i18n_embed::fluent::FluentLanguageLoader::get_args()).
-/// When using this method of specifying argments, they are not
+/// When using this method of specifying arguments, they are not
 /// checked at compile time.
 ///
 /// ### Example
@@ -725,7 +730,7 @@ fn fuzzy_attribute_suggestions(
 fn check_message_args<R>(
     message: FluentMessage<'_>,
     bundle: &FluentBundle<R>,
-    specified_args: &HashMap<syn::LitStr, Box<syn::Expr>>,
+    specified_args: &Vec<(syn::LitStr, Box<syn::Expr>)>,
 ) where
     R: std::borrow::Borrow<FluentResource>,
 {
@@ -736,8 +741,8 @@ fn check_message_args<R>(
         let args_set: HashSet<&str> = args.into_iter().collect();
 
         let key_args: Vec<String> = specified_args
-            .keys()
-            .map(|key| {
+            .iter()
+            .map(|(key, _value)| {
                 let arg = key.value();
 
                 if !args_set.contains(arg.as_str()) {
@@ -795,7 +800,7 @@ fn check_message_args<R>(
 fn check_attribute_args<R>(
     attr: FluentAttribute<'_>,
     bundle: &FluentBundle<R>,
-    specified_args: &HashMap<syn::LitStr, Box<syn::Expr>>,
+    specified_args: &Vec<(syn::LitStr, Box<syn::Expr>)>,
 ) where
     R: std::borrow::Borrow<FluentResource>,
 {
@@ -806,8 +811,8 @@ fn check_attribute_args<R>(
     let args_set: HashSet<&str> = args.into_iter().collect();
 
     let key_args: Vec<String> = specified_args
-        .keys()
-        .map(|key| {
+        .iter()
+        .map(|(key, _value)| {
             let arg = key.value();
 
             if !args_set.contains(arg.as_str()) {
