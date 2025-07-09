@@ -1,11 +1,10 @@
 # `i18n-config` Changelog
 
-## master
+## v0.4.8
 
 ### Documentation
 
 + Fixed some typos. Thanks to [@YgorSouza](https://github.com/YgorSouza).
-
 
 ### Internal
 

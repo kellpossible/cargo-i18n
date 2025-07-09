@@ -1,10 +1,14 @@
 # Changelog for `i18n-build`
 
-## master
+## v0.10.2
 
 ### Documentation
 
 + Fixed some typos. Thanks to [@YgorSouza](https://github.com/YgorSouza).
+
+### Internal
+
++ Fix some clippy lints. Thanks to [@alerque](https://github.com/alerque).
 
 ## v0.10.1
 

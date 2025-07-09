@@ -8,7 +8,7 @@ license = "MIT"
 name = "i18n-config"
 readme = "README.md"
 repository = "https://github.com/kellpossible/cargo-i18n/tree/master/i18n-config"
-version = "0.4.7"
+version = "0.4.8"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

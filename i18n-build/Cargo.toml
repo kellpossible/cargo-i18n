@@ -8,7 +8,7 @@ license = "MIT"
 name = "i18n-build"
 readme = "README.md"
 repository = "https://github.com/kellpossible/cargo-i18n/tree/master/i18n-build"
-version = "0.10.1"
+version = "0.10.2"
 
 [package.metadata.docs.rs]
 all-features = true

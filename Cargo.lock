@@ -549,7 +549,7 @@ checksum = "e5274423e17b7c9fc20b6e7e208532f9b19825d82dfd615708b70edd83df41f1"
 
 [[package]]
 name = "i18n-build"
-version = "0.10.1"
+version = "0.10.2"
 dependencies = [
  "anyhow",
  "gettext",
@@ -565,7 +565,7 @@ dependencies = [
 
 [[package]]
 name = "i18n-config"
-version = "0.4.7"
+version = "0.4.8"
 dependencies = [
  "basic-toml",
  "log",
