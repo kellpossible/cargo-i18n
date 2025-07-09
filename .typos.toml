@@ -1,0 +1,12 @@
+# https://github.com/crate-ci/typos
+# install:  cargo install typos-cli
+# run:      typos
+
+# Ignore the contents of localization files (but check their names)
+[type.po]
+extend-glob = ["*.po"]
+check-file = false
+
+[type.ftl]
+extend-glob = ["*.ftl"]
+check-file = false

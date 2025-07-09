@@ -75,7 +75,7 @@ struct FluentLanguageLoaderInner {
     current_languages: CurrentLanguages,
 }
 
-/// [LanguageLoader] implemenation for the `fluent` localization
+/// [LanguageLoader] implementation for the `fluent` localization
 /// system. Also provides methods to access localizations which have
 /// been loaded.
 ///

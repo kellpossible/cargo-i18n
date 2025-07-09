@@ -330,7 +330,7 @@ fn domains() -> &'static DomainsMap {
 /// runtime using a [HashMap](std::collections::HashMap), using the
 /// same signature as in
 /// [FluentLanguageLoader::get_args()](i18n_embed::fluent::FluentLanguageLoader::get_args()).
-/// When using this method of specifying argments, they are not
+/// When using this method of specifying arguments, they are not
 /// checked at compile time.
 ///
 /// ### Example
