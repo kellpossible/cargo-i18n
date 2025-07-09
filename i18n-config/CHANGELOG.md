@@ -1,5 +1,16 @@
 # `i18n-config` Changelog
 
+## master
+
+### Documentation
+
++ Fixed some typos. Thanks to [@YgorSouza](https://github.com/YgorSouza).
+
+
+### Internal
+
++ Fix some compiler lints about eliding lifetimes.
+
 ## v0.4.7
 
 ### Internal

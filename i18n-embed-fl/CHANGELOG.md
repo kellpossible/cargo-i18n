@@ -1,5 +1,19 @@
 # Changelog for `i18n-embed-fl`
 
+## master
+
+### Dependencies
+
++ Bump `fluent` to 0.17 and `fluent-syntax` to `0.12`.
+
+### Fixes
+
++ Fixed non-reproducible builds. Fixes [#150](https://github.com/kellpossible/cargo-i18n/issues/150). Thanks to [@qarmin](https://github.com/qarmin) for fixing this long standing issue!
+
+### Documentation
+
++ Fixed some typos. Thanks to [@YgorSouza](https://github.com/YgorSouza).
+
 ## v0.9.4
 
 ### New Features

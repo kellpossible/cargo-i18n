@@ -1,5 +1,20 @@
 # Changelog for `i18n-embed`
 
+## master
+
+### Fixes
+
++ [#13](https://github.com/kellpossible/cargo-i18n/issues/130) Replace abandoned `locale_config` dependency with `sys-locale`. Fixes [#63](https://github.com/kellpossible/cargo-i18n/issues/63) Cannot parse locale on Macos. Big thanks to [@TristanDebrunner](https://github.com/TristanDebrunner) for this contribution!
+  + When the `gettext-system` feature is enabled, `locale_config` is not entirely eliminated from the dependency tree as gettext-rs depends on it.
+
+### Dependencies
+
++ Bump `fluent` to 0.17 and `fluent-syntax` to `0.12`.
+
+### Documentation
+
++ Fixed some typos. Thanks to [@YgorSouza](https://github.com/YgorSouza).
+
 ## v0.15.4
 
 ### New Features

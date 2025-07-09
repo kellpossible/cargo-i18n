@@ -1,5 +1,11 @@
 # Changelog for `i18n-build`
 
+## master
+
+### Documentation
+
++ Fixed some typos. Thanks to [@YgorSouza](https://github.com/YgorSouza).
+
 ## v0.10.1
 
 ### Internal
