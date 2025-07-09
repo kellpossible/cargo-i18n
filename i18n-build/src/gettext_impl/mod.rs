@@ -96,18 +96,12 @@ pub fn run_xtr(
         let xtr_command_name = "xtr";
         let mut xtr = Command::new(xtr_command_name);
 
-        match &gettext_config.copyright_holder {
-            Some(copyright_holder) => {
-                xtr.args(["--copyright-holder", copyright_holder.as_str()]);
-            }
-            None => {}
+        if let Some(copyright_holder) = &gettext_config.copyright_holder {
+            xtr.args(["--copyright-holder", copyright_holder.as_str()]);
         }
 
-        match &gettext_config.msgid_bugs_address {
-            Some(msgid_bugs_address) => {
-                xtr.args(["--msgid-bugs-address", msgid_bugs_address.as_str()]);
-            }
-            None => {}
+        if let Some(msgid_bugs_address) = &gettext_config.msgid_bugs_address {
+            xtr.args(["--msgid-bugs-address", msgid_bugs_address.as_str()]);
         }
 
         xtr.args([
