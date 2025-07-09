@@ -1,5 +1,11 @@
 # Changelog for `i18n-build`
 
+## v0.10.3
+
+### Dependencies
+
++ Bump `i18n-embed` to `v0.16.0`.
+
 ## v0.10.2
 
 ### Documentation
