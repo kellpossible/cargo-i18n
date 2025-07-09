@@ -141,8 +141,8 @@ impl<'a> Crate<'a> {
     /// [I18nConfig#active_config()](I18nConfig#active_config()),
     /// otherwise return None.
     pub fn parent_active_config(
-        &'a self,
-    ) -> Result<Option<(&'a Crate, &'a I18nConfig)>, I18nConfigError> {
+        &self,
+    ) -> Result<Option<(&'_ Crate, &'_ I18nConfig)>, I18nConfigError> {
         match self.parent {
             Some(parent) => parent.active_config(),
             None => Ok(None),
@@ -152,7 +152,7 @@ impl<'a> Crate<'a> {
     /// Identify the config which should be used for this crate, and
     /// the crate (either this crate or one of it's parents)
     /// associated with that config.
-    pub fn active_config(&'a self) -> Result<Option<(&'a Crate, &'a I18nConfig)>, I18nConfigError> {
+    pub fn active_config(&self) -> Result<Option<(&'_ Crate, &'_ I18nConfig)>, I18nConfigError> {
         debug!("Resolving active config for {0}", self);
         match &self.i18n_config {
             Some(config) => {
