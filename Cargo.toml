@@ -52,7 +52,7 @@ i18n-build = { version = "0.10.0", path = "./i18n-build" }
 i18n-embed = { version = "0.16.0", path = "./i18n-embed" }
 i18n-embed-impl = { version = "0.8.4", path = "./i18n-embed/i18n-embed-impl" }
 i18n-config = { version = "0.4.7", path = "./i18n-config" }
-i18n-embed-fl = { version = "0.9.1", path = "./i18n-embed-fl" }
+i18n-embed-fl = { version = "0.10.0", path = "./i18n-embed-fl" }
 thiserror = "1.0"
 log = "0.4"
 unic-langid = "0.9"

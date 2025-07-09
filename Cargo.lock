@@ -605,7 +605,7 @@ dependencies = [
 
 [[package]]
 name = "i18n-embed-fl"
-version = "0.9.4"
+version = "0.10.0"
 dependencies = [
  "dashmap",
  "doc-comment",

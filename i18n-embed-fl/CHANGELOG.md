@@ -1,10 +1,13 @@
 # Changelog for `i18n-embed-fl`
 
-## master
+## v0.10.0
 
 ### Dependencies
 
-+ Bump `fluent` to 0.17 and `fluent-syntax` to `0.12`.
++ Bump `fluent` to `0.17` and `fluent-syntax` to `0.12`.
++ Bump `i18n-embed` to `0.16`.
+
+These are significant updates to core dependencies, thus I consider this a breaking release.
 
 ### Fixes
 
