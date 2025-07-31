@@ -1,0 +1,13 @@
+[package]
+name = "custom-config-path"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+i18n-embed = { workspace = true, features = ["fluent-system", "autoreload"] }
+i18n-embed-fl = { workspace = true }
+once_cell = { workspace = true }
+rust-embed = { workspace = true }
+
+[package.metadata.cargo-i18n]
+config-path = "misc/i18n.toml"

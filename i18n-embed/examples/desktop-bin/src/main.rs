@@ -1,6 +1,10 @@
 use std::time::Duration;
 
 use i18n_embed::{DesktopLanguageRequester, Localizer};
+
+#[cfg(feature = "nonstandard_config")]
+use custom_config_path::{hello_world, localizer};
+#[cfg(feature = "standard_config")]
 use library_fluent::{hello_world, localizer};
 
 fn main() {

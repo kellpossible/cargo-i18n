@@ -17,8 +17,8 @@ maintenance = { status = "actively-developed" }
 
 [dependencies]
 log = { workspace = true }
-basic-toml = "0.1"
 serde = { workspace = true, features = ["derive"] }
 serde_derive = { workspace = true }
 thiserror = { workspace = true }
+toml = "0.9.4"
 unic-langid = { workspace = true, features = ["serde"] }

@@ -44,6 +44,7 @@ members = [
     "i18n-embed/examples/library-fluent",
     "i18n-embed/examples/desktop-bin",
     "i18n-embed-fl/examples/web-server",
+    "i18n-embed/examples/custom-config-path",
 ]
 
 [workspace.dependencies]
