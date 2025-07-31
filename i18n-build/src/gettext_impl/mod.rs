@@ -432,9 +432,21 @@ pub fn run(crt: &Crate) -> Result<()> {
     };
 
     let src_dir = crt.path.join("src");
-    let pot_dir = config_crate.path.join(gettext_config.pot_dir());
-    let po_dir = config_crate.path.join(gettext_config.po_dir());
-    let mo_dir = config_crate.path.join(gettext_config.mo_dir());
+    let pot_dir = config_crate
+        .config_file_path
+        .parent()
+        .unwrap_or(&config_crate.path)
+        .join(gettext_config.pot_dir());
+    let po_dir = config_crate
+        .config_file_path
+        .parent()
+        .unwrap_or(&config_crate.path)
+        .join(gettext_config.po_dir());
+    let mo_dir = config_crate
+        .config_file_path
+        .parent()
+        .unwrap_or(&config_crate.path)
+        .join(gettext_config.mo_dir());
 
     // perform string extraction if required
     if do_xtr {
