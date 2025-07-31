@@ -3,7 +3,7 @@
 
 use crate::error::{PathError, PathType};
 use crate::util;
-use i18n_config::{Crate, GettextConfig, I18nConfigError};
+use i18n_config::{Crate, GettextConfig, I18nCargoMetadata, I18nConfigError};
 
 use std::ffi::OsStr;
 use std::fs::{create_dir_all, File};
@@ -407,11 +407,13 @@ pub fn run(crt: &Crate) -> Result<()> {
                 .subcrates
                 .iter()
                 .map(|subcrate_path| {
-                    Crate::from(
-                        subcrate_path.clone(),
-                        Some(crt),
-                        crt.config_file_path.clone(),
-                    )
+                    let subcrate_config_path =
+                        I18nCargoMetadata::from_cargo_manifest(subcrate_path.join("Cargo.toml"))
+                            .ok()
+                            .and_then(|m| m.config_path)
+                            .map(PathBuf::from)
+                            .unwrap_or(PathBuf::from("i18n.toml"));
+                    Crate::from(subcrate_path.clone(), Some(crt), subcrate_config_path)
                 })
                 .collect();
 
