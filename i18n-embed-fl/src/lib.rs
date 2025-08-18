@@ -1,10 +1,13 @@
 use fluent::concurrent::FluentBundle;
 use fluent::{FluentAttribute, FluentMessage, FluentResource};
 use fluent_syntax::ast::{CallArguments, Expression, InlineExpression, Pattern, PatternElement};
-use i18n_embed::{fluent::FluentLanguageLoader, FileSystemAssets, LanguageLoader};
+use i18n_embed::{FileSystemAssets, LanguageLoader, fluent::FluentLanguageLoader};
 use proc_macro::TokenStream;
 use proc_macro_error2::{abort, emit_error, proc_macro_error};
 use quote::quote;
+use std::fs;
+use std::path::PathBuf;
+use std::time::UNIX_EPOCH;
 use std::{
     collections::{HashMap, HashSet},
     path::Path,
@@ -97,7 +100,7 @@ impl Parse for FlArgs {
                         return Err(syn::Error::new(
                             expr.left.span(),
                             "fl!() unable to parse argument identifier",
-                        ))
+                        ));
                     }
                 }
                 .clone();
@@ -172,9 +175,43 @@ impl Parse for FlMacroInput {
     }
 }
 
+struct CacheInvalidator {
+    dependencies: HashMap<PathBuf, u128>,
+}
+
+fn get_modif(path: &Path) -> u128 {
+    let metadata = fs::metadata(path).unwrap();
+    let modified = metadata.modified().unwrap();
+
+    let duration = modified.duration_since(UNIX_EPOCH).unwrap();
+    duration.as_millis()
+}
+
+impl CacheInvalidator {
+    pub fn new() -> Self {
+        Self {
+            dependencies: HashMap::new(),
+        }
+    }
+
+    pub fn add(&mut self, path: impl Into<PathBuf>) {
+        // let path = path.into();
+        // let modif = get_modif(&path);
+        // self.dependencies.insert(path, modif);
+    }
+
+    pub fn is_outdated(&self) -> bool {
+        self.dependencies.iter().any(|(path, prev_modified)| {
+            let new_modif = get_modif(path);
+            new_modif > *prev_modified
+        })
+    }
+}
+
 struct DomainSpecificData {
     loader: FluentLanguageLoader,
     _assets: FileSystemAssets,
+    cache_invalidator: CacheInvalidator,
 }
 
 #[derive(Default)]
@@ -208,6 +245,10 @@ impl DomainsMap {
             None => None,
             Some(data) => Some(data.clone()),
         }
+    }
+
+    fn insert(&self, domain: String, data: DomainSpecificData) {
+        self.map.write().unwrap().insert(domain, Arc::new(data));
     }
 
     fn entry_or_insert(
@@ -409,10 +450,14 @@ pub fn fl(input: TokenStream) -> TokenStream {
     let domain_data = if let Some(domain_data) = domains().get(&domain) {
         domain_data
     } else {
+        let mut cache_invalidator = CacheInvalidator::new();
+
         let crate_paths = i18n_config::locate_crate_paths()
             .unwrap_or_else(|error| panic!("fl!() is unable to locate crate paths: {}", error));
 
         let config_file_path = &crate_paths.i18n_config_file;
+
+        cache_invalidator.add(config_file_path);
 
         let config = i18n_config::I18nConfig::from_file(config_file_path).unwrap_or_else(|err| {
             abort! {
@@ -440,11 +485,19 @@ pub fn fl(input: TokenStream) -> TokenStream {
         let domain = fluent_config.domain.unwrap_or(domain);
 
         let assets_dir = Path::new(&crate_paths.crate_dir).join(fluent_config.assets_dir);
-        let assets = FileSystemAssets::try_new(assets_dir).unwrap();
+        let assets = FileSystemAssets::try_new(assets_dir.clone()).unwrap();
 
         let fallback_language: LanguageIdentifier = config.fallback_language;
 
         let loader = FluentLanguageLoader::new(&domain, fallback_language.clone());
+
+        let fallback_language_filepath = assets_dir.join(format!(
+            "{}/{}",
+            fallback_language.to_string(),
+            loader.language_file_name()
+        ));
+
+        cache_invalidator.add(fallback_language_filepath);
 
         loader
             .load_languages(&assets, &[fallback_language.clone()])
@@ -478,8 +531,11 @@ pub fn fl(input: TokenStream) -> TokenStream {
         let data = DomainSpecificData {
             loader,
             _assets: assets,
+            cache_invalidator,
         };
 
+        // domains().insert(domain.clone(), data);
+        // domains().get(&domain).unwrap()
         domains().entry_or_insert(&domain, data)
     };
 
@@ -527,7 +583,7 @@ pub fn fl(input: TokenStream) -> TokenStream {
     // Same procedure for attributes
     let mut checked_message_has_attribute = false;
 
-    let gen = match input.args {
+    let generated = match input.args {
         FlArgs::HashMap(args_hash_map) => {
             if attr_lit.is_none() {
                 quote! {
@@ -569,7 +625,7 @@ pub fn fl(input: TokenStream) -> TokenStream {
                         .is_some();
                 }
 
-                let gen = quote! {
+                let generated = quote! {
                     (#fluent_loader).get_args_concrete(
                         #message_id,
                         {
@@ -579,7 +635,7 @@ pub fn fl(input: TokenStream) -> TokenStream {
                         })
                 };
 
-                gen
+                generated
             } else {
                 if let Some(message_id_str) = &message_id_string {
                     if let Some(attr_id_str) = &attr_str {
@@ -598,7 +654,7 @@ pub fn fl(input: TokenStream) -> TokenStream {
                     }
                 }
 
-                let gen = quote! {
+                let generated = quote! {
                     (#fluent_loader).get_attr_args_concrete(
                         #message_id,
                         #attr_lit,
@@ -609,7 +665,7 @@ pub fn fl(input: TokenStream) -> TokenStream {
                         })
                 };
 
-                gen
+                generated
             }
         }
     };
@@ -672,7 +728,7 @@ pub fn fl(input: TokenStream) -> TokenStream {
         }
     }
 
-    gen.into()
+    generated.into()
 }
 
 fn fuzzy_message_suggestions(
