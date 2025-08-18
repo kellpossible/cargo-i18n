@@ -195,9 +195,9 @@ impl CacheInvalidator {
     }
 
     pub fn add(&mut self, path: impl Into<PathBuf>) {
-        // let path = path.into();
-        // let modif = get_modif(&path);
-        // self.dependencies.insert(path, modif);
+        let path = path.into();
+        let modif = get_modif(&path);
+        self.dependencies.insert(path, modif);
     }
 
     pub fn is_outdated(&self) -> bool {
@@ -447,7 +447,9 @@ pub fn fl(input: TokenStream) -> TokenStream {
         )
     };
 
-    let domain_data = if let Some(domain_data) = domains().get(&domain) {
+    let domain_data = if let Some(domain_data) = domains().get(&domain)
+        && !domain_data.cache_invalidator.is_outdated()
+    {
         domain_data
     } else {
         let mut cache_invalidator = CacheInvalidator::new();
@@ -534,9 +536,9 @@ pub fn fl(input: TokenStream) -> TokenStream {
             cache_invalidator,
         };
 
-        // domains().insert(domain.clone(), data);
-        // domains().get(&domain).unwrap()
-        domains().entry_or_insert(&domain, data)
+        domains().insert(domain.clone(), data);
+        domains().get(&domain).unwrap()
+        // domains().entry_or_insert(&domain, data)
     };
 
     let message_id_string = match &message_id {
