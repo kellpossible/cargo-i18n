@@ -233,6 +233,29 @@ mod fluent {
     }
 
     #[test]
+    fn select_languages_get_attr_default_fallback() {
+        setup();
+        let ru: LanguageIdentifier = "ru".parse().unwrap();
+        let en_gb: LanguageIdentifier = "en-GB".parse().unwrap();
+        let en_us: LanguageIdentifier = "en-US".parse().unwrap();
+        let loader = FluentLanguageLoader::new("test", en_us.clone());
+
+        loader
+            .load_languages(&Localizations, &[ru.clone(), en_gb.clone()])
+            .unwrap();
+
+        let msg = loader
+            .select_languages(&[ru.clone()])
+            .get_attr("with-attr", "attr");
+        assert_eq!("World (US version)!", msg);
+
+        let msg = loader
+            .select_languages(&[en_gb])
+            .get_attr("with-attr", "attr");
+        assert_eq!("World!", msg);
+    }
+
+    #[test]
     fn select_languages_get_args_default_fallback() {
         setup();
         let ru: LanguageIdentifier = "ru".parse().unwrap();
