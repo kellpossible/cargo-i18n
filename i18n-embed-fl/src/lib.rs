@@ -6,14 +6,15 @@ use fluent::concurrent::FluentBundle;
 use fluent::{FluentAttribute, FluentMessage, FluentResource};
 use fluent_syntax::ast::{CallArguments, Expression, InlineExpression, Pattern, PatternElement};
 use i18n_embed::{FileSystemAssets, LanguageLoader, fluent::FluentLanguageLoader};
+use i18n_embed::{I18nAssets, Watcher};
 use proc_macro::TokenStream;
 use proc_macro_error3::{abort, emit_error, proc_macro_error};
 use quote::quote;
+use std::sync::LazyLock;
 use std::{collections::HashSet, path::Path, sync::OnceLock};
 
 #[cfg(feature = "dashmap")]
 use dashmap::mapref::one::Ref;
-#[cfg(not(feature = "dashmap"))]
 use std::{
     collections::HashMap,
     sync::{Arc, RwLock},
@@ -172,6 +173,7 @@ impl Parse for FlMacroInput {
 struct DomainSpecificData {
     loader: FluentLanguageLoader,
     _assets: FileSystemAssets,
+    _watcher: Box<dyn Watcher + Send + Sync + 'static>,
 }
 
 #[derive(Default)]
@@ -189,15 +191,13 @@ impl DomainsMap {
         self.map.get(domain)
     }
 
-    fn entry_or_insert(
+    fn insert(
         &self,
-        domain: &str,
+        domain: &String,
         data: DomainSpecificData,
     ) -> Ref<'_, String, DomainSpecificData> {
-        self.map
-            .entry(domain.to_string())
-            .or_insert(data)
-            .downgrade()
+        self.map.insert(domain.clone(), data);
+        self.map.get(domain).unwrap()
     }
 }
 
@@ -207,13 +207,13 @@ impl DomainsMap {
         self.map.read().unwrap().get(domain).map(Clone::clone)
     }
 
-    fn entry_or_insert(&self, domain: &str, data: DomainSpecificData) -> Arc<DomainSpecificData> {
+    fn insert(&self, domain: &String, data: DomainSpecificData) -> Arc<DomainSpecificData> {
         self.map
             .write()
             .unwrap()
-            .entry(domain.to_string())
-            .or_insert(Arc::new(data))
-            .clone()
+            .insert(domain.clone(), Arc::new(data));
+
+        self.map.read().unwrap().get(domain).cloned().unwrap()
     }
 }
 
@@ -399,9 +399,20 @@ pub fn fl(input: TokenStream) -> TokenStream {
         )
     };
 
+    static DOMAIN_OUTDATED_VERIF: LazyLock<RwLock<HashMap<String, bool>>> =
+        LazyLock::new(|| RwLock::new(HashMap::new()));
+
     let domain_data = match domains().get(&domain) {
-        Some(domain_data) => domain_data,
-        None => {
+        Some(domain_data)
+            if DOMAIN_OUTDATED_VERIF
+                .read()
+                .unwrap()
+                .get(&domain)
+                .is_some_and(|b| !*b) =>
+        {
+            domain_data
+        }
+        _ => {
             let crate_paths = i18n_config::locate_crate_paths()
                 .unwrap_or_else(|error| panic!("fl!() is unable to locate crate paths: {}", error));
 
@@ -433,7 +444,24 @@ pub fn fl(input: TokenStream) -> TokenStream {
             let domain = fluent_config.domain.unwrap_or(domain);
 
             let assets_dir = Path::new(&crate_paths.crate_dir).join(fluent_config.assets_dir);
-            let assets = FileSystemAssets::try_new(assets_dir).unwrap();
+            let assets = FileSystemAssets::try_new(assets_dir)
+                .unwrap()
+                .notify_changes_enabled(true);
+
+            DOMAIN_OUTDATED_VERIF
+                .write()
+                .unwrap()
+                .insert(domain.clone(), false);
+
+            let domain_clone = domain.clone();
+            let watcher = assets
+                .subscribe_changed(Arc::new(move || {
+                    DOMAIN_OUTDATED_VERIF
+                        .write()
+                        .unwrap()
+                        .insert(domain_clone.clone(), true);
+                }))
+                .unwrap();
 
             let fallback_language: LanguageIdentifier = config.fallback_language;
 
@@ -471,9 +499,10 @@ pub fn fl(input: TokenStream) -> TokenStream {
             let data = DomainSpecificData {
                 loader,
                 _assets: assets,
+                _watcher: watcher,
             };
 
-            domains().entry_or_insert(&domain, data)
+            domains().insert(&domain, data)
         }
     };
 
