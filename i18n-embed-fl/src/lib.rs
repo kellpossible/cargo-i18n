@@ -1,10 +1,12 @@
 use fluent::concurrent::FluentBundle;
 use fluent::{FluentAttribute, FluentMessage, FluentResource};
 use fluent_syntax::ast::{CallArguments, Expression, InlineExpression, Pattern, PatternElement};
-use i18n_embed::{fluent::FluentLanguageLoader, FileSystemAssets, LanguageLoader};
+use i18n_embed::{I18nAssets, Watcher};
+use i18n_embed::{FileSystemAssets, LanguageLoader, fluent::FluentLanguageLoader};
 use proc_macro::TokenStream;
 use proc_macro_error2::{abort, emit_error, proc_macro_error};
 use quote::quote;
+use std::sync::LazyLock;
 use std::{
     collections::{HashMap, HashSet},
     path::Path,
@@ -97,7 +99,7 @@ impl Parse for FlArgs {
                         return Err(syn::Error::new(
                             expr.left.span(),
                             "fl!() unable to parse argument identifier",
-                        ))
+                        ));
                     }
                 }
                 .clone();
@@ -175,6 +177,7 @@ impl Parse for FlMacroInput {
 struct DomainSpecificData {
     loader: FluentLanguageLoader,
     _assets: FileSystemAssets,
+    _watcher: Box<dyn Watcher + Send + Sync + 'static>,
 }
 
 #[derive(Default)]
@@ -221,6 +224,15 @@ impl DomainsMap {
             .entry(domain.clone())
             .or_insert(Arc::new(data))
             .clone()
+    }
+
+    fn insert(&self, domain: &String, data: DomainSpecificData) -> Arc<DomainSpecificData> {
+        self.map
+            .write()
+            .unwrap()
+            .insert(domain.clone(), Arc::new(data));
+
+        self.map.read().unwrap().get(domain).cloned().unwrap()
     }
 }
 
@@ -406,7 +418,16 @@ pub fn fl(input: TokenStream) -> TokenStream {
         )
     };
 
-    let domain_data = if let Some(domain_data) = domains().get(&domain) {
+    static DOMAIN_OUTDATED_VERIF: LazyLock<RwLock<HashMap<String, bool>>> =
+        LazyLock::new(|| RwLock::new(HashMap::new()));
+
+    let domain_data = if let Some(domain_data) = domains().get(&domain)
+        && DOMAIN_OUTDATED_VERIF
+            .read()
+            .unwrap()
+            .get(&domain)
+            .is_some_and(|b| !*b)
+    {
         domain_data
     } else {
         let crate_paths = i18n_config::locate_crate_paths()
@@ -440,7 +461,24 @@ pub fn fl(input: TokenStream) -> TokenStream {
         let domain = fluent_config.domain.unwrap_or(domain);
 
         let assets_dir = Path::new(&crate_paths.crate_dir).join(fluent_config.assets_dir);
-        let assets = FileSystemAssets::try_new(assets_dir).unwrap();
+        let assets = FileSystemAssets::try_new(assets_dir)
+            .unwrap()
+            .notify_changes_enabled(true);
+
+        DOMAIN_OUTDATED_VERIF
+            .write()
+            .unwrap()
+            .insert(domain.clone(), false);
+
+        let domain_clone = domain.clone();
+        let watcher = assets
+            .subscribe_changed(Arc::new(move || {
+                DOMAIN_OUTDATED_VERIF
+                    .write()
+                    .unwrap()
+                    .insert(domain_clone.clone(), true);
+            }))
+            .unwrap();
 
         let fallback_language: LanguageIdentifier = config.fallback_language;
 
@@ -478,9 +516,10 @@ pub fn fl(input: TokenStream) -> TokenStream {
         let data = DomainSpecificData {
             loader,
             _assets: assets,
+            _watcher: watcher,
         };
 
-        domains().entry_or_insert(&domain, data)
+        domains().insert(&domain, data)
     };
 
     let message_id_string = match &message_id {
@@ -527,7 +566,7 @@ pub fn fl(input: TokenStream) -> TokenStream {
     // Same procedure for attributes
     let mut checked_message_has_attribute = false;
 
-    let gen = match input.args {
+    let generated = match input.args {
         FlArgs::HashMap(args_hash_map) => {
             if attr_lit.is_none() {
                 quote! {
@@ -569,7 +608,7 @@ pub fn fl(input: TokenStream) -> TokenStream {
                         .is_some();
                 }
 
-                let gen = quote! {
+                let generated = quote! {
                     (#fluent_loader).get_args_concrete(
                         #message_id,
                         {
@@ -579,7 +618,7 @@ pub fn fl(input: TokenStream) -> TokenStream {
                         })
                 };
 
-                gen
+                generated
             } else {
                 if let Some(message_id_str) = &message_id_string {
                     if let Some(attr_id_str) = &attr_str {
@@ -598,7 +637,7 @@ pub fn fl(input: TokenStream) -> TokenStream {
                     }
                 }
 
-                let gen = quote! {
+                let generated = quote! {
                     (#fluent_loader).get_attr_args_concrete(
                         #message_id,
                         #attr_lit,
@@ -609,7 +648,7 @@ pub fn fl(input: TokenStream) -> TokenStream {
                         })
                 };
 
-                gen
+                generated
             }
         }
     };
@@ -672,7 +711,7 @@ pub fn fl(input: TokenStream) -> TokenStream {
         }
     }
 
-    gen.into()
+    generated.into()
 }
 
 fn fuzzy_message_suggestions(

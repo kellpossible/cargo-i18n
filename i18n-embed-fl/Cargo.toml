@@ -4,7 +4,7 @@ description = "Macro to perform compile time checks when using the i18n-embed cr
 categories = ["localization", "internationalization", "development-tools"]
 version = "0.10.0"
 authors = ["Luke Frisken <l.frisken@gmail.com>"]
-edition = "2018"
+edition = "2024"
 license = "MIT"
 repository = "https://github.com/kellpossible/cargo-i18n/tree/master/i18n-embed-fl"
 
@@ -17,7 +17,7 @@ find-crate = { workspace = true }
 fluent = { workspace = true }
 fluent-syntax = { workspace = true }
 i18n-config = { workspace = true }
-i18n-embed = { workspace = true, features = ["fluent-system", "filesystem-assets"]}
+i18n-embed = { workspace = true, features = ["fluent-system", "filesystem-assets", "autoreload"]}
 proc-macro2 = { workspace = true }
 proc-macro-error2 = "2.0.1"
 quote = { workspace = true }
