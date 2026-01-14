@@ -40,7 +40,7 @@ where
             .collect()
     }
 
-    fn filenames_iter(&self) -> Box<dyn Iterator<Item = String>> {
+    fn filenames_iter(&self) -> Box<dyn Iterator<Item = String> + '_> {
         Box::new(Self::iter().map(|filename| filename.to_string()))
     }
 
@@ -88,7 +88,7 @@ where
             .collect()
     }
 
-    fn filenames_iter(&self) -> Box<dyn Iterator<Item = String>> {
+    fn filenames_iter(&self) -> Box<dyn Iterator<Item = String> + '_> {
         Box::new(T::iter().map(|filename| filename.to_string()))
     }
 
