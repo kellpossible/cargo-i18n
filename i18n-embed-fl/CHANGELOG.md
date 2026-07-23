@@ -1,5 +1,11 @@
 # Changelog for `i18n-embed-fl`
 
+## v0.10.1
+
+### Fixes
+
++ Switch from `proc-macro-error2` to `proc-macro-error3`. Fixes [#172](https://github.com/kellpossible/cargo-i18n/issues/172). Thanks to [@pedromvgomes](https://github.com/pedromvgomes)!
+
 ## v0.10.0
 
 ### Dependencies
