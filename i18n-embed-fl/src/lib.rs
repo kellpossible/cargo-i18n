@@ -3,7 +3,7 @@ use fluent::{FluentAttribute, FluentMessage, FluentResource};
 use fluent_syntax::ast::{CallArguments, Expression, InlineExpression, Pattern, PatternElement};
 use i18n_embed::{fluent::FluentLanguageLoader, FileSystemAssets, LanguageLoader};
 use proc_macro::TokenStream;
-use proc_macro_error2::{abort, emit_error, proc_macro_error};
+use proc_macro_error3::{abort, emit_error, proc_macro_error};
 use quote::quote;
 use std::{
     collections::{HashMap, HashSet},

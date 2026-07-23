@@ -19,7 +19,7 @@ fluent-syntax = { workspace = true }
 i18n-config = { workspace = true }
 i18n-embed = { workspace = true, features = ["fluent-system", "filesystem-assets"]}
 proc-macro2 = { workspace = true }
-proc-macro-error2 = "2.0.1"
+proc-macro-error3 = "3.0"
 quote = { workspace = true }
 strsim = "0.11"
 unic-langid = { workspace = true }
