@@ -1,7 +1,7 @@
 use anyhow::Result;
 use clap::{builder::PossibleValuesParser, crate_authors, crate_version, Arg, Command};
 use i18n_build::run;
-use i18n_config::Crate;
+use i18n_config::{Crate, I18nCargoMetadata};
 use i18n_embed::{
     gettext::{gettext_language_loader, GettextLanguageLoader},
     DefaultLocalizer, DesktopLanguageRequester, LanguageLoader, LanguageRequester, Localizer,
@@ -126,7 +126,6 @@ fn main() -> Result<()> {
                 .long("config-file-name")
                 .short('c')
                 .num_args(1)
-                .default_value("i18n.toml")
             )
             .arg(Arg::new("language")
                 .help(
@@ -145,9 +144,24 @@ fn main() -> Result<()> {
         .get_matches();
 
     if let Some(i18n_matches) = matches.subcommand_matches("i18n") {
-        let config_file_name: &String = i18n_matches
-            .get_one("config-file-name")
-            .expect("expected a default config file name to be present");
+        let config_file_name: Option<&String> = i18n_matches.get_one("config-file-name");
+
+        // Attempt to read the package.metadata.cargo-i18n.config-path entry in the cargo manifest.
+        // If it is not found, we then fall back to the default i18n.toml.
+        let cargo_metadata = I18nCargoMetadata::from_cargo_manifest("./Cargo.toml");
+        let cargo_config_file_name = cargo_metadata.ok().and_then(|m| m.config_path);
+
+        if cargo_config_file_name.is_some() && config_file_name.is_some() {
+            log::warn!("Config file name specified in CLI arguments and Cargo metadata. Ignoring argument and continuing.");
+        }
+
+        let config_file_path = Path::new(
+            config_file_name
+                .or(cargo_config_file_name.as_ref())
+                .map(String::as_str)
+                .unwrap_or("i18n.toml"),
+        )
+        .to_path_buf();
 
         let language: &String = i18n_matches
             .get_one("language")
@@ -161,8 +175,6 @@ fn main() -> Result<()> {
             .get_one::<PathBuf>("path")
             .map(ToOwned::to_owned)
             .unwrap_or_else(|| PathBuf::from("."));
-
-        let config_file_path = Path::new(config_file_name).to_path_buf();
 
         i18n_build::util::check_path_exists(&path)?;
         i18n_build::util::check_path_exists(path.join(&config_file_path))?;

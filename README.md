@@ -63,7 +63,9 @@ fn example(file: String) {
 
 ### Minimal Configuration
 
-You will need to create an `i18n.toml` configuration in the root directory of your crate. A minimal configuration for a binary crate to be localized to Spanish and Japanese using the `gettext` system would be:
+You will need to create an `i18n.toml` configuration. By default this is in the root directory of your crate, but it can be [configured](#configuration) to use another location.
+
+A minimal configuration for a binary crate to be localized to Spanish and Japanese using the `gettext` system would be:
 
 ```toml
 # (Required) The language identifier of the language used in the
@@ -246,6 +248,15 @@ use_fuzzy = false
 # The paths inside the assets directory should be structured like so:
 # `assets_dir/{language}/{domain}.ftl`
 assets_dir = "i18n"
+```
+
+Available configuration options for `Cargo.toml`:
+
+```toml
+[package.metadata.cargo-i18n]
+# (Optional) The path to the i18n configuration file used by cargo-i18n and i18n-embed.
+# The path is relative to the crate root.
+config-path = "i18n.toml"
 ```
 
 ## System Requirements

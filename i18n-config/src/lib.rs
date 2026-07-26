@@ -8,7 +8,8 @@ mod gettext;
 pub use fluent::FluentConfig;
 pub use gettext::GettextConfig;
 
-use std::fs::read_to_string;
+use std::error::Error;
+use std::fs::{self, read_to_string};
 use std::io;
 use std::{
     fmt::Display,
@@ -39,7 +40,7 @@ pub enum I18nConfigError {
     #[error("Cannot parse Cargo configuration file {0:?} because {1}.")]
     CannotParseCargoToml(PathBuf, String),
     #[error("Cannot deserialize toml file {0:?} because {1}.")]
-    CannotDeserializeToml(PathBuf, basic_toml::Error),
+    CannotDeserializeToml(PathBuf, toml::de::Error),
     #[error("Cannot parse i18n configuration file {0:?} because {1}.")]
     CannotPaseI18nToml(PathBuf, String),
     #[error("There is no i18n configuration file present for the crate {0}.")]
@@ -66,6 +67,13 @@ struct RawCrate {
 struct RawPackage {
     name: String,
     version: String,
+    metadata: Option<RawMetadata>,
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "kebab-case")]
+struct RawMetadata {
+    cargo_i18n: Option<I18nCargoMetadata>,
 }
 
 /// Represents a rust crate.
@@ -111,7 +119,7 @@ impl<'a> Crate<'a> {
             I18nConfigError::CannotReadFile(cargo_path.clone(), std::env::current_dir(), err)
         })?;
 
-        let cargo_toml: RawCrate = basic_toml::from_str(&toml_str)
+        let cargo_toml: RawCrate = toml::from_str(&toml_str)
             .map_err(|err| I18nConfigError::CannotDeserializeToml(cargo_path.clone(), err))?;
 
         let full_config_file_path = path_into.join(&config_file_path_into);
@@ -245,30 +253,45 @@ impl<'a> Crate<'a> {
             .ok()
             .unwrap_or(None)
         {
-            Some(parent_path) => match Crate::from(parent_path, None, "i18n.toml") {
-                Ok(parent_crate) => {
-                    debug!("Found parent ({0}) of {1}.", parent_crate, self);
-                    Some(parent_crate)
-                }
-                Err(err) => {
-                    match err {
-                        I18nConfigError::NotACrate(path, WhyNotCrate::Workspace) => {
-                            debug!("The parent of {0} at path {1:?} is a workspace", self, path);
-                        }
-                        I18nConfigError::NotACrate(path, WhyNotCrate::NoCargoToml) => {
-                            debug!("The parent of {0} at path {1:?} is not a valid crate with a Cargo.toml", self, path);
-                        }
-                        _ => {
-                            error!(
-                                "Error occurred while attempting to resolve parent of {0}: {1}",
-                                self, err
-                            );
-                        }
-                    }
+            Some(parent_path) => {
+                // Attempt to load the custom config file specified in the parent crate's metadata.
+                // If there is none, fall back to the default i18n.toml
+                let parent_metadata =
+                    I18nCargoMetadata::from_cargo_manifest(parent_path.join("Cargo.toml"));
+                let config_file_name = parent_metadata
+                    .ok()
+                    .and_then(|m| m.config_path)
+                    .map(|cfg| parent_path.join(cfg))
+                    .unwrap_or(PathBuf::from("i18n.toml"));
 
-                    None
+                match Crate::from(parent_path, None, config_file_name) {
+                    Ok(parent_crate) => {
+                        debug!("Found parent ({0}) of {1}.", parent_crate, self);
+                        Some(parent_crate)
+                    }
+                    Err(err) => {
+                        match err {
+                            I18nConfigError::NotACrate(path, WhyNotCrate::Workspace) => {
+                                debug!(
+                                    "The parent of {0} at path {1:?} is a workspace",
+                                    self, path
+                                );
+                            }
+                            I18nConfigError::NotACrate(path, WhyNotCrate::NoCargoToml) => {
+                                debug!("The parent of {0} at path {1:?} is not a valid crate with a Cargo.toml", self, path);
+                            }
+                            _ => {
+                                error!(
+                                    "Error occurred while attempting to resolve parent of {0}: {1}",
+                                    self, err
+                                );
+                            }
+                        }
+
+                        None
+                    }
                 }
-            },
+            }
             None => None,
         };
 
@@ -361,11 +384,99 @@ impl I18nConfig {
                 err,
             )
         })?;
-        let config: I18nConfig = basic_toml::from_str(toml_str.as_ref()).map_err(|err| {
+        let config: I18nConfig = toml::from_str(toml_str.as_ref()).map_err(|err| {
             I18nConfigError::CannotDeserializeToml(toml_path_final.to_path_buf(), err)
         })?;
 
         Ok(config)
+    }
+}
+
+/// Extra cargo-i18n configuration values stored in a crate's cargo manifest.
+///
+/// # Example
+///
+/// ```toml
+/// [package]
+/// name = "Example Package"
+/// # ...
+///
+/// [package.metadata.cargo-i18n]
+/// config-path = "misc/i18n.toml"
+/// ```
+#[derive(Deserialize, Debug, Clone)]
+#[serde(deny_unknown_fields)]
+#[serde(rename_all = "kebab-case")]
+pub struct I18nCargoMetadata {
+    /// A path to the i18n config for the crate, relative to the crate root.
+    pub config_path: Option<String>,
+}
+
+/// An error encountered while attempting to read the cargo-i18n metadata from a cargo manifest.
+#[non_exhaustive]
+#[derive(Debug)]
+pub enum I18nCargoMetadataError {
+    /// There is either no cargo manifest at the given path, or it could not be opened.
+    ManifestNotFound(PathBuf),
+    /// The given manifest was invalid TOML or not a Rust crate.
+    InvalidManifest(PathBuf, toml::de::Error),
+    /// The given manifest had no `[package.metadata.cargo-i18n]` section.
+    NoMetadata(PathBuf),
+}
+
+impl Display for I18nCargoMetadataError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::InvalidManifest(path, _) => {
+                write!(f, "file at {} is not valid TOML", path.to_string_lossy())
+            }
+            Self::ManifestNotFound(path) => {
+                write!(f, "cargo manifest not found at {}", path.to_string_lossy())
+            }
+            Self::NoMetadata(path) => {
+                write!(
+                    f,
+                    "cargo manifest at {} has no [package.metadata.cargo-i18n] section",
+                    path.to_string_lossy()
+                )
+            }
+        }
+    }
+}
+
+impl Error for I18nCargoMetadataError {
+    fn source(&self) -> Option<&(dyn Error + 'static)> {
+        match self {
+            Self::InvalidManifest(_, err) => Some(err),
+            _ => None,
+        }
+    }
+}
+
+impl I18nCargoMetadata {
+    /// Parses the cargo-i18n metadata from a Cargo manifest at the given path.
+    ///
+    /// ```
+    /// # use i18n_config::{I18nCargoMetadata, I18nCargoMetadataError};
+    /// # fn metadata_test() {
+    /// let metadata = I18nCargoMetadata::from_cargo_manifest("./Cargo.toml");
+    /// assert!(matches!(metadata, Err(I18nCargoMetadataError::NoMetadata(_))), "The i18n-config crate has no package.metadata.cargo-i18n section");
+    /// # }
+    /// ```
+    pub fn from_cargo_manifest(
+        manifest_path: impl AsRef<Path>,
+    ) -> Result<Self, I18nCargoMetadataError> {
+        let manifest_path = manifest_path.as_ref().to_path_buf();
+        let cargo_manifest_str = fs::read_to_string(&manifest_path)
+            .map_err(|_| I18nCargoMetadataError::ManifestNotFound(manifest_path.clone()))?;
+        let cargo_manifest_data = toml::from_str::<RawCrate>(&cargo_manifest_str)
+            .map_err(|e| I18nCargoMetadataError::InvalidManifest(manifest_path.clone(), e))?;
+
+        cargo_manifest_data
+            .package
+            .metadata
+            .and_then(|metadata| metadata.cargo_i18n)
+            .ok_or(I18nCargoMetadataError::NoMetadata(manifest_path.clone()))
     }
 }
 
@@ -387,7 +498,15 @@ pub fn locate_crate_paths() -> Result<CratePaths, I18nConfigError> {
             .ok_or(I18nConfigError::CannotReadCargoManifestDir)?,
     )
     .to_path_buf();
-    let i18n_config_file = crate_dir.join("i18n.toml");
+
+    // Load the cargo metadata entry if possible, or fall back to default behaviour.
+    let i18n_manifest_metadata =
+        I18nCargoMetadata::from_cargo_manifest(crate_dir.join("Cargo.toml"));
+    let i18n_config_file = i18n_manifest_metadata
+        .ok()
+        .and_then(|v| v.config_path.clone())
+        .map(|cfg| crate_dir.join(cfg))
+        .unwrap_or_else(|| crate_dir.join("i18n.toml"));
 
     Ok(CratePaths {
         crate_dir,

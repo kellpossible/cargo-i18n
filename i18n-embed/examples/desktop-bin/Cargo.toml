@@ -6,7 +6,13 @@ edition = "2018"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[features]
+default = ["standard_config"]
+standard_config = ["dep:library-fluent"]
+nonstandard_config = ["dep:custom-config-path"]
+
 [dependencies]
-library-fluent = { path = "../library-fluent/" }
+library-fluent = { path = "../library-fluent/", optional = true }
+custom-config-path = { path = "../custom-config-path", optional = true }
 i18n-embed = { workspace = true, features = ["fluent-system", "desktop-requester"]}
 env_logger = "0.11.3"
