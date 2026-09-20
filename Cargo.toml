@@ -33,6 +33,10 @@ doc-comment = { workspace = true }
 
 [workspace]
 
+exclude = [
+    "examples"
+]
+
 members = [
     "i18n-build",
     "i18n-config",
