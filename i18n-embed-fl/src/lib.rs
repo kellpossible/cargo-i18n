@@ -540,11 +540,36 @@ pub fn fl(input: TokenStream) -> TokenStream {
             }
         }
         FlArgs::None => {
+            let empty_args: Vec<(syn::LitStr, Box<syn::Expr>)> = Vec::new();
             if attr_lit.is_none() {
+                if let Some(message_id_str) = &message_id_string {
+                    checked_loader_has_message = domain_data
+                        .loader
+                        .with_fluent_message_and_bundle(message_id_str, |message, bundle| {
+                            check_message_args(message, bundle, &empty_args);
+                        })
+                        .is_some();
+                }
                 quote! {
                     (#fluent_loader).get(#message_id)
                 }
             } else {
+                if let Some(message_id_str) = &message_id_string {
+                    if let Some(attr_id_str) = &attr_str {
+                        let attr_res = domain_data.loader.with_fluent_message_and_bundle(
+                            message_id_str,
+                            |message, bundle| match message.get_attribute(attr_id_str) {
+                                Some(attr) => {
+                                    check_attribute_args(attr, bundle, &empty_args);
+                                    true
+                                }
+                                None => false,
+                            },
+                        );
+                        checked_loader_has_message = attr_res.is_some();
+                        checked_message_has_attribute = attr_res.unwrap_or(false);
+                    }
+                }
                 quote! {
                     (#fluent_loader).get_attr(#message_id, #attr_lit)
                 }
