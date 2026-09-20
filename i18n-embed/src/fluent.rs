@@ -153,6 +153,7 @@ impl FluentLanguageLoader {
     ) -> String {
         let inner = self.inner.load();
         let language_config = inner.language_config.read();
+
         inner
             .current_languages
             .indices
@@ -170,7 +171,7 @@ impl FluentLanguageLoader {
                         log::error!(
                             target:"i18n_embed::fluent",
                             "Failed to format a message for language \"{}\" and id \"{}\".\nErrors\n{:?}.",
-                            inner.current_languages.languages.first().unwrap_or(&self.fallback_language), message_id, errors
+                            self.current_language_impl(&inner), message_id, errors
                         )
                     }
                     value.into()
@@ -180,7 +181,7 @@ impl FluentLanguageLoader {
                 log::error!(
                     target:"i18n_embed::fluent",
                     "Unable to find localization for language \"{}\" and id \"{}\".",
-                    inner.current_languages.languages.first().unwrap_or(&self.fallback_language),
+                    self.current_language_impl(&inner),
                     message_id
                 );
                 format!("No localization for id: \"{}\"", message_id)
@@ -226,9 +227,12 @@ impl FluentLanguageLoader {
     ) -> String {
         let inner = self.inner.load();
         let language_config = inner.language_config.read();
-        let current_language = self.current_language_impl(&inner);
 
-        language_config.language_bundles.iter()
+        inner
+            .current_languages
+            .indices
+            .iter()
+            .map(|&idx| &language_config.language_bundles[idx])
             .flat_map(|language_bundles| language_bundles.iter())
             .find_map(|language_bundle| {
             language_bundle
@@ -247,7 +251,7 @@ impl FluentLanguageLoader {
                         log::error!(
                             target:"i18n_embed::fluent",
                             "Failed to format a message for language \"{}\" and id \"{}\".\nErrors\n{:?}.",
-                            current_language, message_id, errors
+                            self.current_language_impl(&inner), message_id, errors
                         )
                     }
                     value.into()
@@ -257,7 +261,7 @@ impl FluentLanguageLoader {
             log::error!(
                 target:"i18n_embed::fluent",
                 "Unable to find localization for language \"{}\", message id \"{}\" and attribute id \"{}\".",
-                current_language,
+                self.current_language_impl(&inner),
                 message_id,
                 attribute_id
             );
