@@ -43,6 +43,8 @@ jobs:
           run: taplo fmt --check
         - name: Check for unused dependencies
           run: cargo shear --deny-warnings
+        - name: Spell Check Repo
+          uses: crate-ci/typos@v1
 
   clippy:
     name: Clippy

@@ -17,7 +17,7 @@ use tr::tr;
 use walkdir::WalkDir;
 
 /// Run the `xtr` command (<https://crates.io/crates/xtr/>) in order
-/// to extract the translateable strings from the crate.
+/// to extract the translatable strings from the crate.
 ///
 /// `src_dir` is the directory where the Rust source code is located
 /// relative to the crate path.
