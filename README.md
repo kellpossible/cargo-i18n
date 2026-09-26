@@ -3,7 +3,6 @@
 [![crates.io badge](https://img.shields.io/crates/v/cargo-i18n.svg)](https://crates.io/crates/cargo-i18n)
 ![rust version badge](https://img.shields.io/badge/rustc-1.85.1+-blue.svg)
 [![license badge](https://img.shields.io/github/license/kellpossible/cargo-i18n)](https://github.com/kellpossible/cargo-i18n/blob/master/LICENSE)
-[![dependency status badge](https://deps.rs/repo/github/kellpossible/cargo-i18n/status.svg)](https://deps.rs/repo/github/kellpossible/cargo-i18n)
 [![github actions badge](https://github.com/kellpossible/cargo-i18n/actions/workflows/rust.yml/badge.svg?branch=master)](https://github.com/kellpossible/cargo-i18n/actions/workflows/rust.yml?branch=master)
 [![changelog badge](https://img.shields.io/badge/Changelog-8A2BE2)](https://github.com/kellpossible/cargo-i18n/releases)
 
