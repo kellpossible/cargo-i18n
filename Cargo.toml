@@ -1,6 +1,11 @@
 [package]
 authors = ["Luke Frisken <l.frisken@gmail.com>"]
-categories = ["development-tools::cargo-plugins", "localization", "internationalization", "development-tools::build-utils"]
+categories = [
+    "development-tools::cargo-plugins",
+    "localization",
+    "internationalization",
+    "development-tools::build-utils",
+]
 description = "Cargo sub-command to extract and build localization resources to embed in your application/library"
 edition = "2018"
 keywords = ["cargo", "build", "i18n", "gettext", "locale"]
@@ -13,20 +18,22 @@ version = "0.2.13"
 [badges]
 maintenance = { status = "actively-developed" }
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [dependencies]
-i18n-embed = { workspace = true, features = ["desktop-requester", "gettext-system", "fluent-system"] }
+anyhow = { workspace = true }
+clap = { version = "4.4.5", features = ["cargo"] }
+env_logger = { workspace = true }
+gettext = { workspace = true }
 i18n-build = { workspace = true, features = ["localize"] }
 i18n-config = { workspace = true }
-anyhow = { workspace = true }
-gettext = { workspace = true }
-tr = { workspace = true, features = ["gettext"] }
-clap = { version = "4.4.5", features = ["cargo"] }
-rust-embed = { workspace = true } 
-unic-langid = { workspace = true }
-env_logger = { workspace = true }
+i18n-embed = { workspace = true, features = [
+    "desktop-requester",
+    "gettext-system",
+    "fluent-system",
+] }
 log = { workspace = true }
+rust-embed = { workspace = true }
+tr = { workspace = true, features = ["gettext"] }
+unic-langid = { workspace = true }
 
 [dev-dependencies]
 doc-comment = { workspace = true }
@@ -47,29 +54,29 @@ members = [
 ]
 
 [workspace.dependencies]
-rust-embed = "8.0"
-i18n-build = { version = "0.10.0", path = "./i18n-build" }
-i18n-embed = { version = "0.16.0", path = "./i18n-embed" }
-i18n-embed-impl = { version = "0.8.4", path = "./i18n-embed/i18n-embed-impl" }
-i18n-config = { version = "0.4.7", path = "./i18n-config" }
-i18n-embed-fl = { version = "0.10.0", path = "./i18n-embed-fl" }
-thiserror = "1.0"
-log = "0.4"
-unic-langid = "0.9"
 anyhow = "1.0"
-gettext = "0.4"
-tr = "0.1"
 doc-comment = "0.3"
 env_logger = "0.11"
+find-crate = "0.7"
 fluent = "0.17"
-fluent-syntax = "0.12"
 fluent-langneg = "0.13"
+fluent-syntax = "0.12"
+gettext = "0.4"
+i18n-build = { version = "0.10.0", path = "./i18n-build" }
+i18n-config = { version = "0.4.7", path = "./i18n-config" }
+i18n-embed = { version = "0.16.0", path = "./i18n-embed" }
+i18n-embed-fl = { version = "0.10.0", path = "./i18n-embed-fl" }
+i18n-embed-impl = { version = "0.8.4", path = "./i18n-embed/i18n-embed-impl" }
+log = "0.4"
+once_cell = "1.18"
+pretty_assertions = "1.4"
 proc-macro2 = "1.0"
 quote = "1.0"
-find-crate = "0.7"
-syn = "2.0"
-pretty_assertions = "1.4"
-walkdir = "2.4"
+rust-embed = "8.0"
 serde = "1.0"
 serde_derive = "1.0"
-once_cell = "1.18"
+syn = "2.0"
+thiserror = "1.0"
+tr = "0.1"
+unic-langid = "0.9"
+walkdir = "2.4"

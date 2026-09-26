@@ -1,6 +1,10 @@
 [package]
 authors = ["Luke Frisken <l.frisken@gmail.com>"]
-categories = ["localization", "internationalization", "development-tools::build-utils"]
+categories = [
+    "localization",
+    "internationalization",
+    "development-tools::build-utils",
+]
 description = "Designed for use within the cargo-i18n tool for localizing crates. It has been published to allow its direct use within project build scripts if required."
 edition = "2018"
 keywords = ["script", "build", "i18n", "gettext", "locale"]
@@ -19,19 +23,22 @@ all-features = true
 maintenance = { status = "actively-developed" }
 
 [dependencies]
-subprocess = "0.2"
 anyhow = { workspace = true }
-thiserror = { workspace = true } 
-tr = { workspace = true, default-features = false, features = ["gettext"] }
-walkdir = { workspace = true }
-i18n-embed = { workspace = true, features = ["gettext-system", "desktop-requester"], optional = true }
-i18n-config = { workspace = true }
 gettext = { workspace = true, optional = true }
+i18n-config = { workspace = true }
+i18n-embed = { workspace = true, features = [
+    "gettext-system",
+    "desktop-requester",
+], optional = true }
 log = { workspace = true }
 rust-embed = { workspace = true }
+subprocess = "0.2"
+thiserror = { workspace = true }
+tr = { workspace = true, default-features = false, features = ["gettext"] }
+walkdir = { workspace = true }
 
 [features]
 default = []
 
 # A feature to localize this library
-localize = ["i18n-embed", "gettext"]
+localize = ["dep:i18n-embed", "dep:gettext"]

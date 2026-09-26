@@ -1,9 +1,9 @@
 [package]
 authors = ["Luke Frisken <l.frisken@gmail.com>"]
+categories = ["localization", "internationalization"]
 description = "Macro implementations for i18n-embed"
 edition = "2018"
 keywords = ["build", "i18n", "gettext", "locale", "fluent"]
-categories = ["localization", "internationalization"]
 license = "MIT"
 name = "i18n-embed-impl"
 readme = "../README.md"
@@ -26,11 +26,11 @@ quote = { workspace = true, optional = true }
 rust-embed = { workspace = true }
 
 [dependencies.syn]
-workspace = true
 default-features = false
-features = ["derive", "proc-macro", "parsing", "printing", "extra-traits",]
+features = ["derive", "proc-macro", "parsing", "printing", "extra-traits"]
+workspace = true
 
 [features]
 default = []
-gettext-system = ["i18n-config", "find-crate", "quote"]
-fluent-system = ["i18n-config", "find-crate", "quote"]
+fluent-system = ["dep:i18n-config", "dep:find-crate", "dep:quote"]
+gettext-system = ["dep:i18n-config", "dep:find-crate", "dep:quote"]
