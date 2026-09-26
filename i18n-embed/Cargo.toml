@@ -41,10 +41,9 @@ thiserror.workspace = true
 tr = { workspace = true, optional = true }
 unic-langid.workspace = true
 walkdir = { workspace = true, optional = true }
-web-sys = { version = "0.3", features = [
-  "Window",
-  "Navigator",
-], optional = true }
+
+[target.'cfg(all(target_family = "wasm", not(unix)))'.dependencies]
+sys-locale = { workspace = true, features = ["js"] }
 
 [dev-dependencies]
 env_logger.workspace = true
@@ -71,8 +70,7 @@ gettext-system = [
   "i18n-embed-impl/gettext-system",
 ]
 
-desktop-requester = ["dep:sys-locale"]
-web-sys-requester = ["dep:web-sys"]
+system-requester = ["dep:sys-locale"]
 
 filesystem-assets = ["dep:walkdir"]
 

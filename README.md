@@ -121,7 +121,7 @@ i18n-embed = "VERSION"
 A minimal example for how to embed the compiled translations into your application could be:
 
 ```rust
-use i18n_embed::{DesktopLanguageRequester,
+use i18n_embed::{SystemLanguageRequester,
     gettext::gettext_language_loader};
 use rust_embed::RustEmbed;
 
@@ -133,10 +133,9 @@ fn main() {
     let translations = Translations {};
     let language_loader = gettext_language_loader!();
 
-    // Use the language requester for the desktop platform (linux, windows, mac).
-    // There is also a requester available for the web-sys WASM platform called
-    // WebLanguageRequester, or you can implement your own.
-    let requested_languages = DesktopLanguageRequester::requested_languages();
+    // Use the default system language via SystemLanguageRequester.
+    // You can also implement your own language requester.
+    let requested_languages = SystemLanguageRequester::requested_languages();
 
     i18n_embed::select(&language_loader, &translations, &requested_languages);
 

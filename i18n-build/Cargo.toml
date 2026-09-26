@@ -27,7 +27,7 @@ anyhow.workspace = true
 i18n-config.workspace = true
 i18n-embed = { workspace = true, features = [
   "gettext-system",
-  "desktop-requester",
+  "system-requester",
 ], optional = true }
 log.workspace = true
 rust-embed = { workspace = true, optional = true }

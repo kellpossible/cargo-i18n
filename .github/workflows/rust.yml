@@ -82,6 +82,10 @@ jobs:
           cargo all-features clippy --all-targets -- -Dwarnings
 
   msrv:
+    strategy:
+      fail-fast: false
+      matrix:
+        target: [x86_64-unknown-linux-gnu, wasm32-unknown-unknown]
     name: Check MSRV
     runs-on: ubuntu-latest
     steps:
@@ -91,7 +95,7 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
       - uses: taiki-e/install-action@cargo-msrv
       - name: Run cargo-msrv
-        run: cargo msrv verify
+        run: cargo msrv verify --target ${{ matrix.target }} --all-features --min 1.85
   doc:
     name: Generate docs
     runs-on: ubuntu-latest

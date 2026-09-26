@@ -34,10 +34,8 @@ The `i18n-embed` crate has the following optional Cargo features:
   - Enables support for the [fluent](https://www.projectfluent.org/) localization system via [`FluentLanguageLoader`](fluent::FluentLanguageLoader).
 - `gettext-system`
   - Enables support for the [gettext](https://www.gnu.org/software/gettext/) localization system using the [tr macro](https://docs.rs/tr) and the [gettext crate](https://docs.rs/gettext) via [`GettextLanguageLoader`](gettext::GettextLanguageLoader).
-- `desktop-requester`
-  - Enables a convenience implementation of the [`LanguageRequester`](LanguageRequester) trait, [`DesktopLanguageRequester`](DesktopLanguageRequester), for the desktop platform (Windows, Mac, Linux), which makes use of the [sys-locale](https://crates.io/crates/sys-locale) crate for resolving the current system locale.
-- `web-sys-requester`
-  - Enables a convenience implementation of the [`LanguageRequester`](LanguageRequester) trait, [`WebLanguageRequester`](WebLanguageRequester), which makes use of the [web-sys](https://crates.io/crates/web-sys) crate for resolving the language being requested by the user's web browser in a WASM context.
+- `system-requester`
+  - Enables a convenience implementation of the [`LanguageRequester`](LanguageRequester) trait, [`SystemLanguageRequester`](SystemLanguageRequester), for desktop, mobile, and web platforms, which makes use of the [sys-locale](https://crates.io/crates/sys-locale) crate for resolving the current system locale.
 - `filesystem-assets`
   - Enables [`FileSystemAssets`](assets::FileSystemAssets) for loading assets at runtime from the filesystem.
 - `autoreload`
@@ -54,11 +52,11 @@ The following is a minimal example for how to localize your binary using this li
 
 The [`FluentLanguageLoader`](fluent::FluentLanguageLoader) in this example is instantiated using the [`fluent_language_loader!()`](fluent::fluent_language_loader) macro, which automatically determines the correct module for the crate, and pulls settings in from the `i18n.toml` configuration file.
 
-Start by adding `i18n-embed` as a dependency with the `fluent-system` and `desktop-requester` features enabled:
+Start by adding `i18n-embed` as a dependency with the `fluent-system` and `system-requester` features enabled:
 
 ```toml
 [dependencies]
-i18n-embed = { version = "0.16.0", features = ["fluent-system", "desktop-requester"]}
+i18n-embed = { version = "0.16.0", features = ["fluent-system", "system-requester"]}
 rust-embed = "8"
 unic-langid = "0.9"
 ```
@@ -97,7 +95,7 @@ my_crate/
 Then, in your Rust code, add:
 
 ```rust
-use i18n_embed::{DesktopLanguageRequester, fluent::{
+use i18n_embed::{SystemLanguageRequester, fluent::{
     FluentLanguageLoader, fluent_language_loader
 }};
 use rust_embed::RustEmbed;
@@ -109,10 +107,9 @@ struct Localizations;
 fn main() {
     let language_loader: FluentLanguageLoader = fluent_language_loader!();
 
-    // Use the language requester for the desktop platform (linux, windows, mac).
-    // There is also a requester available for the web-sys WASM platform called
-    // WebLanguageRequester, or you can implement your own.
-    let requested_languages = DesktopLanguageRequester::requested_languages();
+    // Use the default system language via SystemLanguageRequester.
+    // You can also implement your own language requester.
+    let requested_languages = SystemLanguageRequester::requested_languages();
     let _result = i18n_embed::select(
         &language_loader, &Localizations, &requested_languages);
 
@@ -130,11 +127,11 @@ Please note that `gettext` is technically inferior to `fluent` [in a number of w
 
 The [`GettextLanguageLoader`](gettext::GettextLanguageLoader) in this example is instantiated using the [`gettext_language_loader!()`](gettext::gettext_language_loader) macro, which automatically determines the correct module for the crate, and pulls settings in from the `i18n.toml` configuration file.
 
-Start by adding `i18n-embed` as a dependency with the `gettext-system` and `desktop-requester` features enabled:
+Start by adding `i18n-embed` as a dependency with the `gettext-system` and `system-requester` features enabled:
 
 ```toml
 [dependencies]
-i18n-embed = { version = "0.16.0", features = ["gettext-system", "desktop-requester"]}
+i18n-embed = { version = "0.16.0", features = ["gettext-system", "system-requester"]}
 rust-embed = "8"
 unic-langid = "0.9"
 ```
@@ -163,7 +160,7 @@ Install and run [cargo-i18n](https://crates.io/crates/cargo-i18n) for your crate
 Then, in your Rust code, add:
 
 ```rust
-use i18n_embed::{DesktopLanguageRequester, gettext::{
+use i18n_embed::{SystemLanguageRequester, gettext::{
     gettext_language_loader
 }};
 use rust_embed::RustEmbed;
@@ -179,10 +176,9 @@ fn main() {
     // at compile time using the macro.
     let language_loader = gettext_language_loader!();
 
-    // Use the language requester for the desktop platform (linux, windows, mac).
-    // There is also a requester available for the web-sys WASM platform called
-    // WebLanguageRequester, or you can implement your own.
-    let requested_languages = DesktopLanguageRequester::requested_languages();
+    // Use the default system language via SystemLanguageRequester.
+    // You can also implement your own language requester.
+    let requested_languages = SystemLanguageRequester::requested_languages();
 
     let _result = i18n_embed::select(
         &language_loader, &Localizations, &requested_languages);
@@ -198,7 +194,7 @@ Depending on the platform, you can also make use of [`LanguageRequester`](`Langu
 ```rust
 use std::sync::{Arc, OnceLock};
 use i18n_embed::{
-    DesktopLanguageRequester, LanguageRequester,
+    SystemLanguageRequester, LanguageRequester,
     DefaultLocalizer, Localizer, fluent::FluentLanguageLoader
 };
 use rust_embed::RustEmbed;
@@ -226,7 +222,7 @@ fn main() {
 
     let localizer_arc: Arc<dyn Localizer> = Arc::new(localizer);
 
-    let mut language_requester = DesktopLanguageRequester::new();
+    let mut language_requester = SystemLanguageRequester::new();
     language_requester.add_listener(Arc::downgrade(&localizer_arc));
 
     // Manually check the currently requested system language,

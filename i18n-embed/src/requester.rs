@@ -220,22 +220,21 @@ impl std::fmt::Debug for LanguageRequesterImpl<'_> {
     }
 }
 
-/// A [LanguageRequester](LanguageRequester) for the desktop platform,
-/// supporting windows, linux and mac. It uses
-/// [sys-locale](sys-locale) to select the language based on the
-/// system selected language.
-#[cfg(feature = "desktop-requester")]
-#[cfg_attr(docsrs, doc(cfg(feature = "desktop-requester")))]
+/// A [`LanguageRequester`] using `sys-locale` to request a language based on the system selected language.
+///
+/// Supports desktop, mobile, and web platforms.
+#[cfg(feature = "system-requester")]
+#[cfg_attr(docsrs, doc(cfg(feature = "system-requester")))]
 #[derive(Debug)]
-pub struct DesktopLanguageRequester<'a> {
+pub struct SystemLanguageRequester<'a> {
     implementation: LanguageRequesterImpl<'a>,
 }
 
-#[cfg(feature = "desktop-requester")]
-#[cfg_attr(docsrs, doc(cfg(feature = "desktop-requester")))]
-impl<'a> LanguageRequester<'a> for DesktopLanguageRequester<'a> {
+#[cfg(feature = "system-requester")]
+#[cfg_attr(docsrs, doc(cfg(feature = "system-requester")))]
+impl<'a> LanguageRequester<'a> for SystemLanguageRequester<'a> {
     fn requested_languages(&self) -> Vec<unic_langid::LanguageIdentifier> {
-        DesktopLanguageRequester::requested_languages()
+        SystemLanguageRequester::requested_languages()
     }
 
     fn add_listener(&mut self, listener: Weak<dyn Localizer>) {
@@ -266,20 +265,20 @@ impl<'a> LanguageRequester<'a> for DesktopLanguageRequester<'a> {
     }
 }
 
-#[cfg(feature = "desktop-requester")]
-#[cfg_attr(docsrs, doc(cfg(feature = "desktop-requester")))]
-impl Default for DesktopLanguageRequester<'_> {
+#[cfg(feature = "system-requester")]
+#[cfg_attr(docsrs, doc(cfg(feature = "system-requester")))]
+impl Default for SystemLanguageRequester<'_> {
     fn default() -> Self {
-        DesktopLanguageRequester::new()
+        SystemLanguageRequester::new()
     }
 }
 
-#[cfg(feature = "desktop-requester")]
-#[cfg_attr(docsrs, doc(cfg(feature = "desktop-requester")))]
-impl DesktopLanguageRequester<'_> {
-    /// Create a new `DesktopLanguageRequester`.
+#[cfg(feature = "system-requester")]
+#[cfg_attr(docsrs, doc(cfg(feature = "system-requester")))]
+impl SystemLanguageRequester<'_> {
+    /// Create a new `SystemLanguageRequester`.
     pub fn new() -> Self {
-        DesktopLanguageRequester {
+        SystemLanguageRequester {
             implementation: LanguageRequesterImpl::new(),
         }
     }
@@ -301,84 +300,5 @@ impl DesktopLanguageRequester<'_> {
         log::info!("Current Locale: {:?}", ids);
 
         ids
-    }
-}
-
-/// A [LanguageRequester](LanguageRequester) for the `web-sys` web platform.
-#[cfg(feature = "web-sys-requester")]
-#[cfg_attr(docsrs, doc(cfg(feature = "web-sys-requester")))]
-#[derive(Debug)]
-pub struct WebLanguageRequester<'a> {
-    implementation: LanguageRequesterImpl<'a>,
-}
-
-#[cfg(feature = "web-sys-requester")]
-#[cfg_attr(docsrs, doc(cfg(feature = "web-sys-requester")))]
-impl WebLanguageRequester<'_> {
-    /// Create a new `WebLanguageRequester`.
-    pub fn new() -> Self {
-        WebLanguageRequester {
-            implementation: LanguageRequesterImpl::new(),
-        }
-    }
-
-    /// The languages currently being requested by the browser context.
-    pub fn requested_languages() -> Vec<unic_langid::LanguageIdentifier> {
-        use fluent_langneg::convert_vec_str_to_langids_lossy;
-        let window = web_sys::window().expect("no global `window` exists");
-        let navigator = window.navigator();
-        let languages = navigator.languages();
-
-        let requested_languages =
-            convert_vec_str_to_langids_lossy(languages.iter().map(|js_value| {
-                js_value
-                    .as_string()
-                    .expect("language value should be a string.")
-            }));
-
-        requested_languages
-    }
-}
-
-#[cfg(feature = "web-sys-requester")]
-#[cfg_attr(docsrs, doc(cfg(feature = "web-sys-requester")))]
-impl Default for WebLanguageRequester<'_> {
-    fn default() -> Self {
-        WebLanguageRequester::new()
-    }
-}
-
-#[cfg(feature = "web-sys-requester")]
-#[cfg_attr(docsrs, doc(cfg(feature = "web-sys-requester")))]
-impl<'a> LanguageRequester<'a> for WebLanguageRequester<'a> {
-    fn requested_languages(&self) -> Vec<unic_langid::LanguageIdentifier> {
-        Self::requested_languages()
-    }
-
-    fn add_listener(&mut self, listener: Weak<dyn Localizer>) {
-        self.implementation.add_listener(listener)
-    }
-
-    fn add_listener_ref(&mut self, listener: &'a dyn Localizer) {
-        self.implementation.add_listener_ref(listener)
-    }
-
-    fn poll(&mut self) -> Result<(), I18nEmbedError> {
-        self.implementation.poll(self.requested_languages())
-    }
-
-    fn set_language_override(
-        &mut self,
-        language_override: Option<unic_langid::LanguageIdentifier>,
-    ) -> Result<(), I18nEmbedError> {
-        self.implementation.set_language_override(language_override)
-    }
-
-    fn available_languages(&self) -> Result<Vec<unic_langid::LanguageIdentifier>, I18nEmbedError> {
-        self.implementation.available_languages()
-    }
-
-    fn current_languages(&self) -> HashMap<String, unic_langid::LanguageIdentifier> {
-        self.implementation.current_languages()
     }
 }

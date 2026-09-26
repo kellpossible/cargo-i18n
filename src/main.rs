@@ -4,7 +4,7 @@ use clap::{Arg, Command, builder::PossibleValuesParser, crate_authors, crate_ver
 use i18n_build::run;
 use i18n_config::Crate;
 use i18n_embed::{
-    DefaultLocalizer, DesktopLanguageRequester, LanguageLoader, LanguageRequester, Localizer,
+    DefaultLocalizer, LanguageLoader, LanguageRequester, Localizer, SystemLanguageRequester,
     gettext::{GettextLanguageLoader, gettext_language_loader},
 };
 use rust_embed::RustEmbed;
@@ -75,7 +75,7 @@ You can enable debug logging using \"RUST_LOG=debug cargo i18n\".",
 
 fn main() -> Result<()> {
     env_logger::init();
-    let mut language_requester = DesktopLanguageRequester::new();
+    let mut language_requester = SystemLanguageRequester::new();
 
     let cargo_i18n_localizer: DefaultLocalizer<'static> =
         DefaultLocalizer::new(language_loader(), &TRANSLATIONS);

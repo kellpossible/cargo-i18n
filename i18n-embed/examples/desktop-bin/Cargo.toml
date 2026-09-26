@@ -11,7 +11,7 @@ version = "0.1.0"
 env_logger.workspace = true
 i18n-embed = { workspace = true, features = [
   "fluent-system",
-  "desktop-requester",
+  "system-requester",
 ] }
 library-fluent = { path = "../library-fluent/" }
 

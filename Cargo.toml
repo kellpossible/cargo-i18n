@@ -26,7 +26,7 @@ env_logger.workspace = true
 i18n-build.workspace = true
 i18n-config.workspace = true
 i18n-embed = { workspace = true, features = [
-  "desktop-requester",
+  "system-requester",
   "gettext-system",
   "fluent-system",
 ] }
