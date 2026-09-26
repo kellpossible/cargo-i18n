@@ -11,7 +11,7 @@ use tr::tr;
 
 /// Run the specified command, check that it's output was reported as successful.
 pub fn run_command_and_check_success(command_name: &str, mut command: Command) -> Result<()> {
-    debug!("Running command: {0:?}", &command);
+    debug!("Running command: {0:?}", command);
     let output = command
         .spawn()
         .with_context(|| tr!("The \"{0}\" command was unable to start.", command_name))?

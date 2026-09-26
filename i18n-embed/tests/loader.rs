@@ -1,10 +1,15 @@
-#[cfg(any(feature = "fluent-system", feature = "gettext-system"))]
+#[cfg(all(
+    any(feature = "fluent-system", feature = "gettext-system"),
+    feature = "rust-embed"
+))]
 fn setup() {
     let _ = env_logger::try_init();
 }
 
-#[cfg(feature = "fluent-system")]
+#[cfg(all(feature = "fluent-system", feature = "rust-embed"))]
 mod fluent {
+    use std::slice;
+
     use super::setup;
     use fluent_langneg::NegotiationStrategy;
     use i18n_embed::{fluent::FluentLanguageLoader, LanguageLoader};
@@ -225,7 +230,7 @@ mod fluent {
             .load_languages(&Localizations, &[ru.clone(), en_gb])
             .unwrap();
 
-        let msg = loader.select_languages(&[ru.clone()]).get("only-ru");
+        let msg = loader.select_languages(slice::from_ref(&ru)).get("only-ru");
         assert_eq!("только русский", msg);
 
         let msg = loader.select_languages(&[ru]).get("only-gb");
@@ -300,7 +305,7 @@ mod fluent {
         };
 
         let msg = loader
-            .select_languages(&[ru.clone()])
+            .select_languages(slice::from_ref(&ru))
             .get_args("only-gb-args", args.clone());
         assert_eq!("Hello \u{2068}username\u{2069}! (US Version)", msg);
 
@@ -327,7 +332,7 @@ mod fluent {
     }
 }
 
-#[cfg(feature = "gettext-system")]
+#[cfg(all(feature = "gettext-system", feature = "rust-embed"))]
 mod gettext {
     use super::setup;
     use i18n_embed::{gettext::GettextLanguageLoader, LanguageLoader};

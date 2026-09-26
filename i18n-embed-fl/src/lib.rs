@@ -1,3 +1,4 @@
+use core::slice;
 use fluent::concurrent::FluentBundle;
 use fluent::{FluentAttribute, FluentMessage, FluentResource};
 use fluent_syntax::ast::{CallArguments, Expression, InlineExpression, Pattern, PatternElement};
@@ -5,16 +6,15 @@ use i18n_embed::{fluent::FluentLanguageLoader, FileSystemAssets, LanguageLoader}
 use proc_macro::TokenStream;
 use proc_macro_error3::{abort, emit_error, proc_macro_error};
 use quote::quote;
-use std::{
-    collections::{HashMap, HashSet},
-    path::Path,
-    sync::OnceLock,
-};
+use std::{collections::HashSet, path::Path, sync::OnceLock};
 
 #[cfg(feature = "dashmap")]
 use dashmap::mapref::one::Ref;
 #[cfg(not(feature = "dashmap"))]
-use std::sync::{Arc, RwLock};
+use std::{
+    collections::HashMap,
+    sync::{Arc, RwLock},
+};
 
 use syn::{parse::Parse, parse_macro_input, spanned::Spanned};
 use unic_langid::LanguageIdentifier;
@@ -188,37 +188,33 @@ struct DomainsMap {
 
 #[cfg(feature = "dashmap")]
 impl DomainsMap {
-    fn get(&self, domain: &String) -> Option<Ref<String, DomainSpecificData>> {
+    fn get(&self, domain: &str) -> Option<Ref<'_, String, DomainSpecificData>> {
         self.map.get(domain)
     }
 
     fn entry_or_insert(
         &self,
-        domain: &String,
+        domain: &str,
         data: DomainSpecificData,
-    ) -> Ref<String, DomainSpecificData> {
-        self.map.entry(domain.clone()).or_insert(data).downgrade()
+    ) -> Ref<'_, String, DomainSpecificData> {
+        self.map
+            .entry(domain.to_string())
+            .or_insert(data)
+            .downgrade()
     }
 }
 
 #[cfg(not(feature = "dashmap"))]
 impl DomainsMap {
-    fn get(&self, domain: &String) -> Option<Arc<DomainSpecificData>> {
-        match self.map.read().unwrap().get(domain) {
-            None => None,
-            Some(data) => Some(data.clone()),
-        }
+    fn get(&self, domain: &str) -> Option<Arc<DomainSpecificData>> {
+        self.map.read().unwrap().get(domain).map(Clone::clone)
     }
 
-    fn entry_or_insert(
-        &self,
-        domain: &String,
-        data: DomainSpecificData,
-    ) -> Arc<DomainSpecificData> {
+    fn entry_or_insert(&self, domain: &str, data: DomainSpecificData) -> Arc<DomainSpecificData> {
         self.map
             .write()
             .unwrap()
-            .entry(domain.clone())
+            .entry(domain.to_string())
             .or_insert(Arc::new(data))
             .clone()
     }
@@ -227,7 +223,7 @@ impl DomainsMap {
 fn domains() -> &'static DomainsMap {
     static DOMAINS: OnceLock<DomainsMap> = OnceLock::new();
 
-    DOMAINS.get_or_init(|| DomainsMap::default())
+    DOMAINS.get_or_init(DomainsMap::default)
 }
 
 /// A macro to obtain localized messages and optionally their attributes, and check the `message_id`, `attribute_id`
@@ -447,7 +443,7 @@ pub fn fl(input: TokenStream) -> TokenStream {
         let loader = FluentLanguageLoader::new(&domain, fallback_language.clone());
 
         loader
-            .load_languages(&assets, &[fallback_language.clone()])
+            .load_languages(&assets, slice::from_ref(&fallback_language))
             .unwrap_or_else(|err| match err {
                 i18n_embed::I18nEmbedError::LanguageNotAvailable(file, language_id) => {
                     if fallback_language != language_id {
@@ -730,7 +726,7 @@ fn fuzzy_attribute_suggestions(
 fn check_message_args<R>(
     message: FluentMessage<'_>,
     bundle: &FluentBundle<R>,
-    specified_args: &Vec<(syn::LitStr, Box<syn::Expr>)>,
+    specified_args: &[(syn::LitStr, Box<syn::Expr>)],
 ) where
     R: std::borrow::Borrow<FluentResource>,
 {
@@ -800,7 +796,7 @@ fn check_message_args<R>(
 fn check_attribute_args<R>(
     attr: FluentAttribute<'_>,
     bundle: &FluentBundle<R>,
-    specified_args: &Vec<(syn::LitStr, Box<syn::Expr>)>,
+    specified_args: &[(syn::LitStr, Box<syn::Expr>)],
 ) where
     R: std::borrow::Borrow<FluentResource>,
 {
@@ -930,20 +926,21 @@ fn args_from_inline_expression<'m, R>(
             id,
             attribute: None,
         } => {
-            bundle
-                .get_message(&id.name)
-                .and_then(|m| m.value())
-                .map(|p| args_from_pattern(p, bundle, args));
+            if let Some(p) = bundle.get_message(id.name).and_then(|m| m.value()) {
+                args_from_pattern(p, bundle, args);
+            }
         }
         InlineExpression::MessageReference {
             id,
             attribute: Some(attribute),
         } => {
-            bundle
-                .get_message(&id.name)
-                .and_then(|m| m.get_attribute(&attribute.name))
+            if let Some(p) = bundle
+                .get_message(id.name)
+                .and_then(|m| m.get_attribute(attribute.name))
                 .map(|m| m.value())
-                .map(|p| args_from_pattern(p, bundle, args));
+            {
+                args_from_pattern(p, bundle, args);
+            }
         }
         _ => {}
     }

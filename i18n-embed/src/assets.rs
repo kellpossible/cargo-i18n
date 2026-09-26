@@ -1,5 +1,6 @@
 use std::borrow::Cow;
 
+#[cfg(feature = "rust-embed")]
 use rust_embed::RustEmbed;
 
 use crate::I18nEmbedError;
@@ -29,6 +30,7 @@ pub trait I18nAssets {
 
 impl Watcher for () {}
 
+#[cfg(feature = "rust-embed")]
 impl<T> I18nAssets for T
 where
     T: RustEmbed,
@@ -57,15 +59,15 @@ where
 /// the file system. A wrapper is required to provide `base_dir` as this is unavailable in the type
 /// derived by the [`rust_embed::RustEmbed`] macro.
 ///
-/// ⚠️ *This type requires the following crate features to be activated: `autoreload`.*
-#[cfg(feature = "autoreload")]
+/// ⚠️ *This type requires the following crate features to be activated: `autoreload`, `rust-embed`.*
+#[cfg(all(feature = "autoreload", feature = "rust-embed"))]
 #[derive(Debug)]
 pub struct RustEmbedNotifyAssets<T: rust_embed::RustEmbed> {
     base_dir: std::path::PathBuf,
     embed: core::marker::PhantomData<T>,
 }
 
-#[cfg(feature = "autoreload")]
+#[cfg(all(feature = "autoreload", feature = "rust-embed"))]
 impl<T: rust_embed::RustEmbed> RustEmbedNotifyAssets<T> {
     /// Construct a new [`RustEmbedNotifyAssets`].
     pub fn new(base_dir: impl Into<std::path::PathBuf>) -> Self {
@@ -76,7 +78,7 @@ impl<T: rust_embed::RustEmbed> RustEmbedNotifyAssets<T> {
     }
 }
 
-#[cfg(feature = "autoreload")]
+#[cfg(all(feature = "autoreload", feature = "rust-embed"))]
 impl<T> I18nAssets for RustEmbedNotifyAssets<T>
 where
     T: RustEmbed,
@@ -178,7 +180,10 @@ impl std::fmt::Display for NotifyError {
 #[cfg(feature = "autoreload")]
 impl std::error::Error for NotifyError {}
 
-#[cfg(feature = "autoreload")]
+#[cfg(all(
+    feature = "autoreload",
+    any(feature = "rust-embed", feature = "filesystem-assets")
+))]
 fn notify_watcher(
     base_dir: &std::path::Path,
     changed: std::sync::Arc<dyn Fn() + Send + Sync + 'static>,

@@ -88,7 +88,7 @@ pub fn run_xtr(
         util::create_dir_all_if_not_exists(pot_file_path.parent().with_context(|| {
             format!(
                 "Expected that pot file path \"{0}\" would be inside a directory (have a parent)",
-                &pot_file_path.to_string_lossy()
+                pot_file_path.to_string_lossy()
             )
         })?)?;
 
