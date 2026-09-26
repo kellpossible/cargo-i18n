@@ -21,3 +21,6 @@ serde = { workspace = true, features = ["derive"] }
 serde_derive = { workspace = true }
 thiserror = { workspace = true }
 unic-langid = { workspace = true, features = ["serde"] }
+
+[lints]
+workspace = true

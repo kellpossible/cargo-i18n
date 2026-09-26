@@ -31,7 +31,7 @@ fluent-langneg = { workspace = true }
 fluent-syntax = { workspace = true, optional = true }
 gettext = { workspace = true, optional = true }
 i18n-embed-impl = { workspace = true, optional = true }
-intl-memoizer = "0.5"
+intl-memoizer = { version = "0.5", optional = true }
 log = { workspace = true }
 notify = { version = "8.2.0", optional = true }
 parking_lot = { version = "0.12", optional = true }
@@ -47,7 +47,6 @@ web-sys = { version = "0.3", features = [
 ], optional = true }
 
 [dev-dependencies]
-doc-comment = { workspace = true }
 env_logger = { workspace = true }
 maplit = "1.0"
 pretty_assertions = { workspace = true }
@@ -59,6 +58,7 @@ default = ["rust-embed"]
 fluent-system = [
   "dep:fluent",
   "dep:fluent-syntax",
+  "dep:intl-memoizer",
   "dep:parking_lot",
   "dep:i18n-embed-impl",
   "i18n-embed-impl/fluent-system",
@@ -78,3 +78,6 @@ web-sys-requester = ["dep:web-sys"]
 filesystem-assets = ["dep:walkdir"]
 
 autoreload = ["dep:notify"]
+
+[lints]
+workspace = true

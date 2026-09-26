@@ -11,8 +11,8 @@ use i18n_config::Crate;
 
 /// Run the i18n build process for the provided crate, which must
 /// contain an i18n config.
-pub fn run(crt: Crate) -> Result<()> {
-    let mut crates: Vec<Crate> = Vec::new();
+pub fn run(crt: Crate<'_>) -> Result<()> {
+    let mut crates: Vec<Crate<'_>> = Vec::new();
 
     let mut parent = crt.find_parent();
 
@@ -59,7 +59,7 @@ mod localize_feature {
 
     #[derive(RustEmbed)]
     #[folder = "i18n/mo"]
-    pub struct Translations;
+    struct Translations;
 
     static TRANSLATIONS: Translations = Translations {};
 

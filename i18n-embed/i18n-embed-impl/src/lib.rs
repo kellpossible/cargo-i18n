@@ -1,4 +1,5 @@
 #![cfg_attr(docsrs, feature(doc_cfg))]
+//! Procedural macro implementations for the [i18n-embed](https://docs.rs/i18n-embed) crate.
 
 /// A procedural macro to create a new `GettextLanguageLoader` using
 /// the current crate's `i18n.toml` configuration, and domain.

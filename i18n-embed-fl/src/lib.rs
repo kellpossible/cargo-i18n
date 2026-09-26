@@ -31,7 +31,7 @@ enum FlAttr {
 }
 
 impl Parse for FlAttr {
-    fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
+    fn parse(input: syn::parse::ParseStream<'_>) -> syn::Result<Self> {
         if !input.is_empty() {
             let fork = input.fork();
             fork.parse::<syn::Token![,]>()?;
@@ -69,7 +69,7 @@ enum FlArgs {
 }
 
 impl Parse for FlArgs {
-    fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
+    fn parse(input: syn::parse::ParseStream<'_>) -> syn::Result<Self> {
         if !input.is_empty() {
             input.parse::<syn::Token![,]>()?;
 
@@ -152,7 +152,7 @@ struct FlMacroInput {
 }
 
 impl Parse for FlMacroInput {
-    fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
+    fn parse(input: syn::parse::ParseStream<'_>) -> syn::Result<Self> {
         let fluent_loader = input.parse()?;
         input.parse::<syn::Token![,]>()?;
         let message_id = input.parse()?;

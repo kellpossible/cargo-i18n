@@ -9,8 +9,11 @@ use tr::tr;
 /// Type of path being represented in an error message.
 #[derive(Debug)]
 pub enum PathType {
+    /// File
     File,
+    /// Directory
     Directory,
+    /// Symlink
     Symlink,
 }
 
@@ -27,14 +30,22 @@ impl Display for PathType {
 /// The kinds of errors which can be expressed in a [`PathError`]
 #[derive(Debug)]
 pub enum PathErrorKind {
+    /// Not valid UTF-8
     NotValidUTF8 {
+        /// Context in which this path was being used
         for_item: String,
+        /// Path type
         path_type: PathType,
     },
+    /// Does not exist
     DoesNotExist,
+    /// Cannot create item
     CannotCreate(PathType, io::Error),
+    /// Cannot delete item
     CannotDelete(PathType, io::Error),
+    /// Cannot rename item
     CannotRename(PathType, PathBuf, io::Error),
+    /// Not inside directory
     NotInsideDirectory(String, PathBuf),
 }
 

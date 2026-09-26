@@ -14,3 +14,6 @@ i18n-embed = { workspace = true, features = [
   "desktop-requester",
 ] }
 library-fluent = { path = "../library-fluent/" }
+
+[lints]
+workspace = true

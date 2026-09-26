@@ -22,7 +22,7 @@ pub trait I18nAssets {
     /// implementations.
     fn subscribe_changed(
         &self,
-        #[allow(unused_variables)] changed: std::sync::Arc<dyn Fn() + Send + Sync + 'static>,
+        _changed: std::sync::Arc<dyn Fn() + Send + Sync + 'static>,
     ) -> Result<Box<dyn Watcher + Send + Sync + 'static>, I18nEmbedError> {
         Ok(Box::new(()))
     }
@@ -47,10 +47,9 @@ where
         Box::new(Self::iter().map(|filename| filename.to_string()))
     }
 
-    #[allow(unused_variables)]
     fn subscribe_changed(
         &self,
-        changed: std::sync::Arc<dyn Fn() + Send + Sync + 'static>,
+        _changed: std::sync::Arc<dyn Fn() + Send + Sync + 'static>,
     ) -> Result<Box<dyn Watcher + Send + Sync + 'static>, I18nEmbedError> {
         Ok(Box::new(()))
     }
@@ -334,7 +333,8 @@ impl AssetsMultiplexor {
     }
 }
 
-#[allow(dead_code)] // We rely on the Drop implementation of the Watcher to remove the file system watch.
+// We rely on the Drop implementation of the Watcher to remove the file system watch.
+#[expect(dead_code, reason = "not fully implemented")]
 struct Watchers(Vec<Box<dyn Watcher + Send + Sync + 'static>>);
 
 impl Watcher for Watchers {}

@@ -3,6 +3,7 @@ authors.workspace = true
 edition.workspace = true
 license.workspace = true
 name = "library-fluent"
+publish = false
 repository.workspace = true
 rust-version.workspace = true
 version = "0.2.0"
@@ -12,3 +13,6 @@ i18n-embed = { workspace = true, features = ["fluent-system", "autoreload"] }
 i18n-embed-fl = { workspace = true }
 once_cell = { workspace = true }
 rust-embed = { workspace = true }
+
+[lints]
+workspace = true

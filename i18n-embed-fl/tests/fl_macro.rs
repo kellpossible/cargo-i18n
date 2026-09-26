@@ -1,6 +1,8 @@
+//! Provides the fl! macro for use with [i18n-embed](https://docs.rs/i18n-embed) to obtain localized messages at compile time.
+
 use i18n_embed::{
-    fluent::{fluent_language_loader, FluentLanguageLoader},
     LanguageLoader,
+    fluent::{FluentLanguageLoader, fluent_language_loader},
 };
 use i18n_embed_fl::fl;
 use rust_embed::RustEmbed;

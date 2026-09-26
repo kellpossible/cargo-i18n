@@ -133,7 +133,6 @@ version = "0.2.13"
 dependencies = [
  "anyhow",
  "clap",
- "doc-comment",
  "env_logger",
  "i18n-build",
  "i18n-config",
@@ -284,12 +283,6 @@ dependencies = [
  "quote",
  "syn 3.0.6",
 ]
-
-[[package]]
-name = "doc-comment"
-version = "0.3.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "780955b8b195a21ab8e4ac6b60dd1dbdcec1dc6c51c0617964b08c81785e12c9"
 
 [[package]]
 name = "encoding"
@@ -544,7 +537,6 @@ name = "i18n-embed"
 version = "0.16.0"
 dependencies = [
  "arc-swap",
- "doc-comment",
  "env_logger",
  "fluent",
  "fluent-langneg",
@@ -572,7 +564,6 @@ name = "i18n-embed-fl"
 version = "0.10.1"
 dependencies = [
  "dashmap",
- "doc-comment",
  "find-crate",
  "fluent",
  "fluent-syntax",

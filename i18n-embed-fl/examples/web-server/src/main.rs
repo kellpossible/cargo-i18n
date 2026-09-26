@@ -1,6 +1,8 @@
+#![expect(missing_docs, reason = "example")]
+
 use i18n_embed::{
-    fluent::{fluent_language_loader, FluentLanguageLoader, NegotiationStrategy},
     LanguageLoader,
+    fluent::{FluentLanguageLoader, NegotiationStrategy, fluent_language_loader},
 };
 use i18n_embed_fl::fl;
 use rust_embed::RustEmbed;

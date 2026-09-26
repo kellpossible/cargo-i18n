@@ -30,7 +30,7 @@ i18n-embed = { workspace = true, features = [
   "desktop-requester",
 ], optional = true }
 log = { workspace = true }
-rust-embed = { workspace = true }
+rust-embed = { workspace = true, optional = true }
 thiserror = { workspace = true }
 tr.workspace = true
 walkdir = { workspace = true }
@@ -39,4 +39,7 @@ walkdir = { workspace = true }
 default = []
 
 # A feature to localize this library
-localize = ["dep:i18n-embed"]
+localize = ["dep:i18n-embed", "dep:rust-embed"]
+
+[lints]
+workspace = true

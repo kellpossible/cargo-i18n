@@ -20,6 +20,7 @@ use unic_langid::LanguageIdentifier;
 
 /// An error type explaining why a crate failed to verify.
 #[derive(Debug, Error)]
+#[expect(missing_docs, reason = "self-explanatory")]
 pub enum WhyNotCrate {
     #[error("there is no Cargo.toml present")]
     NoCargoToml,
@@ -29,6 +30,7 @@ pub enum WhyNotCrate {
 
 /// An error type for use with the `i18n-config` crate.
 #[derive(Debug, Error)]
+#[expect(missing_docs, reason = "self-explanatory")]
 pub enum I18nConfigError {
     #[error("The specified path is not a crate because {1}.")]
     NotACrate(PathBuf, WhyNotCrate),
@@ -89,7 +91,7 @@ impl<'a> Crate<'a> {
     /// `config_file_path` (if there is one).
     pub fn from<P1: Into<PathBuf>, P2: Into<PathBuf>>(
         path: P1,
-        parent: Option<&'a Crate>,
+        parent: Option<&'a Crate<'_>>,
         config_file_path: P2,
     ) -> Result<Crate<'a>, I18nConfigError> {
         let path_into = path.into();
@@ -325,7 +327,7 @@ impl<'a> Crate<'a> {
     }
 }
 
-impl<'a> Display for Crate<'a> {
+impl Display for Crate<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
@@ -377,6 +379,7 @@ impl I18nConfig {
 }
 
 /// Important i18n-config paths related to the current crate.
+#[derive(Debug)]
 pub struct CratePaths {
     /// The current crate directory path (where the `Cargo.toml` is
     /// located).

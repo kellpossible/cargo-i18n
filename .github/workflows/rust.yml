@@ -33,7 +33,6 @@ jobs:
         with:
           components: rustfmt
       - uses: taiki-e/install-action@taplo-cli
-      - uses: taiki-e/install-action@cargo-shear
       - uses: actions/setup-node@v7
       - parallel:
           - name: Run rustfmt
@@ -42,41 +41,32 @@ jobs:
             run: taplo lint
           - name: Run taplo (format)
             run: taplo fmt --check
-          - name: Check for unused dependencies
-            run: cargo shear --deny-warnings
           - name: Spell Check Repo
             uses: crate-ci/typos@v1
           - name: Formatting (Markdown/JSON/YAML)
             run: npx prettier --check .
 
   clippy:
-    name: Clippy
+    strategy:
+      fail-fast: false
+      matrix:
+        toolchain: [stable, nightly]
+
+    name: Clippy (${{ matrix.toolchain }})
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
         with:
           persist-credentials: false
-      - uses: dtolnay/rust-toolchain@nightly
+      - uses: dtolnay/rust-toolchain@${{ matrix.toolchain }}
         with:
           components: clippy
       - uses: taiki-e/install-action@v2
         with:
           tool: cargo-all-features
-      - parallel:
-          - name: Run Clippy (i18n-build)
-            working-directory: i18n-build
-            run: cargo all-features clippy --all-targets -- -Dwarnings
-          - name: Run Clippy (i18n-embed)
-            working-directory: i18n-embed
-            run: cargo all-features clippy --all-targets -- -Dwarnings
-          - name: Run Clippy (i18n-embed-impl)
-            working-directory: i18n-embed/i18n-embed-impl
-            run: cargo all-features clippy --all-targets -- -Dwarnings
-          - name: Run Clippy (i18n-embed-fl)
-            working-directory: i18n-embed-fl
-            run: cargo all-features clippy --all-targets -- -Dwarnings
-          - name: Run Clippy (examples)
-            run: cargo all-features clippy --examples -- -Dwarnings
+      - name: Run Clippy
+        run: cargo all-features clippy --all-targets -- -Dwarnings
+
   msrv:
     name: Check MSRV
     runs-on: ubuntu-latest

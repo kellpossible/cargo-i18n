@@ -1,3 +1,5 @@
+#![expect(missing_docs, reason = "example")]
+
 use std::time::Duration;
 
 use i18n_embed::{DesktopLanguageRequester, Localizer};

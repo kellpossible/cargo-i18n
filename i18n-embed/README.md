@@ -33,7 +33,7 @@ The `i18n-embed` crate has the following optional Cargo features:
 - `fluent-system`
   - Enables support for the [fluent](https://www.projectfluent.org/) localization system via [`FluentLanguageLoader`](fluent::FluentLanguageLoader).
 - `gettext-system`
-  - Enables support for the [gettext](https://www.gnu.org/software/gettext/) localization system using the [tr macro](https://docs.rs/tr/0.1.3/tr/) and the [gettext crate](https://docs.rs/gettext/0.4.0/gettext/) via [`GettextLanguageLoader`](gettext::GettextLanguageLoader).
+  - Enables support for the [gettext](https://www.gnu.org/software/gettext/) localization system using the [tr macro](https://docs.rs/tr) and the [gettext crate](https://docs.rs/gettext) via [`GettextLanguageLoader`](gettext::GettextLanguageLoader).
 - `desktop-requester`
   - Enables a convenience implementation of the [`LanguageRequester`](LanguageRequester) trait, [`DesktopLanguageRequester`](DesktopLanguageRequester), for the desktop platform (Windows, Mac, Linux), which makes use of the [sys-locale](https://crates.io/crates/sys-locale) crate for resolving the current system locale.
 - `web-sys-requester`
@@ -80,7 +80,7 @@ fallback_language = "en-GB"
 assets_dir = "i18n"
 ```
 
-Next, you want to create your localization resources, per language fluent (`.ftl`) files. `language` needs to conform to the [Unicode Language Identifier](https://unicode.org/reports/tr35/tr35.html#Unicode_language_identifier) standard, and will be parsed via the [unic_langid crate](https://docs.rs/unic-langid/0.9.0/unic_langid/).
+Next, you want to create your localization resources, per language fluent (`.ftl`) files. `language` needs to conform to the [Unicode Language Identifier](https://unicode.org/reports/tr35/tr35.html#Unicode_language_identifier) standard, and will be parsed via the [unic_langid crate](https://docs.rs/unic-langid).
 
 The directory structure should look like this:
 

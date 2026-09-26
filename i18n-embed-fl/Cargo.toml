@@ -34,10 +34,12 @@ syn.workspace = true
 unic-langid = { workspace = true }
 
 [dev-dependencies]
-doc-comment = { workspace = true }
 pretty_assertions = { workspace = true }
 rust-embed = { workspace = true }
 
 [features]
 # Use dashmap implementation for `fl!()` macro lookups.
 dashmap = ["dep:dashmap"]
+
+[lints]
+workspace = true

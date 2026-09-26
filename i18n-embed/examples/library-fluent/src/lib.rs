@@ -1,15 +1,17 @@
+#![expect(missing_docs, reason = "example")]
+
 use i18n_embed::{
-    fluent::{fluent_language_loader, FluentLanguageLoader},
     DefaultLocalizer, LanguageLoader, RustEmbedNotifyAssets,
+    fluent::{FluentLanguageLoader, fluent_language_loader},
 };
 use once_cell::sync::Lazy;
 use rust_embed::RustEmbed;
 
 #[derive(RustEmbed)]
 #[folder = "i18n/"]
-pub struct LocalizationsEmbed;
+struct LocalizationsEmbed;
 
-pub static LOCALIZATIONS: Lazy<RustEmbedNotifyAssets<LocalizationsEmbed>> = Lazy::new(|| {
+static LOCALIZATIONS: Lazy<RustEmbedNotifyAssets<LocalizationsEmbed>> = Lazy::new(|| {
     RustEmbedNotifyAssets::new(std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("i18n/"))
 });
 

@@ -4,13 +4,6 @@
     attr(deny(warnings, rust_2018_idioms, single_use_lifetimes))
 ))]
 #![forbid(unsafe_code)]
-#![warn(
-    missing_debug_implementations,
-    missing_docs,
-    rust_2018_idioms,
-    single_use_lifetimes,
-    unreachable_pub
-)]
 #![cfg_attr(docsrs, feature(doc_cfg))]
 
 mod assets;
@@ -44,7 +37,7 @@ pub use unic_langid;
 
 /// An error that occurs in this library.
 #[derive(Error, Debug)]
-#[allow(missing_docs)]
+#[expect(missing_docs, reason = "self-explanatory")]
 pub enum I18nEmbedError {
     #[error("Error parsing a language identifier string \"{0}\"")]
     ErrorParsingLocale(String, #[source] unic_langid::LanguageIdentifierError),
@@ -126,8 +119,7 @@ impl Debug for DefaultLocalizer<'_> {
     }
 }
 
-#[allow(single_use_lifetimes)]
-impl<'a> Localizer for DefaultLocalizer<'a> {
+impl Localizer for DefaultLocalizer<'_> {
     fn i18n_assets(&self) -> &'_ dyn I18nAssets {
         self.i18n_assets
     }

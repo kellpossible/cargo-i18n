@@ -522,8 +522,7 @@ impl LanguageLoader for FluentLanguageLoader {
     /// first in the `language_ids` slice. You can use
     /// [select()](super::select()) to determine which fallbacks are
     /// actually available for an arbitrary slice of preferences.
-    #[allow(single_use_lifetimes)]
-    fn load_languages<'a>(
+    fn load_languages(
         &self,
         i18n_assets: &dyn I18nAssets,
         language_ids: &[unic_langid::LanguageIdentifier],

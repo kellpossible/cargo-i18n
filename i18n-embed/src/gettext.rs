@@ -77,7 +77,6 @@ impl LanguageLoader for GettextLanguageLoader {
     /// **Note:** Gettext doesn't support loading multiple languages
     /// as multiple fallbacks. We only load the first of the requested
     /// languages, and the fallback is the src language.
-    #[allow(single_use_lifetimes)]
     fn load_languages(
         &self,
         i18n_assets: &dyn I18nAssets,

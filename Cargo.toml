@@ -34,8 +34,8 @@ rust-embed = { workspace = true }
 tr = { workspace = true, features = ["gettext"] }
 unic-langid = { workspace = true }
 
-[dev-dependencies]
-doc-comment = { workspace = true }
+[lints]
+workspace = true
 
 [workspace]
 members = [
@@ -54,7 +54,6 @@ resolver = "3"
 
 [workspace.dependencies]
 anyhow = "1.0"
-doc-comment = "0.3"
 env_logger = "0.11"
 find-crate = "0.7"
 fluent = "0.17"
@@ -86,6 +85,20 @@ thiserror = "2.0"
 tr = { version = "0.1", default-features = false, features = ["gettext"] }
 unic-langid = "0.9"
 walkdir = "2.5"
+
+[workspace.lints.clippy]
+allow_attributes = "warn"
+allow_attributes_without_reason = "warn"
+
+[workspace.lints.rust]
+missing_debug_implementations = "warn"
+missing_docs = "warn"
+rust_2018_idioms = "warn"
+single_use_lifetimes = "warn"
+unreachable_pub = "warn"
+
+[workspace.lints.cargo]
+default = "deny"
 
 [workspace.package]
 authors = ["Luke Frisken <l.frisken@gmail.com>", "cargo-i18n contributors"]

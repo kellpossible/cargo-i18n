@@ -29,7 +29,7 @@ use walkdir::WalkDir;
 /// crate to directory where the intermediate `pot` files will be
 /// stored within the `pot_dir`.
 pub fn run_xtr(
-    crt: &Crate,
+    crt: &Crate<'_>,
     gettext_config: &GettextConfig,
     src_dir: &Path,
     pot_dir: &Path,
@@ -227,7 +227,7 @@ pub fn run_msgcat<P: AsRef<Path>, I: IntoIterator<Item = P>>(
 ///
 /// `po_dir` is the directory where the output `po` files will be
 /// stored.
-pub fn run_msginit(crt: &Crate, pot_dir: &Path, po_dir: &Path) -> Result<()> {
+pub fn run_msginit(crt: &Crate<'_>, pot_dir: &Path, po_dir: &Path) -> Result<()> {
     info!(
         "Initializing new po files with `msginit` for crate \"{0}\"",
         crt.path.to_string_lossy()
@@ -287,7 +287,7 @@ pub fn run_msginit(crt: &Crate, pot_dir: &Path, po_dir: &Path) -> Result<()> {
 /// `pot_dir` is the directory where the input `pot` files are stored.
 ///
 /// `po_dir` is the directory where the `po` files are stored.
-pub fn run_msgmerge(crt: &Crate, pot_dir: &Path, po_dir: &Path) -> Result<()> {
+pub fn run_msgmerge(crt: &Crate<'_>, pot_dir: &Path, po_dir: &Path) -> Result<()> {
     info!(
         "Merging message changes in pot files to po files with `msgmerge` for crate \"{0}\"",
         crt.path.to_string_lossy()
@@ -334,7 +334,7 @@ pub fn run_msgmerge(crt: &Crate, pot_dir: &Path, po_dir: &Path) -> Result<()> {
 /// `po_dir` is the directory where the input `po` files are stored.
 ///
 /// `mo_dir` is the directory where the output `mo` files will be stored.
-pub fn run_msgfmt(crt: &Crate, po_dir: &Path, mo_dir: &Path) -> Result<()> {
+pub fn run_msgfmt(crt: &Crate<'_>, po_dir: &Path, mo_dir: &Path) -> Result<()> {
     info!(
         "Compiling po files to mo files with `msgfmt` for crate \"{0}\"",
         crt.path.to_string_lossy()
@@ -388,7 +388,7 @@ pub fn run_msgfmt(crt: &Crate, po_dir: &Path, mo_dir: &Path) -> Result<()> {
 /// crate must have an i18n config containing a gettext config.
 ///
 /// This function is recursively executed for each subcrate.
-pub fn run(crt: &Crate) -> Result<()> {
+pub fn run(crt: &Crate<'_>) -> Result<()> {
     info!(
         "Localizing crate \"{0}\" using the gettext system",
         crt.path.to_string_lossy()
@@ -410,9 +410,9 @@ pub fn run(crt: &Crate) -> Result<()> {
     // We don't use the i18n_config (which potentially comes from the
     // parent crate )to get the subcrates, because this would result
     // in an infinite loop.
-    let subcrates: Vec<Crate> = match &crt.i18n_config {
+    let subcrates: Vec<Crate<'_>> = match &crt.i18n_config {
         Some(config) => {
-            let subcrates: Result<Vec<Crate>, I18nConfigError> = config
+            let subcrates: Result<Vec<Crate<'_>>, I18nConfigError> = config
                 .subcrates
                 .iter()
                 .map(|subcrate_path| {
@@ -475,7 +475,7 @@ pub fn run(crt: &Crate) -> Result<()> {
 
         let concatenate_crate_paths: Vec<PathBuf> = concatenate_crates
             .iter()
-            .map(|concat_crt: &&Crate| crate_module_pot_file_path(concat_crt, &pot_dir))
+            .map(|concat_crt: &&Crate<'_>| crate_module_pot_file_path(concat_crt, &pot_dir))
             .collect();
 
         let output_pot_path = crate_module_pot_file_path(crt, &pot_dir);

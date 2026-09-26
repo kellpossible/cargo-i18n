@@ -1,3 +1,5 @@
+#![expect(missing_docs, reason = "tests")]
+
 #[cfg(all(
     any(feature = "fluent-system", feature = "gettext-system"),
     feature = "rust-embed"
@@ -12,7 +14,7 @@ mod fluent {
 
     use super::setup;
     use fluent_langneg::NegotiationStrategy;
-    use i18n_embed::{fluent::FluentLanguageLoader, LanguageLoader};
+    use i18n_embed::{LanguageLoader, fluent::FluentLanguageLoader};
     use rust_embed::RustEmbed;
     use unic_langid::LanguageIdentifier;
 
@@ -335,7 +337,7 @@ mod fluent {
 #[cfg(all(feature = "gettext-system", feature = "rust-embed"))]
 mod gettext {
     use super::setup;
-    use i18n_embed::{gettext::GettextLanguageLoader, LanguageLoader};
+    use i18n_embed::{LanguageLoader, gettext::GettextLanguageLoader};
     use rust_embed::RustEmbed;
     use serial_test::serial;
     use tr::internal::with_translator;
