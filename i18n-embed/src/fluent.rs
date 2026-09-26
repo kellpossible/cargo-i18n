@@ -81,6 +81,7 @@ pub struct FluentLanguageLoader {
     inner: ArcSwap<FluentLanguageLoaderInner>,
     domain: String,
     fallback_language: unic_langid::LanguageIdentifier,
+    string_cache: parking_lot::RwLock<HashMap<String, String>>,
 }
 
 impl FluentLanguageLoader {
@@ -107,6 +108,7 @@ impl FluentLanguageLoader {
             })),
             domain: domain.into(),
             fallback_language,
+            string_cache: parking_lot::RwLock::new(HashMap::new()),
         }
     }
 
@@ -128,7 +130,15 @@ impl FluentLanguageLoader {
 
     /// Get a localized message referenced by the `message_id`.
     pub fn get(&self, message_id: &str) -> String {
-        self.get_args_fluent(message_id, None)
+        let cache = self.string_cache.read();
+        if let Some(s) = cache.get(message_id) {
+            return s.clone();
+        }
+        let value = self.get_args_fluent(message_id, None);
+        self.string_cache
+            .write()
+            .insert(message_id.to_owned(), value.clone());
+        value
     }
 
     /// A non-generic version of [FluentLanguageLoader::get_args()].
@@ -472,6 +482,7 @@ impl FluentLanguageLoader {
             })),
             domain: self.domain.clone(),
             fallback_language: self.fallback_language.clone(),
+            string_cache: parking_lot::RwLock::new(HashMap::new()),
         }
     }
 
@@ -570,6 +581,8 @@ impl LanguageLoader for FluentLanguageLoader {
                 Ok(LanguageBundle::new(language.clone(), resource))
             }).collect::<Result<Vec<_>, I18nEmbedError>>()
         }).collect::<Result<_, I18nEmbedError>>()?;
+
+        self.string_cache.write().clear();
 
         self.inner.swap(Arc::new(FluentLanguageLoaderInner {
             current_languages: CurrentLanguages {
