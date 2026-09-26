@@ -33,6 +33,7 @@ jobs:
         with:
           components: rustfmt
       - uses: taiki-e/install-action@taplo-cli
+      - uses: taiki-e/install-action@cargo-shear
       - parallel:
         - name: Run rustfmt
           run: cargo fmt --all --check
@@ -40,6 +41,8 @@ jobs:
           run: taplo lint
         - name: Run taplo (format)
           run: taplo fmt --check
+        - name: Check for unused dependencies
+          run: cargo shear --deny-warnings
 
   clippy:
     name: Clippy

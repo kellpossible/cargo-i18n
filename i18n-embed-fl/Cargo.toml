@@ -40,7 +40,6 @@ workspace = true
 
 [dev-dependencies]
 doc-comment = { workspace = true }
-env_logger = { workspace = true }
 pretty_assertions = { workspace = true }
 rust-embed = { workspace = true }
 

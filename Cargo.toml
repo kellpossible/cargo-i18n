@@ -22,7 +22,6 @@ maintenance = { status = "actively-developed" }
 anyhow = { workspace = true }
 clap = { version = "4.4.5", features = ["cargo"] }
 env_logger = { workspace = true }
-gettext = { workspace = true }
 i18n-build = { workspace = true, features = ["localize"] }
 i18n-config = { workspace = true }
 i18n-embed = { workspace = true, features = [
@@ -30,7 +29,6 @@ i18n-embed = { workspace = true, features = [
   "gettext-system",
   "fluent-system",
 ] }
-log = { workspace = true }
 rust-embed = { workspace = true }
 tr = { workspace = true, features = ["gettext"] }
 unic-langid = { workspace = true }

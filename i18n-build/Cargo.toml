@@ -24,7 +24,6 @@ maintenance = { status = "actively-developed" }
 
 [dependencies]
 anyhow = { workspace = true }
-gettext = { workspace = true, optional = true }
 i18n-config = { workspace = true }
 i18n-embed = { workspace = true, features = [
   "gettext-system",
@@ -41,4 +40,4 @@ walkdir = { workspace = true }
 default = []
 
 # A feature to localize this library
-localize = ["dep:i18n-embed", "dep:gettext"]
+localize = ["dep:i18n-embed"]

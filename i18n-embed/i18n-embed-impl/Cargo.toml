@@ -22,9 +22,6 @@ i18n-config = { workspace = true, optional = true }
 proc-macro2 = { workspace = true }
 quote = { workspace = true, optional = true }
 
-[dev-dependencies]
-rust-embed = { workspace = true }
-
 [dependencies.syn]
 default-features = false
 features = ["derive", "proc-macro", "parsing", "printing", "extra-traits"]

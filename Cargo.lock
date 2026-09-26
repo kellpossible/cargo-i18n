@@ -144,11 +144,9 @@ dependencies = [
  "clap",
  "doc-comment",
  "env_logger",
- "gettext",
  "i18n-build",
  "i18n-config",
  "i18n-embed",
- "log",
  "rust-embed",
  "tr",
  "unic-langid",
@@ -564,7 +562,6 @@ name = "i18n-build"
 version = "0.10.3"
 dependencies = [
  "anyhow",
- "gettext",
  "i18n-config",
  "i18n-embed",
  "log",
@@ -621,7 +618,6 @@ version = "0.10.1"
 dependencies = [
  "dashmap",
  "doc-comment",
- "env_logger",
  "find-crate",
  "fluent",
  "fluent-syntax",
@@ -645,7 +641,6 @@ dependencies = [
  "i18n-config",
  "proc-macro2",
  "quote",
- "rust-embed",
  "syn 2.0.104",
 ]
 
@@ -1497,7 +1492,6 @@ version = "0.1.0"
 dependencies = [
  "i18n-embed",
  "i18n-embed-fl",
- "once_cell",
  "rust-embed",
  "unic-langid",
 ]
