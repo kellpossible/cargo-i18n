@@ -1,8 +1,7 @@
+#![cfg_attr(docsrs, feature(doc_cfg))]
+
 /// A procedural macro to create a new `GettextLanguageLoader` using
 /// the current crate's `i18n.toml` configuration, and domain.
-///
-/// ⚠️ *This API requires the following crate features to be
-/// activated: `gettext-system`.*
 ///
 /// ## Example
 ///
@@ -12,6 +11,7 @@
 /// ```
 #[proc_macro]
 #[cfg(feature = "gettext-system")]
+#[cfg_attr(docsrs, doc(cfg(feature = "gettext-system")))]
 pub fn gettext_language_loader(_: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let manifest = find_crate::Manifest::new().expect("Error reading Cargo.toml");
     let current_crate_package_name = {
@@ -75,9 +75,6 @@ pub fn gettext_language_loader(_: proc_macro::TokenStream) -> proc_macro::TokenS
 /// A procedural macro to create a new `FluentLanguageLoader` using
 /// the current crate's `i18n.toml` configuration, and domain.
 ///
-/// ⚠️ *This API requires the following crate features to be
-/// activated: `fluent-system`.*
-///
 /// ## Example
 ///
 /// ```ignore
@@ -86,6 +83,7 @@ pub fn gettext_language_loader(_: proc_macro::TokenStream) -> proc_macro::TokenS
 /// ```
 #[proc_macro]
 #[cfg(feature = "fluent-system")]
+#[cfg_attr(docsrs, doc(cfg(feature = "fluent-system")))]
 pub fn fluent_language_loader(_: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let manifest = find_crate::Manifest::new().expect("Error reading Cargo.toml");
     let current_crate_package_name = manifest

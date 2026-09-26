@@ -12,6 +12,10 @@ version = "0.10.1"
 [lib]
 proc-macro = true
 
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]
+
 [dependencies]
 dashmap = { version = "6.2", optional = true }
 find-crate = { workspace = true }
@@ -35,5 +39,5 @@ pretty_assertions = { workspace = true }
 rust-embed = { workspace = true }
 
 [features]
-# Uses dashmap implementation for `fl!()` macro lookups.
+# Use dashmap implementation for `fl!()` macro lookups.
 dashmap = ["dep:dashmap"]

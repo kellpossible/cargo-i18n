@@ -24,7 +24,7 @@ impl Display for PathType {
     }
 }
 
-/// The kinds of errors which can be expressed in a [PathError](PathError)
+/// The kinds of errors which can be expressed in a [`PathError`]
 #[derive(Debug)]
 pub enum PathErrorKind {
     NotValidUTF8 {

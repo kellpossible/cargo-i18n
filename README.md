@@ -1,4 +1,11 @@
-# cargo-i18n [![crates.io badge](https://img.shields.io/crates/v/cargo-i18n.svg)](https://crates.io/crates/cargo-i18n) [![license badge](https://img.shields.io/github/license/kellpossible/cargo-i18n)](https://github.com/kellpossible/cargo-i18n/blob/master/LICENSE) [![github actions badge](https://github.com/kellpossible/cargo-i18n/workflows/Rust/badge.svg)](https://github.com/kellpossible/cargo-i18n/actions?query=workflow%3ARust) [![dependency status](https://deps.rs/repo/github/kellpossible/cargo-i18n/status.svg)](https://deps.rs/repo/github/kellpossible/cargo-i18n)
+# cargo-i18n
+
+[![crates.io badge](https://img.shields.io/crates/v/cargo-i18n.svg)](https://crates.io/crates/cargo-i18n)
+![rust version badge](https://img.shields.io/badge/rustc-1.85.1+-blue.svg)
+[![license badge](https://img.shields.io/github/license/kellpossible/cargo-i18n)](https://github.com/kellpossible/cargo-i18n/blob/master/LICENSE)
+[![dependency status badge](https://deps.rs/repo/github/kellpossible/cargo-i18n/status.svg)](https://deps.rs/repo/github/kellpossible/cargo-i18n)
+[![github actions badge](https://github.com/kellpossible/cargo-i18n/actions/workflows/rust.yml/badge.svg?branch=master)](https://github.com/kellpossible/cargo-i18n/actions/workflows/rust.yml?branch=master)
+[![changelog badge](https://img.shields.io/badge/Changelog-8A2BE2)](https://github.com/kellpossible/cargo-i18n/releases)
 
 This crate is a Cargo sub-command `cargo i18n` which can be used to extract and
 build, and verify localization resources at compile time for your crate. The
@@ -16,8 +23,6 @@ You can install this tool using the command: `cargo install cargo-i18n`.
 The `cargo i18n` command reads the configuration file (by default called `i18n.toml`) in the root directory of your crate, and then proceeds to extract localization resources from your source files, and build them.
 
 The [i18n-build](https://crates.io/crates/i18n-build) library contains most of the implementation for this tool. It has been published separately to allow its direct use within project build scripts if required.
-
-**[Changelog](https://github.com/kellpossible/cargo-i18n/releases)**
 
 ## Projects Using `cargo-i18n` or `i18n-embed`
 
@@ -267,11 +272,11 @@ Pull-requests are welcome, but for design changes it is preferred that you creat
 - [POEditor - cargo-i18n](https://poeditor.com/join/project/J7NiRCGpXa)
 - [POEditor - i18n-build](https://poeditor.com/join/project/BCW39cVoco)
 
-Or you can also use your favourite `po` editor directly to help with localizing the files located in [i18n/po](./i18n/po) and [i18n-build/i18n/po](./i18n-build/i18n/po).
+Or you can also use your favourite `po` editor directly to help with localizing the files located in [i18n/po](https://github.com/kellpossible/cargo-i18n/tree/master/i18n/po) and [i18n-build/i18n/po](https://github.com/kellpossible/cargo-i18n/tree/master/i18n-build/i18n/po).
 
 To add a new language, you can make a request via a GitHub issue, or submit a pull request adding the new locale to [i18n.toml](https://github.com/kellpossible/cargo-i18n/blob/master/i18n.toml) and generating the associated new `po` files using `cargo i18n`.
 
-Translations of this [README.md](./README.md) file are also welcome, and can be submitted via pull request. Just name it `README.md.lang`, where `lang` is the locale code (see [List of ISO 639-1 codes](https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes)).
+Translations of this [README.md](https://github.com/kellpossible/cargo-i18n/blob/master/README.md) file are also welcome, and can be submitted via pull request. Just name it `README.md.lang`, where `lang` is the locale code (see [List of ISO 639-1 codes](https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes)).
 
 ## Authors
 

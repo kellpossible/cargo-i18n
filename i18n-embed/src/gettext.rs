@@ -2,10 +2,8 @@
 //! `gettext` localization system.
 //!
 //! Most important is the [GettextLanguageLoader].
-//!
-//! ⚠️ *This module requires the following crate features to be activated: `gettext-system`.*
 
-use crate::{domain_from_module, I18nAssets, I18nEmbedError, LanguageLoader};
+use crate::{I18nAssets, I18nEmbedError, LanguageLoader, domain_from_module};
 
 pub use i18n_embed_impl::gettext_language_loader;
 
@@ -15,8 +13,6 @@ use unic_langid::LanguageIdentifier;
 
 /// [LanguageLoader] implementation for the `gettext` localization
 /// system.
-///
-/// ⚠️ *This API requires the following crate features to be activated: `gettext-system`.*
 #[derive(Debug)]
 pub struct GettextLanguageLoader {
     current_language: RwLock<LanguageIdentifier>,

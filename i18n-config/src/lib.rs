@@ -1,6 +1,4 @@
-//! This library contains the configuration structs (along with their
-//! parsing functions) for the
-//! [cargo-i18n](https://crates.io/crates/cargo_i18n) tool/system.
+#![doc = include_str!("../README.md")]
 
 mod fluent;
 mod gettext;
@@ -158,7 +156,10 @@ impl<'a> Crate<'a> {
             Some(config) => {
                 if let Some(gettext_config) = &config.gettext {
                     if gettext_config.extract_to_parent {
-                        debug!("Resolving active config for {0}, extract_to_parent is true, so attempting to obtain parent config.", self);
+                        debug!(
+                            "Resolving active config for {0}, extract_to_parent is true, so attempting to obtain parent config.",
+                            self
+                        );
 
                         if self.parent.is_none() {
                             return Err(I18nConfigError::NoParentCrate(
@@ -188,7 +189,7 @@ impl<'a> Crate<'a> {
         }
     }
 
-    /// Get the [I18nConfig](I18nConfig) in this crate, or return an
+    /// Get the [`I18nConfig`] in this crate, or return an
     /// error if there is none present.
     pub fn config_or_err(&self) -> Result<&I18nConfig, I18nConfigError> {
         match &self.i18n_config {
@@ -197,7 +198,7 @@ impl<'a> Crate<'a> {
         }
     }
 
-    /// Get the [GettextConfig](GettextConfig) in this crate, or
+    /// Get the [`GettextConfig`] in this crate, or
     /// return an error if there is none present.
     pub fn gettext_config_or_err(&self) -> Result<&GettextConfig, I18nConfigError> {
         match &self.config_or_err()?.gettext {
@@ -256,7 +257,10 @@ impl<'a> Crate<'a> {
                             debug!("The parent of {0} at path {1:?} is a workspace", self, path);
                         }
                         I18nConfigError::NotACrate(path, WhyNotCrate::NoCargoToml) => {
-                            debug!("The parent of {0} at path {1:?} is not a valid crate with a Cargo.toml", self, path);
+                            debug!(
+                                "The parent of {0} at path {1:?} is not a valid crate with a Cargo.toml",
+                                self, path
+                            );
                         }
                         _ => {
                             error!(
@@ -301,7 +305,10 @@ impl<'a> Crate<'a> {
                     if this_is_subcrate {
                         Some(crt)
                     } else {
-                        debug!("Parent {0} does not have {1} correctly listed as one of its subcrates (currently: {2:?}) in its i18n config.", crt, self, config.subcrates);
+                        debug!(
+                            "Parent {0} does not have {1} correctly listed as one of its subcrates (currently: {2:?}) in its i18n config.",
+                            crt, self, config.subcrates
+                        );
                         None
                     }
                 }

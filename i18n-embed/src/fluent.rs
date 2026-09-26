@@ -2,8 +2,6 @@
 //! `fluent` localization system.
 //!
 //! Most important is the [FluentLanguageLoader].
-//!
-//! ⚠️ *This module requires the following crate features to be activated: `fluent-system`.*
 
 use crate::{I18nAssets, I18nEmbedError, LanguageLoader};
 
@@ -12,7 +10,7 @@ pub use fluent_langneg::NegotiationStrategy;
 pub use i18n_embed_impl::fluent_language_loader;
 
 use fluent::{
-    bundle::FluentBundle, FluentArgs, FluentAttribute, FluentMessage, FluentResource, FluentValue,
+    FluentArgs, FluentAttribute, FluentMessage, FluentResource, FluentValue, bundle::FluentBundle,
 };
 use fluent_syntax::ast::{self, Pattern};
 use intl_memoizer::concurrent::IntlLangMemoizer;
@@ -78,8 +76,6 @@ struct FluentLanguageLoaderInner {
 /// [LanguageLoader] implementation for the `fluent` localization
 /// system. Also provides methods to access localizations which have
 /// been loaded.
-///
-/// ⚠️ *This API requires the following crate features to be activated: `fluent-system`.*
 #[derive(Debug)]
 pub struct FluentLanguageLoader {
     inner: ArcSwap<FluentLanguageLoaderInner>,
@@ -408,7 +404,7 @@ impl FluentLanguageLoader {
     /// Set whether the underlying Fluent logic should insert Unicode
     /// Directionality Isolation Marks around placeables.
     ///
-    /// See [`fluent::bundle::FluentBundleBase::set_use_isolating`] for more
+    /// See [`fluent::bundle::FluentBundle::set_use_isolating`] for more
     /// information.
     ///
     /// **Note:** This function will have no effect if

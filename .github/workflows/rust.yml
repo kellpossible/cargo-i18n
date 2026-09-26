@@ -88,3 +88,15 @@ jobs:
       - uses: taiki-e/install-action@cargo-msrv
       - name: Run cargo-msrv
         run: cargo msrv verify
+  doc:
+    name: Generate docs
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Document workspace
+        env:
+          RUSTDOCFLAG: -Dwarnings --cfg docsrs
+        run: cargo doc --workspace --all-features --no-deps

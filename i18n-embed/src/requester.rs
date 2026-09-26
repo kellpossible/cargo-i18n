@@ -224,15 +224,15 @@ impl std::fmt::Debug for LanguageRequesterImpl<'_> {
 /// supporting windows, linux and mac. It uses
 /// [sys-locale](sys-locale) to select the language based on the
 /// system selected language.
-///
-/// ⚠️ *This API requires the following crate features to be activated: `desktop-requester`.*
 #[cfg(feature = "desktop-requester")]
+#[cfg_attr(docsrs, doc(cfg(feature = "desktop-requester")))]
 #[derive(Debug)]
 pub struct DesktopLanguageRequester<'a> {
     implementation: LanguageRequesterImpl<'a>,
 }
 
 #[cfg(feature = "desktop-requester")]
+#[cfg_attr(docsrs, doc(cfg(feature = "desktop-requester")))]
 impl<'a> LanguageRequester<'a> for DesktopLanguageRequester<'a> {
     fn requested_languages(&self) -> Vec<unic_langid::LanguageIdentifier> {
         DesktopLanguageRequester::requested_languages()
@@ -267,6 +267,7 @@ impl<'a> LanguageRequester<'a> for DesktopLanguageRequester<'a> {
 }
 
 #[cfg(feature = "desktop-requester")]
+#[cfg_attr(docsrs, doc(cfg(feature = "desktop-requester")))]
 impl Default for DesktopLanguageRequester<'_> {
     fn default() -> Self {
         DesktopLanguageRequester::new()
@@ -274,6 +275,7 @@ impl Default for DesktopLanguageRequester<'_> {
 }
 
 #[cfg(feature = "desktop-requester")]
+#[cfg_attr(docsrs, doc(cfg(feature = "desktop-requester")))]
 impl DesktopLanguageRequester<'_> {
     /// Create a new `DesktopLanguageRequester`.
     pub fn new() -> Self {
@@ -303,15 +305,15 @@ impl DesktopLanguageRequester<'_> {
 }
 
 /// A [LanguageRequester](LanguageRequester) for the `web-sys` web platform.
-///
-/// ⚠️ *This API requires the following crate features to be activated: `web-sys-requester`.*
 #[cfg(feature = "web-sys-requester")]
+#[cfg_attr(docsrs, doc(cfg(feature = "web-sys-requester")))]
 #[derive(Debug)]
 pub struct WebLanguageRequester<'a> {
     implementation: LanguageRequesterImpl<'a>,
 }
 
 #[cfg(feature = "web-sys-requester")]
+#[cfg_attr(docsrs, doc(cfg(feature = "web-sys-requester")))]
 impl WebLanguageRequester<'_> {
     /// Create a new `WebLanguageRequester`.
     pub fn new() -> Self {
@@ -339,6 +341,7 @@ impl WebLanguageRequester<'_> {
 }
 
 #[cfg(feature = "web-sys-requester")]
+#[cfg_attr(docsrs, doc(cfg(feature = "web-sys-requester")))]
 impl Default for WebLanguageRequester<'_> {
     fn default() -> Self {
         WebLanguageRequester::new()
@@ -346,6 +349,7 @@ impl Default for WebLanguageRequester<'_> {
 }
 
 #[cfg(feature = "web-sys-requester")]
+#[cfg_attr(docsrs, doc(cfg(feature = "web-sys-requester")))]
 impl<'a> LanguageRequester<'a> for WebLanguageRequester<'a> {
     fn requested_languages(&self) -> Vec<unic_langid::LanguageIdentifier> {
         Self::requested_languages()

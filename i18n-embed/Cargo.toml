@@ -19,6 +19,7 @@ version = "0.16.0"
 
 [package.metadata.docs.rs]
 all-features = true
+rustdoc-args = ["--cfg", "docsrs"]
 
 [badges]
 maintenance = { status = "actively-developed" }

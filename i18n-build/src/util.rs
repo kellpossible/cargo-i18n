@@ -6,7 +6,7 @@ use std::path::Path;
 use std::process::Command;
 
 use crate::error::PathError;
-use anyhow::{ensure, Context, Result};
+use anyhow::{Context, Result, ensure};
 use tr::tr;
 
 /// Run the specified command, check that it's output was reported as successful.
@@ -33,8 +33,7 @@ pub fn run_command_and_check_success(command_name: &str, mut command: Command) -
     Ok(())
 }
 
-/// Check that the given path exists, if it doesn't then throw a
-/// [PathError](PathError).
+/// Check that the given path exists, if it doesn't then throw a [`PathError`].
 pub fn check_path_exists<P: AsRef<Path>>(path: P) -> Result<(), PathError> {
     if !path.as_ref().exists() {
         Err(PathError::does_not_exist(path.as_ref()))

@@ -1,8 +1,17 @@
-# i18n-build [![crates.io badge](https://img.shields.io/crates/v/i18n-build.svg)](https://crates.io/crates/i18n-build) [![docs.rs badge](https://docs.rs/i18n-build/badge.svg)](https://docs.rs/i18n-build/) [![license badge](https://img.shields.io/github/license/kellpossible/cargo-i18n)](https://github.com/kellpossible/cargo-i18n/blob/master/i18n-build/LICENSE.txt) [![github actions badge](https://github.com/kellpossible/cargo-i18n/workflows/Rust/badge.svg)](https://github.com/kellpossible/cargo-i18n/actions?query=workflow%3ARust)
+# i18n-build
+
+[![crates.io badge](https://img.shields.io/crates/v/i18n-build.svg)](https://crates.io/crates/i18n-build)
+[![docs.rs badge](https://docs.rs/i18n-build/badge.svg)](https://docs.rs/i18n-build/)
+![rust version badge](https://img.shields.io/badge/rustc-1.85.1+-blue.svg)
+[![license badge](https://img.shields.io/github/license/kellpossible/cargo-i18n)](https://github.com/kellpossible/cargo-i18n/blob/master/i18n-build/LICENSE.txt)
+[![github actions badge](https://github.com/kellpossible/cargo-i18n/actions/workflows/rust.yml/badge.svg?branch=master)](https://github.com/kellpossible/cargo-i18n/actions/workflows/rust.yml?branch=master)
+[![changelog badge](https://img.shields.io/badge/Changelog-8A2BE2)](https://github.com/kellpossible/cargo-i18n/blob/master/i18n-build/CHANGELOG.md)
 
 A library for use within the [cargo-i18n](https://crates.io/crates/cargo_i18n) tool for localizing crates. It has been published to allow its direct use within project build scripts if required.
 
-**[Changelog](https://github.com/kellpossible/cargo-i18n/blob/master/i18n-build/CHANGELOG.md)**
+`xtr` (installed with `cargo install xtr`), and the GNU Gettext CLI
+tools `msginit`, `msgfmt`, `msgmerge` and `msgcat` must be present
+in your system path.
 
 ## Optional Features
 

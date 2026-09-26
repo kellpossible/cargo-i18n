@@ -1,20 +1,5 @@
-//! This library is designed for use within the
-//! [cargo-i18n](https://crates.io/crates/cargo_i18n) tool for
-//! localizing crates. It has been exposed and published as a library
-//! to allow its direct use within project build scripts if required.
-//!
-//! `xtr` (installed with `cargo install xtr`), and GNU Gettext CLI
-//! tools `msginit`, `msgfmt`, `msgmerge` and `msgcat` to be present
-//! in your system path.
-//!
-//! # Optional Features
-//!
-//! The `i18n-build` crate has the following optional Cargo features:
-//!
-//! + `localize`
-//!   + Enables the runtime localization of this library using
-//!     [localize()](#localize()) function via the
-//!     [i18n-embed](https://crates.io/crates/i18n-embed) crate
+#![doc = include_str!("../README.md")]
+#![cfg_attr(docsrs, feature(doc_cfg))]
 
 pub mod error;
 pub mod gettext_impl;
@@ -62,10 +47,11 @@ pub fn run(crt: Crate) -> Result<()> {
 }
 
 #[cfg(feature = "localize")]
+#[cfg_attr(docsrs, doc(cfg(feature = "localize")))]
 mod localize_feature {
     use i18n_embed::{
-        gettext::{gettext_language_loader, GettextLanguageLoader},
         DefaultLocalizer,
+        gettext::{GettextLanguageLoader, gettext_language_loader},
     };
     use std::sync::OnceLock;
 
@@ -84,12 +70,11 @@ mod localize_feature {
     }
 
     /// Obtain a [Localizer](i18n_embed::Localizer) for localizing this library.
-    ///
-    /// ⚠️ *This API requires the following crate features to be activated: `localize`.*
     pub fn localizer() -> DefaultLocalizer<'static> {
         DefaultLocalizer::new(language_loader(), &TRANSLATIONS)
     }
 }
 
 #[cfg(feature = "localize")]
+#[cfg_attr(docsrs, doc(cfg(feature = "localize")))]
 pub use localize_feature::localizer;

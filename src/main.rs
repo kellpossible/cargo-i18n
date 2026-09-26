@@ -1,10 +1,11 @@
+#![doc = include_str!("../README.md")]
 use anyhow::Result;
-use clap::{builder::PossibleValuesParser, crate_authors, crate_version, Arg, Command};
+use clap::{Arg, Command, builder::PossibleValuesParser, crate_authors, crate_version};
 use i18n_build::run;
 use i18n_config::Crate;
 use i18n_embed::{
-    gettext::{gettext_language_loader, GettextLanguageLoader},
     DefaultLocalizer, DesktopLanguageRequester, LanguageLoader, LanguageRequester, Localizer,
+    gettext::{GettextLanguageLoader, gettext_language_loader},
 };
 use rust_embed::RustEmbed;
 use std::{

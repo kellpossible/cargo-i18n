@@ -1,8 +1,11 @@
+#![doc = include_str!("../README.md")]
+#![cfg_attr(docsrs, feature(doc_cfg))]
+
 use core::slice;
 use fluent::concurrent::FluentBundle;
 use fluent::{FluentAttribute, FluentMessage, FluentResource};
 use fluent_syntax::ast::{CallArguments, Expression, InlineExpression, Pattern, PatternElement};
-use i18n_embed::{fluent::FluentLanguageLoader, FileSystemAssets, LanguageLoader};
+use i18n_embed::{FileSystemAssets, LanguageLoader, fluent::FluentLanguageLoader};
 use proc_macro::TokenStream;
 use proc_macro_error3::{abort, emit_error, proc_macro_error};
 use quote::quote;
@@ -18,13 +21,6 @@ use std::{
 
 use syn::{parse::Parse, parse_macro_input, spanned::Spanned};
 use unic_langid::LanguageIdentifier;
-
-#[cfg(doctest)]
-#[macro_use]
-extern crate doc_comment;
-
-#[cfg(doctest)]
-doctest!("../README.md");
 
 #[derive(Debug)]
 enum FlAttr {
@@ -97,7 +93,7 @@ impl Parse for FlArgs {
                         return Err(syn::Error::new(
                             expr.left.span(),
                             "fl!() unable to parse argument identifier",
-                        ))
+                        ));
                     }
                 }
                 .clone();

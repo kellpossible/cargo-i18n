@@ -17,6 +17,10 @@ maintenance = { status = "actively-developed" }
 [lib]
 proc-macro = true
 
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]
+
 [dependencies]
 find-crate = { workspace = true, optional = true }
 i18n-config = { workspace = true, optional = true }
