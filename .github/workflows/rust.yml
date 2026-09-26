@@ -23,10 +23,10 @@ jobs:
         with:
           tool: cargo-all-features
       - parallel:
-        - name: Run tests
-          run: cargo all-features nextest run --no-tests pass --profile ci
-        - name: Run doctests
-          run: cargo all-features test --doc
+          - name: Run tests
+            run: cargo all-features nextest run --no-tests pass --profile ci
+          - name: Run doctests
+            run: cargo all-features test --doc
 
   tidy:
     name: Static Checks
@@ -99,7 +99,9 @@ jobs:
         with:
           persist-credentials: false
       - uses: dtolnay/rust-toolchain@stable
-      - uses: taiki-e/install-action@cargo-msrv
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-msrv
       - name: Run cargo-msrv
         run: cargo msrv verify --target ${{ matrix.target }} --all-features --min 1.85
   doc:

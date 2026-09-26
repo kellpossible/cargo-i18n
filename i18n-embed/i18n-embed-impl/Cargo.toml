@@ -31,18 +31,18 @@ syn = { workspace = true, optional = true }
 [features]
 default = []
 fluent-system = [
-    "dep:i18n-config",
-    "dep:find-crate",
-    "dep:quote",
-    "dep:syn",
-    "dep:proc-macro2",
+  "dep:i18n-config",
+  "dep:find-crate",
+  "dep:quote",
+  "dep:syn",
+  "dep:proc-macro2",
 ]
 gettext-system = [
-    "dep:i18n-config",
-    "dep:find-crate",
-    "dep:quote",
-    "dep:syn",
-    "dep:proc-macro2",
+  "dep:i18n-config",
+  "dep:find-crate",
+  "dep:quote",
+  "dep:syn",
+  "dep:proc-macro2",
 ]
 
 [lints]
