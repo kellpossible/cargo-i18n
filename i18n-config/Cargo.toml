@@ -1,24 +1,25 @@
 [package]
-authors = ["Luke Frisken <l.frisken@gmail.com>"]
+authors.workspace = true
 categories = ["localization", "internationalization"]
 description = "This library contains the configuration stucts (along with their parsing functions) for the cargo-i18n tool/system."
-edition = "2018"
+edition.workspace = true
 keywords = ["cargo", "build", "i18n", "gettext", "locale"]
-license = "MIT"
+license.workspace = true
 name = "i18n-config"
 readme = "README.md"
-repository = "https://github.com/kellpossible/cargo-i18n/tree/master/i18n-config"
+repository.workspace = true
+rust-version.workspace = true
 version = "0.4.8"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [badges]
 maintenance = { status = "actively-developed" }
 
 [dependencies]
-log = { workspace = true }
-basic-toml = "0.1"
-serde = { workspace = true, features = ["derive"] }
-serde_derive = { workspace = true }
-thiserror = { workspace = true }
-unic-langid = { workspace = true, features = ["serde"] }
+log.workspace = true
+serde.workspace = true
+thiserror.workspace = true
+toml.workspace = true
+unic-langid.workspace = true
+
+[lints]
+workspace = true

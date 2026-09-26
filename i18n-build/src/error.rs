@@ -9,8 +9,11 @@ use tr::tr;
 /// Type of path being represented in an error message.
 #[derive(Debug)]
 pub enum PathType {
+    /// File
     File,
+    /// Directory
     Directory,
+    /// Symlink
     Symlink,
 }
 
@@ -24,17 +27,25 @@ impl Display for PathType {
     }
 }
 
-/// The kinds of errors which can be expressed in a [PathError](PathError)
+/// The kinds of errors which can be expressed in a [`PathError`]
 #[derive(Debug)]
 pub enum PathErrorKind {
+    /// Not valid UTF-8
     NotValidUTF8 {
+        /// Context in which this path was being used
         for_item: String,
+        /// Path type
         path_type: PathType,
     },
+    /// Does not exist
     DoesNotExist,
+    /// Cannot create item
     CannotCreate(PathType, io::Error),
+    /// Cannot delete item
     CannotDelete(PathType, io::Error),
+    /// Cannot rename item
     CannotRename(PathType, PathBuf, io::Error),
+    /// Not inside directory
     NotInsideDirectory(String, PathBuf),
 }
 
@@ -136,7 +147,8 @@ impl Display for PathError {
                 path_type,
             } => {
                 tr!(
-                    // {0} is the file path, {1} is the item which it is for, {2} is the type of item (file, directory, etc)
+                    // {0} is the file path, {1} is the item which it is for, {2} is the type of
+                    // item (file, directory, etc)
                     "The path (\"{0}\") for {1} {2} does not have valid a utf-8 encoding.",
                     self.path.to_string_lossy(),
                     for_item,
@@ -151,7 +163,8 @@ impl Display for PathError {
                 // {0} can be either "file", or "directory", or "symlink"
                 // {1} is a file path
                 // {2} is more detailed information about the error
-                // Example: Cannot create the file "i18n/ru/something.pot" because "some error occurred"
+                // Example: Cannot create the file "i18n/ru/something.pot" because "some error
+                // occurred"
                 "Cannot create the {0} \"{1}\" because: \"{2}\".",
                 path_type,
                 self.path.to_string_lossy(),
@@ -161,7 +174,8 @@ impl Display for PathError {
                 // {0} can be either "file", or "directory", or "symlink"
                 // {1} is a file path
                 // {2} is more detailed information about the error
-                // Example: Cannot delete the file "i18n/ru/something.pot" because "some error occurred"
+                // Example: Cannot delete the file "i18n/ru/something.pot" because "some error
+                // occurred"
                 "Cannot delete the {0} \"{1}\" because: \"{2}\".",
                 path_type,
                 self.path.to_string_lossy(),
@@ -172,7 +186,8 @@ impl Display for PathError {
                 // {1} is the name of the file to be renamed
                 // {2} is the new file name
                 // {3} is more detailed information about the error
-                // Example: Cannot rename the file "old.pot" to "new.pot" because "some error occurred"
+                // Example: Cannot rename the file "old.pot" to "new.pot" because "some error
+                // occurred"
                 "Cannot rename the {0} \"{1}\" to \"{2}\" because {3}.",
                 path_type,
                 self.path.to_string_lossy(),

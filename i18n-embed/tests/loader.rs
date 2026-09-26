@@ -1,13 +1,20 @@
-#[cfg(any(feature = "fluent-system", feature = "gettext-system"))]
+#![expect(missing_docs, reason = "tests")]
+
+#[cfg(all(
+    any(feature = "fluent-system", feature = "gettext-system"),
+    feature = "rust-embed"
+))]
 fn setup() {
     let _ = env_logger::try_init();
 }
 
-#[cfg(feature = "fluent-system")]
+#[cfg(all(feature = "fluent-system", feature = "rust-embed"))]
 mod fluent {
+    use std::{collections::HashMap, slice};
+
     use super::setup;
     use fluent_langneg::NegotiationStrategy;
-    use i18n_embed::{fluent::FluentLanguageLoader, LanguageLoader};
+    use i18n_embed::{LanguageLoader, fluent::FluentLanguageLoader};
     use rust_embed::RustEmbed;
     use unic_langid::LanguageIdentifier;
 
@@ -60,9 +67,7 @@ mod fluent {
         let loader = FluentLanguageLoader::new("test", en_us.clone());
         loader.load_languages(&Localizations, &[ru]).unwrap();
 
-        let args = maplit::hashmap! {
-            "userName" => "Tanya"
-        };
+        let args = [("userName", "Tanya")].into_iter().collect();
         pretty_assertions::assert_eq!(
             "Привет \u{2068}Tanya\u{2069}!",
             loader.get_args("only-ru-args", args)
@@ -85,9 +90,7 @@ mod fluent {
         let en_gb: LanguageIdentifier = "en-GB".parse().unwrap();
         let loader = FluentLanguageLoader::new("test", en_us.clone());
         loader.load_languages(&Localizations, &[en_gb]).unwrap();
-        let args = maplit::hashmap! {
-            "name" => "Joe Doe"
-        };
+        let args = [("name", "Joe Doe")].into_iter().collect();
         pretty_assertions::assert_eq!(
             "\u{2068}Joe Doe\u{2069}!",
             loader.get_attr_args("with-attr-and-args", "who", args)
@@ -115,9 +118,7 @@ mod fluent {
         let loader = FluentLanguageLoader::new("test", en_us.clone());
         loader.load_languages(&Localizations, &[en_us]).unwrap();
         loader.set_use_isolating(false);
-        let args = maplit::hashmap! {
-            "thing" => "thing"
-        };
+        let args = [("thing", "thing")].into_iter().collect();
         let msg = loader.get_args("isolation-chars", args);
         assert_eq!("inject a thing here", msg);
     }
@@ -128,9 +129,7 @@ mod fluent {
         let en_us: LanguageIdentifier = "en-US".parse().unwrap();
         let loader = FluentLanguageLoader::new("test", en_us.clone());
         loader.load_languages(&Localizations, &[en_us]).unwrap();
-        let args = maplit::hashmap! {
-            "thing" => "thing"
-        };
+        let args = [("thing", "thing")].into_iter().collect();
         let msg = loader.get_args("isolation-chars", args);
         assert_eq!("inject a \u{2068}thing\u{2069} here", msg);
     }
@@ -174,10 +173,7 @@ mod fluent {
         let loader = FluentLanguageLoader::new("test", en_us.clone());
         loader.load_languages(&Localizations, &[en_us]).unwrap();
 
-        let args = maplit::hashmap! {
-            "argOne" => "1",
-            "argTwo" => "2",
-        };
+        let args = [("argOne", "1"), ("argTwo", "2")].into_iter().collect();
 
         let msg = loader.get_args("multi-line-args", args);
         assert_eq!(
@@ -197,10 +193,7 @@ mod fluent {
         let loader = FluentLanguageLoader::new("test", ru.clone());
         loader.load_languages(&Localizations, &[ru]).unwrap();
 
-        let args = maplit::hashmap! {
-            "argOne" => "1",
-            "argTwo" => "2",
-        };
+        let args = [("argOne", "1"), ("argTwo", "2")].into_iter().collect();
 
         let msg = loader.get_args("multi-line-args", args);
         assert_eq!(
@@ -225,7 +218,7 @@ mod fluent {
             .load_languages(&Localizations, &[ru.clone(), en_gb])
             .unwrap();
 
-        let msg = loader.select_languages(&[ru.clone()]).get("only-ru");
+        let msg = loader.select_languages(slice::from_ref(&ru)).get("only-ru");
         assert_eq!("только русский", msg);
 
         let msg = loader.select_languages(&[ru]).get("only-gb");
@@ -244,10 +237,7 @@ mod fluent {
             .load_languages(&Localizations, &[ru.clone(), en_gb])
             .unwrap();
 
-        let args = maplit::hashmap! {
-            "argOne" => "1",
-            "argTwo" => "2",
-        };
+        let args = [("argOne", "1"), ("argTwo", "2")].into_iter().collect();
 
         let msg = loader
             .select_languages(&[ru])
@@ -295,12 +285,10 @@ mod fluent {
             .load_languages(&Localizations, &[ru.clone(), en_gb.clone()])
             .unwrap();
 
-        let args = maplit::hashmap! {
-            "userName" => "username",
-        };
+        let args: HashMap<_, _> = [("userName", "username")].into_iter().collect();
 
         let msg = loader
-            .select_languages(&[ru.clone()])
+            .select_languages(slice::from_ref(&ru))
             .get_args("only-gb-args", args.clone());
         assert_eq!("Hello \u{2068}username\u{2069}! (US Version)", msg);
 
@@ -327,10 +315,10 @@ mod fluent {
     }
 }
 
-#[cfg(feature = "gettext-system")]
+#[cfg(all(feature = "gettext-system", feature = "rust-embed"))]
 mod gettext {
     use super::setup;
-    use i18n_embed::{gettext::GettextLanguageLoader, LanguageLoader};
+    use i18n_embed::{LanguageLoader, gettext::GettextLanguageLoader};
     use rust_embed::RustEmbed;
     use serial_test::serial;
     use tr::internal::with_translator;

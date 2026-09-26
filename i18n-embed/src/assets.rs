@@ -1,5 +1,6 @@
 use std::borrow::Cow;
 
+#[cfg(feature = "rust-embed")]
 use rust_embed::RustEmbed;
 
 use crate::I18nEmbedError;
@@ -17,11 +18,11 @@ pub trait I18nAssets {
     /// they have changed. The subscription will be cancelled when the returned [`Watcher`] is
     /// dropped.
     ///
-    /// **NOTE**: The implementation of this method is optional, don't rely on it functioning for all
-    /// implementations.
+    /// **NOTE**: The implementation of this method is optional, don't rely on it functioning for
+    /// all implementations.
     fn subscribe_changed(
         &self,
-        #[allow(unused_variables)] changed: std::sync::Arc<dyn Fn() + Send + Sync + 'static>,
+        _changed: std::sync::Arc<dyn Fn() + Send + Sync + 'static>,
     ) -> Result<Box<dyn Watcher + Send + Sync + 'static>, I18nEmbedError> {
         Ok(Box::new(()))
     }
@@ -29,6 +30,8 @@ pub trait I18nAssets {
 
 impl Watcher for () {}
 
+#[cfg(feature = "rust-embed")]
+#[cfg_attr(docsrs, doc(cfg(feature = "rust-embed")))]
 impl<T> I18nAssets for T
 where
     T: RustEmbed,
@@ -44,10 +47,9 @@ where
         Box::new(Self::iter().map(|filename| filename.to_string()))
     }
 
-    #[allow(unused_variables)]
     fn subscribe_changed(
         &self,
-        changed: std::sync::Arc<dyn Fn() + Send + Sync + 'static>,
+        _changed: std::sync::Arc<dyn Fn() + Send + Sync + 'static>,
     ) -> Result<Box<dyn Watcher + Send + Sync + 'static>, I18nEmbedError> {
         Ok(Box::new(()))
     }
@@ -56,16 +58,16 @@ where
 /// A wrapper for [`rust_embed::RustEmbed`] that supports notifications when files have changed on
 /// the file system. A wrapper is required to provide `base_dir` as this is unavailable in the type
 /// derived by the [`rust_embed::RustEmbed`] macro.
-///
-/// ⚠️ *This type requires the following crate features to be activated: `autoreload`.*
-#[cfg(feature = "autoreload")]
+#[cfg(all(feature = "autoreload", feature = "rust-embed"))]
+#[cfg_attr(docsrs, doc(cfg(all(feature = "autoreload", feature = "rust-embed"))))]
 #[derive(Debug)]
 pub struct RustEmbedNotifyAssets<T: rust_embed::RustEmbed> {
     base_dir: std::path::PathBuf,
     embed: core::marker::PhantomData<T>,
 }
 
-#[cfg(feature = "autoreload")]
+#[cfg(all(feature = "autoreload", feature = "rust-embed"))]
+#[cfg_attr(docsrs, doc(cfg(all(feature = "autorelead", feature = "rust-embed"))))]
 impl<T: rust_embed::RustEmbed> RustEmbedNotifyAssets<T> {
     /// Construct a new [`RustEmbedNotifyAssets`].
     pub fn new(base_dir: impl Into<std::path::PathBuf>) -> Self {
@@ -76,7 +78,8 @@ impl<T: rust_embed::RustEmbed> RustEmbedNotifyAssets<T> {
     }
 }
 
-#[cfg(feature = "autoreload")]
+#[cfg(all(feature = "autoreload", feature = "rust-embed"))]
+#[cfg_attr(docsrs, doc(cfg(all(feature = "autoreload", feature = "rust-embed"))))]
 impl<T> I18nAssets for RustEmbedNotifyAssets<T>
 where
     T: RustEmbed,
@@ -110,6 +113,7 @@ where
 /// An [I18nAssets] implementation which pulls assets from the OS
 /// file system.
 #[cfg(feature = "filesystem-assets")]
+#[cfg_attr(docsrs, doc(cfg(feature = "filesystem-assets")))]
 #[derive(Debug)]
 pub struct FileSystemAssets {
     base_dir: std::path::PathBuf,
@@ -118,6 +122,7 @@ pub struct FileSystemAssets {
 }
 
 #[cfg(feature = "filesystem-assets")]
+#[cfg_attr(docsrs, doc(cfg(feature = "filesystem-assets")))]
 impl FileSystemAssets {
     /// Create a new `FileSystemAssets` instance, all files will be
     /// read from within the specified base directory.
@@ -141,6 +146,7 @@ impl FileSystemAssets {
 
     /// Enable the notification of changes in the [`I18nAssets`] implementation.
     #[cfg(feature = "autoreload")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "autoreload")))]
     pub fn notify_changes_enabled(mut self, enabled: bool) -> Self {
         self.notify_changes_enabled = enabled;
         self
@@ -148,13 +154,13 @@ impl FileSystemAssets {
 }
 
 /// An error that occurs during notification of changes when the `autoreload feature is enabled.`
-///
-/// ⚠️ *This type requires the following crate features to be activated: `filesystem-assets`.*
 #[cfg(feature = "autoreload")]
+#[cfg_attr(docsrs, doc(cfg(feature = "autoreload")))]
 #[derive(Debug)]
 pub struct NotifyError(notify::Error);
 
 #[cfg(feature = "autoreload")]
+#[cfg_attr(docsrs, doc(cfg(feature = "autoreload")))]
 impl From<notify::Error> for NotifyError {
     fn from(value: notify::Error) -> Self {
         Self(value)
@@ -162,6 +168,7 @@ impl From<notify::Error> for NotifyError {
 }
 
 #[cfg(feature = "autoreload")]
+#[cfg_attr(docsrs, doc(cfg(feature = "autoreload")))]
 impl From<notify::Error> for I18nEmbedError {
     fn from(value: notify::Error) -> Self {
         Self::Notify(value.into())
@@ -169,6 +176,7 @@ impl From<notify::Error> for I18nEmbedError {
 }
 
 #[cfg(feature = "autoreload")]
+#[cfg_attr(docsrs, doc(cfg(feature = "autoreload")))]
 impl std::fmt::Display for NotifyError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         self.0.fmt(f)
@@ -176,9 +184,20 @@ impl std::fmt::Display for NotifyError {
 }
 
 #[cfg(feature = "autoreload")]
+#[cfg_attr(docsrs, doc(cfg(feature = "autoreload")))]
 impl std::error::Error for NotifyError {}
 
-#[cfg(feature = "autoreload")]
+#[cfg(all(
+    feature = "autoreload",
+    any(feature = "rust-embed", feature = "filesystem-assets")
+))]
+#[cfg_attr(
+    docsrs,
+    doc(cfg(all(
+        feature = "autoreload",
+        any(feature = "rust-embed", feature = "filesystem-assets")
+    )))
+)]
 fn notify_watcher(
     base_dir: &std::path::Path,
     changed: std::sync::Arc<dyn Fn() + Send + Sync + 'static>,
@@ -213,9 +232,11 @@ fn notify_watcher(
 pub trait Watcher {}
 
 #[cfg(feature = "autoreload")]
+#[cfg_attr(docsrs, doc(cfg(feature = "autoreload")))]
 impl Watcher for notify::RecommendedWatcher {}
 
 #[cfg(feature = "filesystem-assets")]
+#[cfg_attr(docsrs, doc(cfg(feature = "filesystem-assets")))]
 impl I18nAssets for FileSystemAssets {
     fn get_files(&self, file_path: &str) -> Vec<Cow<'_, [u8]>> {
         let full_path = self.base_dir.join(file_path);
@@ -269,8 +290,8 @@ impl I18nAssets for FileSystemAssets {
     }
 
     /// See [`FileSystemAssets::notify_changes_enabled`] to enable this implementation.
-    /// ⚠️ *This method requires the following crate features to be activated: `autoreload`.*
     #[cfg(feature = "autoreload")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "autoreload")))]
     fn subscribe_changed(
         &self,
         changed: std::sync::Arc<dyn Fn() + Send + Sync + 'static>,
@@ -312,7 +333,8 @@ impl AssetsMultiplexor {
     }
 }
 
-#[allow(dead_code)] // We rely on the Drop implementation of the Watcher to remove the file system watch.
+// We rely on the Drop implementation of the Watcher to remove the file system watch.
+#[expect(dead_code, reason = "not fully implemented")]
 struct Watchers(Vec<Box<dyn Watcher + Send + Sync + 'static>>);
 
 impl Watcher for Watchers {}

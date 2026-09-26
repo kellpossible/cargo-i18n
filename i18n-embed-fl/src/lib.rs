@@ -1,30 +1,26 @@
+#![doc = include_str!("../README.md")]
+#![cfg_attr(docsrs, feature(doc_cfg))]
+
+use core::slice;
 use fluent::concurrent::FluentBundle;
 use fluent::{FluentAttribute, FluentMessage, FluentResource};
 use fluent_syntax::ast::{CallArguments, Expression, InlineExpression, Pattern, PatternElement};
-use i18n_embed::{fluent::FluentLanguageLoader, FileSystemAssets, LanguageLoader};
+use i18n_embed::{FileSystemAssets, LanguageLoader, fluent::FluentLanguageLoader};
 use proc_macro::TokenStream;
 use proc_macro_error3::{abort, emit_error, proc_macro_error};
 use quote::quote;
-use std::{
-    collections::{HashMap, HashSet},
-    path::Path,
-    sync::OnceLock,
-};
+use std::{collections::HashSet, path::Path, sync::OnceLock};
 
 #[cfg(feature = "dashmap")]
 use dashmap::mapref::one::Ref;
 #[cfg(not(feature = "dashmap"))]
-use std::sync::{Arc, RwLock};
+use std::{
+    collections::HashMap,
+    sync::{Arc, RwLock},
+};
 
 use syn::{parse::Parse, parse_macro_input, spanned::Spanned};
 use unic_langid::LanguageIdentifier;
-
-#[cfg(doctest)]
-#[macro_use]
-extern crate doc_comment;
-
-#[cfg(doctest)]
-doctest!("../README.md");
 
 #[derive(Debug)]
 enum FlAttr {
@@ -35,7 +31,7 @@ enum FlAttr {
 }
 
 impl Parse for FlAttr {
-    fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
+    fn parse(input: syn::parse::ParseStream<'_>) -> syn::Result<Self> {
         if !input.is_empty() {
             let fork = input.fork();
             fork.parse::<syn::Token![,]>()?;
@@ -68,12 +64,13 @@ enum FlArgs {
     KeyValuePairs {
         specified_args: Vec<(syn::LitStr, Box<syn::Expr>)>,
     },
-    /// `fl!(LOADER, "message", "optional-attribute")` no arguments after the message id and optional attribute id.
+    /// `fl!(LOADER, "message", "optional-attribute")` no arguments after the message id and
+    /// optional attribute id.
     None,
 }
 
 impl Parse for FlArgs {
-    fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
+    fn parse(input: syn::parse::ParseStream<'_>) -> syn::Result<Self> {
         if !input.is_empty() {
             input.parse::<syn::Token![,]>()?;
 
@@ -97,7 +94,7 @@ impl Parse for FlArgs {
                         return Err(syn::Error::new(
                             expr.left.span(),
                             "fl!() unable to parse argument identifier",
-                        ))
+                        ));
                     }
                 }
                 .clone();
@@ -156,7 +153,7 @@ struct FlMacroInput {
 }
 
 impl Parse for FlMacroInput {
-    fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
+    fn parse(input: syn::parse::ParseStream<'_>) -> syn::Result<Self> {
         let fluent_loader = input.parse()?;
         input.parse::<syn::Token![,]>()?;
         let message_id = input.parse()?;
@@ -188,37 +185,33 @@ struct DomainsMap {
 
 #[cfg(feature = "dashmap")]
 impl DomainsMap {
-    fn get(&self, domain: &String) -> Option<Ref<String, DomainSpecificData>> {
+    fn get(&self, domain: &str) -> Option<Ref<'_, String, DomainSpecificData>> {
         self.map.get(domain)
     }
 
     fn entry_or_insert(
         &self,
-        domain: &String,
+        domain: &str,
         data: DomainSpecificData,
-    ) -> Ref<String, DomainSpecificData> {
-        self.map.entry(domain.clone()).or_insert(data).downgrade()
+    ) -> Ref<'_, String, DomainSpecificData> {
+        self.map
+            .entry(domain.to_string())
+            .or_insert(data)
+            .downgrade()
     }
 }
 
 #[cfg(not(feature = "dashmap"))]
 impl DomainsMap {
-    fn get(&self, domain: &String) -> Option<Arc<DomainSpecificData>> {
-        match self.map.read().unwrap().get(domain) {
-            None => None,
-            Some(data) => Some(data.clone()),
-        }
+    fn get(&self, domain: &str) -> Option<Arc<DomainSpecificData>> {
+        self.map.read().unwrap().get(domain).map(Clone::clone)
     }
 
-    fn entry_or_insert(
-        &self,
-        domain: &String,
-        data: DomainSpecificData,
-    ) -> Arc<DomainSpecificData> {
+    fn entry_or_insert(&self, domain: &str, data: DomainSpecificData) -> Arc<DomainSpecificData> {
         self.map
             .write()
             .unwrap()
-            .entry(domain.clone())
+            .entry(domain.to_string())
             .or_insert(Arc::new(data))
             .clone()
     }
@@ -227,11 +220,11 @@ impl DomainsMap {
 fn domains() -> &'static DomainsMap {
     static DOMAINS: OnceLock<DomainsMap> = OnceLock::new();
 
-    DOMAINS.get_or_init(|| DomainsMap::default())
+    DOMAINS.get_or_init(DomainsMap::default)
 }
 
-/// A macro to obtain localized messages and optionally their attributes, and check the `message_id`, `attribute_id`
-/// and arguments at compile time.
+/// A macro to obtain localized messages and optionally their attributes, and check the
+/// `message_id`, `attribute_id` and arguments at compile time.
 ///
 /// Compile time checks are performed using the `fallback_language`
 /// specified in the current crate's `i18n.toml` confiration file.
@@ -406,15 +399,15 @@ pub fn fl(input: TokenStream) -> TokenStream {
         )
     };
 
-    let domain_data = if let Some(domain_data) = domains().get(&domain) {
-        domain_data
-    } else {
-        let crate_paths = i18n_config::locate_crate_paths()
-            .unwrap_or_else(|error| panic!("fl!() is unable to locate crate paths: {}", error));
+    let domain_data = match domains().get(&domain) {
+        Some(domain_data) => domain_data,
+        _ => {
+            let crate_paths = i18n_config::locate_crate_paths()
+                .unwrap_or_else(|error| panic!("fl!() is unable to locate crate paths: {}", error));
 
-        let config_file_path = &crate_paths.i18n_config_file;
+            let config_file_path = &crate_paths.i18n_config_file;
 
-        let config = i18n_config::I18nConfig::from_file(config_file_path).unwrap_or_else(|err| {
+            let config = i18n_config::I18nConfig::from_file(config_file_path).unwrap_or_else(|err| {
             abort! {
                 proc_macro2::Span::call_site(),
                 format!(
@@ -424,63 +417,64 @@ pub fn fl(input: TokenStream) -> TokenStream {
             }
         });
 
-        let fluent_config = config.fluent.unwrap_or_else(|| {
-            abort! {
-                proc_macro2::Span::call_site(),
-                format!(
-                    "fl!() had a problem parsing i18n config file {config_file_path:?}: \
-                    there is no `[fluent]` subsection."
-                );
-                help = "Add the `[fluent]` subsection to `i18n.toml`, \
-                        along with its required `assets_dir`.";
-            }
-        });
-
-        // Use the domain override in the configuration.
-        let domain = fluent_config.domain.unwrap_or(domain);
-
-        let assets_dir = Path::new(&crate_paths.crate_dir).join(fluent_config.assets_dir);
-        let assets = FileSystemAssets::try_new(assets_dir).unwrap();
-
-        let fallback_language: LanguageIdentifier = config.fallback_language;
-
-        let loader = FluentLanguageLoader::new(&domain, fallback_language.clone());
-
-        loader
-            .load_languages(&assets, &[fallback_language.clone()])
-            .unwrap_or_else(|err| match err {
-                i18n_embed::I18nEmbedError::LanguageNotAvailable(file, language_id) => {
-                    if fallback_language != language_id {
-                        panic!(
-                            "fl!() encountered an unexpected problem, \
-                            the language being loaded (\"{0}\") is not the \
-                            `fallback_language` (\"{1}\")",
-                            language_id, fallback_language
-                        )
-                    }
-                    abort! {
-                        proc_macro2::Span::call_site(),
-                        format!(
-                            "fl!() was unable to load the localization \
-                            file for the `fallback_language` \
-                            (\"{fallback_language}\"): {file}"
-                        );
-                        help = "Try creating the required fluent localization file.";
-                    }
+            let fluent_config = config.fluent.unwrap_or_else(|| {
+                abort! {
+                    proc_macro2::Span::call_site(),
+                    format!(
+                        "fl!() had a problem parsing i18n config file {config_file_path:?}: \
+                        there is no `[fluent]` subsection."
+                    );
+                    help = "Add the `[fluent]` subsection to `i18n.toml`, \
+                            along with its required `assets_dir`.";
                 }
-                _ => panic!(
-                    "fl!() had an unexpected problem while \
-                        loading language \"{0}\": {1}",
-                    fallback_language, err
-                ),
             });
 
-        let data = DomainSpecificData {
-            loader,
-            _assets: assets,
-        };
+            // Use the domain override in the configuration.
+            let domain = fluent_config.domain.unwrap_or(domain);
 
-        domains().entry_or_insert(&domain, data)
+            let assets_dir = Path::new(&crate_paths.crate_dir).join(fluent_config.assets_dir);
+            let assets = FileSystemAssets::try_new(assets_dir).unwrap();
+
+            let fallback_language: LanguageIdentifier = config.fallback_language;
+
+            let loader = FluentLanguageLoader::new(&domain, fallback_language.clone());
+
+            loader
+                .load_languages(&assets, slice::from_ref(&fallback_language))
+                .unwrap_or_else(|err| match err {
+                    i18n_embed::I18nEmbedError::LanguageNotAvailable(file, language_id) => {
+                        if fallback_language != language_id {
+                            panic!(
+                                "fl!() encountered an unexpected problem, \
+                            the language being loaded (\"{0}\") is not the \
+                            `fallback_language` (\"{1}\")",
+                                language_id, fallback_language
+                            )
+                        }
+                        abort! {
+                            proc_macro2::Span::call_site(),
+                            format!(
+                                "fl!() was unable to load the localization \
+                                file for the `fallback_language` \
+                                (\"{fallback_language}\"): {file}"
+                            );
+                            help = "Try creating the required fluent localization file.";
+                        }
+                    }
+                    _ => panic!(
+                        "fl!() had an unexpected problem while \
+                        loading language \"{0}\": {1}",
+                        fallback_language, err
+                    ),
+                });
+
+            let data = DomainSpecificData {
+                loader,
+                _assets: assets,
+            };
+
+            domains().entry_or_insert(&domain, data)
+        }
     };
 
     let message_id_string = match &message_id {
@@ -527,7 +521,7 @@ pub fn fl(input: TokenStream) -> TokenStream {
     // Same procedure for attributes
     let mut checked_message_has_attribute = false;
 
-    let gen = match input.args {
+    let r#gen = match input.args {
         FlArgs::HashMap(args_hash_map) => {
             if attr_lit.is_none() {
                 quote! {
@@ -569,7 +563,7 @@ pub fn fl(input: TokenStream) -> TokenStream {
                         .is_some();
                 }
 
-                let gen = quote! {
+                let r#gen = quote! {
                     (#fluent_loader).get_args_concrete(
                         #message_id,
                         {
@@ -579,7 +573,7 @@ pub fn fl(input: TokenStream) -> TokenStream {
                         })
                 };
 
-                gen
+                r#gen
             } else {
                 if let Some(message_id_str) = &message_id_string {
                     if let Some(attr_id_str) = &attr_str {
@@ -598,7 +592,7 @@ pub fn fl(input: TokenStream) -> TokenStream {
                     }
                 }
 
-                let gen = quote! {
+                let r#gen = quote! {
                     (#fluent_loader).get_attr_args_concrete(
                         #message_id,
                         #attr_lit,
@@ -609,7 +603,7 @@ pub fn fl(input: TokenStream) -> TokenStream {
                         })
                 };
 
-                gen
+                r#gen
             }
         }
     };
@@ -672,7 +666,7 @@ pub fn fl(input: TokenStream) -> TokenStream {
         }
     }
 
-    gen.into()
+    r#gen.into()
 }
 
 fn fuzzy_message_suggestions(
@@ -730,7 +724,7 @@ fn fuzzy_attribute_suggestions(
 fn check_message_args<R>(
     message: FluentMessage<'_>,
     bundle: &FluentBundle<R>,
-    specified_args: &Vec<(syn::LitStr, Box<syn::Expr>)>,
+    specified_args: &[(syn::LitStr, Box<syn::Expr>)],
 ) where
     R: std::borrow::Borrow<FluentResource>,
 {
@@ -800,7 +794,7 @@ fn check_message_args<R>(
 fn check_attribute_args<R>(
     attr: FluentAttribute<'_>,
     bundle: &FluentBundle<R>,
-    specified_args: &Vec<(syn::LitStr, Box<syn::Expr>)>,
+    specified_args: &[(syn::LitStr, Box<syn::Expr>)],
 ) where
     R: std::borrow::Borrow<FluentResource>,
 {
@@ -930,20 +924,21 @@ fn args_from_inline_expression<'m, R>(
             id,
             attribute: None,
         } => {
-            bundle
-                .get_message(&id.name)
-                .and_then(|m| m.value())
-                .map(|p| args_from_pattern(p, bundle, args));
+            if let Some(p) = bundle.get_message(id.name).and_then(|m| m.value()) {
+                args_from_pattern(p, bundle, args);
+            }
         }
         InlineExpression::MessageReference {
             id,
             attribute: Some(attribute),
         } => {
-            bundle
-                .get_message(&id.name)
-                .and_then(|m| m.get_attribute(&attribute.name))
+            if let Some(p) = bundle
+                .get_message(id.name)
+                .and_then(|m| m.get_attribute(attribute.name))
                 .map(|m| m.value())
-                .map(|p| args_from_pattern(p, bundle, args));
+            {
+                args_from_pattern(p, bundle, args);
+            }
         }
         _ => {}
     }

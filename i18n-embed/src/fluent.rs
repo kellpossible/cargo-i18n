@@ -2,8 +2,6 @@
 //! `fluent` localization system.
 //!
 //! Most important is the [FluentLanguageLoader].
-//!
-//! ⚠️ *This module requires the following crate features to be activated: `fluent-system`.*
 
 use crate::{I18nAssets, I18nEmbedError, LanguageLoader};
 
@@ -12,7 +10,7 @@ pub use fluent_langneg::NegotiationStrategy;
 pub use i18n_embed_impl::fluent_language_loader;
 
 use fluent::{
-    bundle::FluentBundle, FluentArgs, FluentAttribute, FluentMessage, FluentResource, FluentValue,
+    FluentArgs, FluentAttribute, FluentMessage, FluentResource, FluentValue, bundle::FluentBundle,
 };
 use fluent_syntax::ast::{self, Pattern};
 use intl_memoizer::concurrent::IntlLangMemoizer;
@@ -78,8 +76,6 @@ struct FluentLanguageLoaderInner {
 /// [LanguageLoader] implementation for the `fluent` localization
 /// system. Also provides methods to access localizations which have
 /// been loaded.
-///
-/// ⚠️ *This API requires the following crate features to be activated: `fluent-system`.*
 #[derive(Debug)]
 pub struct FluentLanguageLoader {
     inner: ArcSwap<FluentLanguageLoaderInner>,
@@ -347,8 +343,7 @@ impl FluentLanguageLoader {
     /// message is found, invokes the `closure` with the:
     ///
     /// 0. [message](FluentMessage)
-    /// 1. the language-specific [bundle](FluentBundle)
-    ///    that owns it.
+    /// 1. the language-specific [bundle](FluentBundle) that owns it.
     ///
     /// Returns `Some` of whatever the closure returns, or `None` if no
     /// messages were found matching the `message_id`.
@@ -408,7 +403,7 @@ impl FluentLanguageLoader {
     /// Set whether the underlying Fluent logic should insert Unicode
     /// Directionality Isolation Marks around placeables.
     ///
-    /// See [`fluent::bundle::FluentBundleBase::set_use_isolating`] for more
+    /// See [`fluent::bundle::FluentBundle::set_use_isolating`] for more
     /// information.
     ///
     /// **Note:** This function will have no effect if
@@ -526,8 +521,7 @@ impl LanguageLoader for FluentLanguageLoader {
     /// first in the `language_ids` slice. You can use
     /// [select()](super::select()) to determine which fallbacks are
     /// actually available for an arbitrary slice of preferences.
-    #[allow(single_use_lifetimes)]
-    fn load_languages<'a>(
+    fn load_languages(
         &self,
         i18n_assets: &dyn I18nAssets,
         language_ids: &[unic_langid::LanguageIdentifier],

@@ -1,13 +1,14 @@
 [package]
-authors = ["Luke Frisken <l.frisken@gmail.com>"]
-description = "Macro implementations for i18n-embed"
-edition = "2018"
-keywords = ["build", "i18n", "gettext", "locale", "fluent"]
+authors.workspace = true
 categories = ["localization", "internationalization"]
-license = "MIT"
+description = "Macro implementations for i18n-embed"
+edition.workspace = true
+keywords = ["build", "i18n", "gettext", "locale", "fluent"]
+license.workspace = true
 name = "i18n-embed-impl"
 readme = "../README.md"
-repository = "https://github.com/kellpossible/cargo-i18n/tree/master/i18n-embed"
+repository.workspace = true
+rust-version.workspace = true
 version = "0.8.4"
 
 [badges]
@@ -16,21 +17,33 @@ maintenance = { status = "actively-developed" }
 [lib]
 proc-macro = true
 
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]
+
 [dependencies]
 find-crate = { workspace = true, optional = true }
 i18n-config = { workspace = true, optional = true }
-proc-macro2 = { workspace = true }
+proc-macro2 = { workspace = true, optional = true }
 quote = { workspace = true, optional = true }
-
-[dev-dependencies]
-rust-embed = { workspace = true }
-
-[dependencies.syn]
-workspace = true
-default-features = false
-features = ["derive", "proc-macro", "parsing", "printing", "extra-traits",]
+syn = { workspace = true, optional = true }
 
 [features]
 default = []
-gettext-system = ["i18n-config", "find-crate", "quote"]
-fluent-system = ["i18n-config", "find-crate", "quote"]
+fluent-system = [
+  "dep:i18n-config",
+  "dep:find-crate",
+  "dep:quote",
+  "dep:syn",
+  "dep:proc-macro2",
+]
+gettext-system = [
+  "dep:i18n-config",
+  "dep:find-crate",
+  "dep:quote",
+  "dep:syn",
+  "dep:proc-macro2",
+]
+
+[lints]
+workspace = true

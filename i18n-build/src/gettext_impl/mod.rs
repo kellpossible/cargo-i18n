@@ -6,18 +6,18 @@ use crate::util;
 use i18n_config::{Crate, GettextConfig, I18nConfigError};
 
 use std::ffi::OsStr;
-use std::fs::{create_dir_all, File};
+use std::fs::{File, create_dir_all};
+use std::io;
 use std::path::{Path, PathBuf};
-use std::process::Command;
+use std::process::{Command, Stdio};
 
-use anyhow::{anyhow, Context, Result};
+use anyhow::{Context, Result, anyhow};
 use log::{debug, info};
-use subprocess::Exec;
 use tr::tr;
 use walkdir::WalkDir;
 
 /// Run the `xtr` command (<https://crates.io/crates/xtr/>) in order
-/// to extract the translateable strings from the crate.
+/// to extract the translatable strings from the crate.
 ///
 /// `src_dir` is the directory where the Rust source code is located
 /// relative to the crate path.
@@ -29,7 +29,7 @@ use walkdir::WalkDir;
 /// crate to directory where the intermediate `pot` files will be
 /// stored within the `pot_dir`.
 pub fn run_xtr(
-    crt: &Crate,
+    crt: &Crate<'_>,
     gettext_config: &GettextConfig,
     src_dir: &Path,
     pot_dir: &Path,
@@ -88,7 +88,7 @@ pub fn run_xtr(
         util::create_dir_all_if_not_exists(pot_file_path.parent().with_context(|| {
             format!(
                 "Expected that pot file path \"{0}\" would be inside a directory (have a parent)",
-                &pot_file_path.to_string_lossy()
+                pot_file_path.to_string_lossy()
             )
         })?)?;
 
@@ -187,22 +187,31 @@ pub fn run_msgcat<P: AsRef<Path>, I: IntoIterator<Item = P>>(
 
     util::remove_file_if_exists(&interim_output_pot_path)?;
 
-    let output_pot_file = File::create(&interim_output_pot_path)
+    let mut output_pot_file = File::create(&interim_output_pot_path)
         .map_err(|e| PathError::cannot_create_file(&interim_output_pot_path, e))?;
 
-    let msgcat_command_name = "msgcat";
-    let msgcat = Exec::cmd(msgcat_command_name)
-        .args(msgcat_args.as_slice())
-        .stdout(output_pot_file);
-
-    debug!("Running command: {0:?}", msgcat);
-
-    msgcat.join().with_context(|| {
-        tr!(
-            "There was a problem executing the \"{0}\" command",
-            msgcat_command_name
-        )
-    })?;
+    debug!("Running msgcat");
+    Command::new("msgcat")
+        .args(msgcat_args)
+        .stdout(Stdio::piped())
+        .spawn()
+        .and_then(|mut child| {
+            io::copy(&mut child.stdout.take().unwrap(), &mut output_pot_file)?;
+            child.wait()
+        })
+        .and_then(|exit_status| {
+            if exit_status.success() {
+                Ok(())
+            } else {
+                Err(io::Error::other(anyhow!(exit_status)))
+            }
+        })
+        .with_context(|| {
+            tr!(
+                "There was a problem executing the \"{0}\" command",
+                "msgcat"
+            )
+        })?;
 
     if output_in_input {
         util::remove_file_if_exists(&output_pot_path)?;
@@ -218,7 +227,7 @@ pub fn run_msgcat<P: AsRef<Path>, I: IntoIterator<Item = P>>(
 ///
 /// `po_dir` is the directory where the output `po` files will be
 /// stored.
-pub fn run_msginit(crt: &Crate, pot_dir: &Path, po_dir: &Path) -> Result<()> {
+pub fn run_msginit(crt: &Crate<'_>, pot_dir: &Path, po_dir: &Path) -> Result<()> {
     info!(
         "Initializing new po files with `msginit` for crate \"{0}\"",
         crt.path.to_string_lossy()
@@ -278,7 +287,7 @@ pub fn run_msginit(crt: &Crate, pot_dir: &Path, po_dir: &Path) -> Result<()> {
 /// `pot_dir` is the directory where the input `pot` files are stored.
 ///
 /// `po_dir` is the directory where the `po` files are stored.
-pub fn run_msgmerge(crt: &Crate, pot_dir: &Path, po_dir: &Path) -> Result<()> {
+pub fn run_msgmerge(crt: &Crate<'_>, pot_dir: &Path, po_dir: &Path) -> Result<()> {
     info!(
         "Merging message changes in pot files to po files with `msgmerge` for crate \"{0}\"",
         crt.path.to_string_lossy()
@@ -325,7 +334,7 @@ pub fn run_msgmerge(crt: &Crate, pot_dir: &Path, po_dir: &Path) -> Result<()> {
 /// `po_dir` is the directory where the input `po` files are stored.
 ///
 /// `mo_dir` is the directory where the output `mo` files will be stored.
-pub fn run_msgfmt(crt: &Crate, po_dir: &Path, mo_dir: &Path) -> Result<()> {
+pub fn run_msgfmt(crt: &Crate<'_>, po_dir: &Path, mo_dir: &Path) -> Result<()> {
     info!(
         "Compiling po files to mo files with `msgfmt` for crate \"{0}\"",
         crt.path.to_string_lossy()
@@ -379,7 +388,7 @@ pub fn run_msgfmt(crt: &Crate, po_dir: &Path, mo_dir: &Path) -> Result<()> {
 /// crate must have an i18n config containing a gettext config.
 ///
 /// This function is recursively executed for each subcrate.
-pub fn run(crt: &Crate) -> Result<()> {
+pub fn run(crt: &Crate<'_>) -> Result<()> {
     info!(
         "Localizing crate \"{0}\" using the gettext system",
         crt.path.to_string_lossy()
@@ -401,9 +410,9 @@ pub fn run(crt: &Crate) -> Result<()> {
     // We don't use the i18n_config (which potentially comes from the
     // parent crate )to get the subcrates, because this would result
     // in an infinite loop.
-    let subcrates: Vec<Crate> = match &crt.i18n_config {
+    let subcrates: Vec<Crate<'_>> = match &crt.i18n_config {
         Some(config) => {
-            let subcrates: Result<Vec<Crate>, I18nConfigError> = config
+            let subcrates: Result<Vec<Crate<'_>>, I18nConfigError> = config
                 .subcrates
                 .iter()
                 .map(|subcrate_path| {
@@ -466,7 +475,7 @@ pub fn run(crt: &Crate) -> Result<()> {
 
         let concatenate_crate_paths: Vec<PathBuf> = concatenate_crates
             .iter()
-            .map(|concat_crt: &&Crate| crate_module_pot_file_path(concat_crt, &pot_dir))
+            .map(|concat_crt: &&Crate<'_>| crate_module_pot_file_path(concat_crt, &pot_dir))
             .collect();
 
         let output_pot_path = crate_module_pot_file_path(crt, &pot_dir);

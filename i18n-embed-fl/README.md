@@ -1,14 +1,22 @@
-# i18n-embed-fl [![crates.io badge](https://img.shields.io/crates/v/i18n-embed-fl.svg)](https://crates.io/crates/i18n-embed-fl) [![docs.rs badge](https://docs.rs/i18n-embed-fl/badge.svg)](https://docs.rs/i18n-embed-fl/) [![license badge](https://img.shields.io/github/license/kellpossible/cargo-i18n)](https://github.com/kellpossible/cargo-i18n/blob/master/i18n-embed-fl/LICENSE.txt) [![github actions badge](https://github.com/kellpossible/cargo-i18n/workflows/Rust/badge.svg)](https://github.com/kellpossible/cargo-i18n/actions?query=workflow%3ARust)
+# i18n-embed-fl
+
+[![crates.io badge](https://img.shields.io/crates/v/i18n-embed-fl.svg)](https://crates.io/crates/i18n-embed-fl)
+[![docs.rs badge](https://docs.rs/i18n-embed-fl/badge.svg)](https://docs.rs/i18n-embed-fl/)
+![rust version badge](https://img.shields.io/badge/rustc-1.85.1+-blue.svg)
+[![license badge](https://img.shields.io/github/license/kellpossible/cargo-i18n)](https://github.com/kellpossible/cargo-i18n/blob/master/i18n-embed-fl/LICENSE.txt)
+[![github actions badge](https://github.com/kellpossible/cargo-i18n/actions/workflows/rust.yml/badge.svg?branch=master)](https://github.com/kellpossible/cargo-i18n/actions/workflows/rust.yml?branch=master)
+[![changelog badge](https://img.shields.io/badge/Changelog-8A2BE2)](https://github.com/kellpossible/cargo-i18n/blob/master/i18n-embed-fl/CHANGELOG.md)
 
 This crate provides a macro to perform compile time checks when using the [i18n-embed](https://crates.io/crates/i18n-embed) crate and the [fluent](https://www.projectfluent.org/) localization system.
 
-See [docs](https://docs.rs/i18n-embed-fl/), and [i18n-embed](https://crates.io/crates/i18n-embed) for more information.
+## Optional features
 
-**[Changelog](https://github.com/kellpossible/cargo-i18n/blob/master/i18n-embed-fl/CHANGELOG.md)**
+- `dashmap`
+  - Use dashmap implementation for `fl!()` macro lookups.
 
 ## Example
 
-Set up a minimal `i18n.toml` in your crate root to use with `cargo-i18n` (see [cargo i18n](../README.md#configuration) for more information on the configuration file format):
+Set up a minimal `i18n.toml` in your crate root to use with `cargo-i18n` (see [cargo-i18n](https://github.com/kellpossible/cargo-i18n/blob/master/README.md#configuration) for more information on the configuration file format):
 
 ```toml
 # (Required) The language identifier of the language used in the

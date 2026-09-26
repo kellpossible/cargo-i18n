@@ -1,12 +1,14 @@
+#![expect(missing_docs, reason = "example")]
+
 use std::time::Duration;
 
-use i18n_embed::{DesktopLanguageRequester, Localizer};
+use i18n_embed::{Localizer, SystemLanguageRequester};
 use library_fluent::{hello_world, localizer};
 
 fn main() {
     env_logger::init();
     let library_localizer = localizer().with_autoreload().unwrap();
-    let requested_languages = DesktopLanguageRequester::requested_languages();
+    let requested_languages = SystemLanguageRequester::requested_languages();
 
     if let Err(error) = library_localizer.select(&requested_languages) {
         eprintln!("Error while loading languages for library_fluent {error}");

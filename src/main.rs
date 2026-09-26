@@ -1,10 +1,11 @@
+#![doc = include_str!("../README.md")]
 use anyhow::Result;
-use clap::{builder::PossibleValuesParser, crate_authors, crate_version, Arg, Command};
+use clap::{Arg, Command, builder::PossibleValuesParser, crate_authors, crate_version};
 use i18n_build::run;
 use i18n_config::Crate;
 use i18n_embed::{
-    gettext::{gettext_language_loader, GettextLanguageLoader},
-    DefaultLocalizer, DesktopLanguageRequester, LanguageLoader, LanguageRequester, Localizer,
+    DefaultLocalizer, LanguageLoader, LanguageRequester, Localizer, SystemLanguageRequester,
+    gettext::{GettextLanguageLoader, gettext_language_loader},
 };
 use rust_embed::RustEmbed;
 use std::{
@@ -74,7 +75,7 @@ You can enable debug logging using \"RUST_LOG=debug cargo i18n\".",
 
 fn main() -> Result<()> {
     env_logger::init();
-    let mut language_requester = DesktopLanguageRequester::new();
+    let mut language_requester = SystemLanguageRequester::new();
 
     let cargo_i18n_localizer: DefaultLocalizer<'static> =
         DefaultLocalizer::new(language_loader(), &TRANSLATIONS);
@@ -167,7 +168,7 @@ fn main() -> Result<()> {
         i18n_build::util::check_path_exists(&path)?;
         i18n_build::util::check_path_exists(path.join(&config_file_path))?;
 
-        let crt: Crate = Crate::from(path, None, config_file_path)?;
+        let crt = Crate::from(path, None, config_file_path)?;
         run(crt)?;
     }
 

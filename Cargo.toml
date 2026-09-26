@@ -1,75 +1,117 @@
 [package]
-authors = ["Luke Frisken <l.frisken@gmail.com>"]
-categories = ["development-tools::cargo-plugins", "localization", "internationalization", "development-tools::build-utils"]
+authors.workspace = true
+categories = [
+  "development-tools::cargo-plugins",
+  "localization",
+  "internationalization",
+  "development-tools::build-utils",
+]
 description = "Cargo sub-command to extract and build localization resources to embed in your application/library"
-edition = "2018"
+edition.workspace = true
 keywords = ["cargo", "build", "i18n", "gettext", "locale"]
-license = "MIT"
+license.workspace = true
 name = "cargo-i18n"
 readme = "README.md"
-repository = "https://github.com/kellpossible/cargo-i18n"
+repository.workspace = true
+rust-version.workspace = true
 version = "0.2.13"
 
 [badges]
 maintenance = { status = "actively-developed" }
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [dependencies]
-i18n-embed = { workspace = true, features = ["desktop-requester", "gettext-system", "fluent-system"] }
-i18n-build = { workspace = true, features = ["localize"] }
-i18n-config = { workspace = true }
-anyhow = { workspace = true }
-gettext = { workspace = true }
-tr = { workspace = true, features = ["gettext"] }
-clap = { version = "4.4.5", features = ["cargo"] }
-rust-embed = { workspace = true } 
-unic-langid = { workspace = true }
-env_logger = { workspace = true }
-log = { workspace = true }
+anyhow.workspace = true
+clap.workspace = true
+env_logger.workspace = true
+i18n-build.workspace = true
+i18n-config.workspace = true
+i18n-embed = { workspace = true, features = [
+  "system-requester",
+  "gettext-system",
+  "fluent-system",
+] }
+rust-embed.workspace = true
+tr.workspace = true
+unic-langid.workspace = true
 
-[dev-dependencies]
-doc-comment = { workspace = true }
+[lints]
+workspace = true
 
 [workspace]
-
 members = [
-    "i18n-build",
-    "i18n-config",
-    "i18n-embed",
-    "i18n-embed/i18n-embed-impl",
-    "i18n-embed-fl",
+  "i18n-build",
+  "i18n-config",
+  "i18n-embed",
+  "i18n-embed/i18n-embed-impl",
+  "i18n-embed-fl",
 
-    # Examples
-    "i18n-embed/examples/library-fluent",
-    "i18n-embed/examples/desktop-bin",
-    "i18n-embed-fl/examples/web-server",
+  # Examples
+  "i18n-embed/examples/library-fluent",
+  "i18n-embed/examples/desktop-bin",
+  "i18n-embed-fl/examples/web-server",
 ]
+resolver = "3"
 
 [workspace.dependencies]
-rust-embed = "8.0"
-i18n-build = { version = "0.10.0", path = "./i18n-build" }
-i18n-embed = { version = "0.16.0", path = "./i18n-embed" }
-i18n-embed-impl = { version = "0.8.4", path = "./i18n-embed/i18n-embed-impl" }
-i18n-config = { version = "0.4.7", path = "./i18n-config" }
-i18n-embed-fl = { version = "0.10.0", path = "./i18n-embed-fl" }
-thiserror = "1.0"
-log = "0.4"
-unic-langid = "0.9"
 anyhow = "1.0"
-gettext = "0.4"
-tr = "0.1"
-doc-comment = "0.3"
+arc-swap = "1.0"
+clap = { version = "4.6.7", features = ["cargo"] }
+dashmap = "6.2"
 env_logger = "0.11"
+find-crate = "0.7"
 fluent = "0.17"
-fluent-syntax = "0.12"
 fluent-langneg = "0.13"
+fluent-syntax = "0.12"
+gettext = "0.4"
+i18n-build = { version = "0.10.0", path = "./i18n-build", features = [
+  "localize",
+] }
+i18n-config = { version = "0.4.7", path = "./i18n-config" }
+i18n-embed = { version = "0.16.0", path = "./i18n-embed" }
+i18n-embed-fl = { version = "0.10.0", path = "./i18n-embed-fl" }
+i18n-embed-impl = { version = "0.8.4", path = "./i18n-embed/i18n-embed-impl" }
+intl-memoizer = "0.5"
+log = "0.4"
+notify = "8.2"
+once_cell = "1.21"
+parking_lot = "0.12"
+pretty_assertions = "1.4"
+proc-macro-error3 = "3.0"
 proc-macro2 = "1.0"
 quote = "1.0"
-find-crate = "0.7"
-syn = "2.0"
-pretty_assertions = "1.4"
-walkdir = "2.4"
-serde = "1.0"
-serde_derive = "1.0"
-once_cell = "1.18"
+rust-embed = "8.12"
+serde = { version = "1.0", features = ["derive"] }
+serial_test = "4.0"
+strsim = "0.11"
+syn = { version = "3.0", features = [
+  "derive",
+  "proc-macro",
+  "parsing",
+  "printing",
+  "extra-traits",
+  "full",
+] }
+sys-locale = "0.3"
+thiserror = "2.0"
+toml = "1.1.6"
+tr = { version = "0.1", default-features = false, features = ["gettext"] }
+unic-langid = { version = "0.9", features = ["serde"] }
+walkdir = "2.5"
+
+[workspace.lints.clippy]
+allow_attributes = "warn"
+allow_attributes_without_reason = "warn"
+
+[workspace.lints.rust]
+missing_debug_implementations = "warn"
+missing_docs = "warn"
+rust_2018_idioms = "warn"
+single_use_lifetimes = "warn"
+unreachable_pub = "warn"
+
+[workspace.package]
+authors = ["Luke Frisken <l.frisken@gmail.com>", "cargo-i18n contributors"]
+edition = "2024"
+license = "MIT"
+repository = "https://github.com/kellpossible/cargo-i18n"
+rust-version = "1.85.1"

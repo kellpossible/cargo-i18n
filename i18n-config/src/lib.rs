@@ -1,6 +1,4 @@
-//! This library contains the configuration structs (along with their
-//! parsing functions) for the
-//! [cargo-i18n](https://crates.io/crates/cargo_i18n) tool/system.
+#![doc = include_str!("../README.md")]
 
 mod fluent;
 mod gettext;
@@ -16,12 +14,13 @@ use std::{
 };
 
 use log::{debug, error};
-use serde_derive::Deserialize;
+use serde::Deserialize;
 use thiserror::Error;
 use unic_langid::LanguageIdentifier;
 
 /// An error type explaining why a crate failed to verify.
 #[derive(Debug, Error)]
+#[expect(missing_docs, reason = "self-explanatory")]
 pub enum WhyNotCrate {
     #[error("there is no Cargo.toml present")]
     NoCargoToml,
@@ -31,6 +30,7 @@ pub enum WhyNotCrate {
 
 /// An error type for use with the `i18n-config` crate.
 #[derive(Debug, Error)]
+#[expect(missing_docs, reason = "self-explanatory")]
 pub enum I18nConfigError {
     #[error("The specified path is not a crate because {1}.")]
     NotACrate(PathBuf, WhyNotCrate),
@@ -39,9 +39,9 @@ pub enum I18nConfigError {
     #[error("Cannot parse Cargo configuration file {0:?} because {1}.")]
     CannotParseCargoToml(PathBuf, String),
     #[error("Cannot deserialize toml file {0:?} because {1}.")]
-    CannotDeserializeToml(PathBuf, basic_toml::Error),
+    CannotDeserializeToml(PathBuf, toml::de::Error),
     #[error("Cannot parse i18n configuration file {0:?} because {1}.")]
-    CannotPaseI18nToml(PathBuf, String),
+    CannotParseI18nToml(PathBuf, String),
     #[error("There is no i18n configuration file present for the crate {0}.")]
     NoI18nConfig(String),
     #[error("The \"{0}\" is required to be present in the i18n configuration file \"{1}\"")]
@@ -91,7 +91,7 @@ impl<'a> Crate<'a> {
     /// `config_file_path` (if there is one).
     pub fn from<P1: Into<PathBuf>, P2: Into<PathBuf>>(
         path: P1,
-        parent: Option<&'a Crate>,
+        parent: Option<&'a Crate<'_>>,
         config_file_path: P2,
     ) -> Result<Crate<'a>, I18nConfigError> {
         let path_into = path.into();
@@ -111,7 +111,7 @@ impl<'a> Crate<'a> {
             I18nConfigError::CannotReadFile(cargo_path.clone(), std::env::current_dir(), err)
         })?;
 
-        let cargo_toml: RawCrate = basic_toml::from_str(&toml_str)
+        let cargo_toml: RawCrate = toml::from_str(&toml_str)
             .map_err(|err| I18nConfigError::CannotDeserializeToml(cargo_path.clone(), err))?;
 
         let full_config_file_path = path_into.join(&config_file_path_into);
@@ -142,7 +142,7 @@ impl<'a> Crate<'a> {
     /// otherwise return None.
     pub fn parent_active_config(
         &self,
-    ) -> Result<Option<(&'_ Crate, &'_ I18nConfig)>, I18nConfigError> {
+    ) -> Result<Option<(&Crate<'_>, &I18nConfig)>, I18nConfigError> {
         match self.parent {
             Some(parent) => parent.active_config(),
             None => Ok(None),
@@ -152,13 +152,16 @@ impl<'a> Crate<'a> {
     /// Identify the config which should be used for this crate, and
     /// the crate (either this crate or one of it's parents)
     /// associated with that config.
-    pub fn active_config(&self) -> Result<Option<(&'_ Crate, &'_ I18nConfig)>, I18nConfigError> {
+    pub fn active_config(&self) -> Result<Option<(&Crate<'_>, &I18nConfig)>, I18nConfigError> {
         debug!("Resolving active config for {0}", self);
         match &self.i18n_config {
             Some(config) => {
                 if let Some(gettext_config) = &config.gettext {
                     if gettext_config.extract_to_parent {
-                        debug!("Resolving active config for {0}, extract_to_parent is true, so attempting to obtain parent config.", self);
+                        debug!(
+                            "Resolving active config for {0}, extract_to_parent is true, so attempting to obtain parent config.",
+                            self
+                        );
 
                         if self.parent.is_none() {
                             return Err(I18nConfigError::NoParentCrate(
@@ -188,7 +191,7 @@ impl<'a> Crate<'a> {
         }
     }
 
-    /// Get the [I18nConfig](I18nConfig) in this crate, or return an
+    /// Get the [`I18nConfig`] in this crate, or return an
     /// error if there is none present.
     pub fn config_or_err(&self) -> Result<&I18nConfig, I18nConfigError> {
         match &self.i18n_config {
@@ -197,7 +200,7 @@ impl<'a> Crate<'a> {
         }
     }
 
-    /// Get the [GettextConfig](GettextConfig) in this crate, or
+    /// Get the [`GettextConfig`] in this crate, or
     /// return an error if there is none present.
     pub fn gettext_config_or_err(&self) -> Result<&GettextConfig, I18nConfigError> {
         match &self.config_or_err()?.gettext {
@@ -212,8 +215,8 @@ impl<'a> Crate<'a> {
     /// If this crate has a parent, check whether the parent wants to
     /// collate subcrates string extraction, as per the parent's
     /// [GettextConfig#collate_extracted_subcrates](GettextConfig#collate_extracted_subcrates).
-    /// This also requires that the current crate's [GettextConfig#extract_to_parent](GettextConfig#extract_to_parent)
-    /// is **true**.
+    /// This also requires that the current crate's
+    /// [GettextConfig#extract_to_parent](GettextConfig#extract_to_parent) is **true**.
     ///
     /// Returns **false** if there is no parent or the parent has no gettext config.
     pub fn collated_subcrate(&self) -> bool {
@@ -256,7 +259,10 @@ impl<'a> Crate<'a> {
                             debug!("The parent of {0} at path {1:?} is a workspace", self, path);
                         }
                         I18nConfigError::NotACrate(path, WhyNotCrate::NoCargoToml) => {
-                            debug!("The parent of {0} at path {1:?} is not a valid crate with a Cargo.toml", self, path);
+                            debug!(
+                                "The parent of {0} at path {1:?} is not a valid crate with a Cargo.toml",
+                                self, path
+                            );
                         }
                         _ => {
                             error!(
@@ -301,7 +307,10 @@ impl<'a> Crate<'a> {
                     if this_is_subcrate {
                         Some(crt)
                     } else {
-                        debug!("Parent {0} does not have {1} correctly listed as one of its subcrates (currently: {2:?}) in its i18n config.", crt, self, config.subcrates);
+                        debug!(
+                            "Parent {0} does not have {1} correctly listed as one of its subcrates (currently: {2:?}) in its i18n config.",
+                            crt, self, config.subcrates
+                        );
                         None
                     }
                 }
@@ -318,7 +327,7 @@ impl<'a> Crate<'a> {
     }
 }
 
-impl<'a> Display for Crate<'a> {
+impl Display for Crate<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
@@ -361,7 +370,7 @@ impl I18nConfig {
                 err,
             )
         })?;
-        let config: I18nConfig = basic_toml::from_str(toml_str.as_ref()).map_err(|err| {
+        let config: I18nConfig = toml::from_str(toml_str.as_ref()).map_err(|err| {
             I18nConfigError::CannotDeserializeToml(toml_path_final.to_path_buf(), err)
         })?;
 
@@ -370,6 +379,7 @@ impl I18nConfig {
 }
 
 /// Important i18n-config paths related to the current crate.
+#[derive(Debug)]
 pub struct CratePaths {
     /// The current crate directory path (where the `Cargo.toml` is
     /// located).

@@ -1,57 +1,80 @@
 [package]
-authors = ["Luke Frisken <l.frisken@gmail.com>"]
-categories = ["localization", "internationalization", "development-tools::build-utils", "wasm"]
+authors.workspace = true
+categories = [
+  "localization",
+  "internationalization",
+  "development-tools::build-utils",
+  "wasm",
+]
 description = "Traits and macros to conveniently embed localization assets into your application binary or library in order to localize it at runtime."
-edition = "2018"
+edition.workspace = true
 exclude = ["i18n/", "i18n.toml"]
 keywords = ["embed", "macro", "i18n", "gettext", "fluent"]
-license = "MIT"
+license.workspace = true
 name = "i18n-embed"
 readme = "README.md"
-repository = "https://github.com/kellpossible/cargo-i18n/tree/master/i18n-embed"
+repository.workspace = true
+rust-version.workspace = true
 version = "0.16.0"
 
 [package.metadata.docs.rs]
 all-features = true
+rustdoc-args = ["--cfg", "docsrs"]
 
 [badges]
 maintenance = { status = "actively-developed" }
 
 [dependencies]
+arc-swap = { workspace = true, optional = true }
 fluent = { workspace = true, optional = true }
-arc-swap = { version = "1", optional = true }
-fluent-langneg = { workspace = true }
+fluent-langneg.workspace = true
 fluent-syntax = { workspace = true, optional = true }
 gettext = { workspace = true, optional = true }
 i18n-embed-impl = { workspace = true, optional = true }
-intl-memoizer = "0.5"
-sys-locale = { version = "0.3", optional = true }
-log = { workspace = true }
-notify = { version = "8.0.0", optional = true }
-parking_lot = { version = "0.12", optional = true }
+intl-memoizer = { workspace = true, optional = true }
+log.workspace = true
+notify = { workspace = true, optional = true }
+parking_lot = { workspace = true, optional = true }
 rust-embed = { workspace = true, optional = true }
-thiserror = { workspace = true }
-tr = { version = "0.1", default-features = false, optional = true }
-unic-langid = { workspace = true }
+sys-locale = { workspace = true, optional = true }
+thiserror.workspace = true
+tr = { workspace = true, optional = true }
+unic-langid.workspace = true
 walkdir = { workspace = true, optional = true }
-web-sys = { version = "0.3", features = ["Window", "Navigator"], optional = true }
+
+[target.'cfg(all(target_family = "wasm", not(unix)))'.dependencies]
+sys-locale = { workspace = true, features = ["js"] }
 
 [dev-dependencies]
-doc-comment = { workspace = true } 
-env_logger = { workspace = true }
-maplit = "1.0"
-pretty_assertions = { workspace = true }
-serial_test = "3.0"
+env_logger.workspace = true
+pretty_assertions.workspace = true
+serial_test.workspace = true
 
 [features]
 default = ["rust-embed"]
 
-gettext-system = ["tr", "tr/gettext", "dep:gettext", "parking_lot", "i18n-embed-impl", "i18n-embed-impl/gettext-system"]
-fluent-system = ["fluent", "fluent-syntax", "parking_lot", "i18n-embed-impl", "i18n-embed-impl/fluent-system", "arc-swap"]
+fluent-system = [
+  "dep:fluent",
+  "dep:fluent-syntax",
+  "dep:intl-memoizer",
+  "dep:parking_lot",
+  "dep:i18n-embed-impl",
+  "i18n-embed-impl/fluent-system",
+  "dep:arc-swap",
+]
+gettext-system = [
+  "dep:tr",
+  "dep:gettext",
+  "dep:parking_lot",
+  "dep:i18n-embed-impl",
+  "i18n-embed-impl/gettext-system",
+]
 
-desktop-requester = ["sys-locale"]
-web-sys-requester = ["web-sys"]
+system-requester = ["dep:sys-locale"]
 
-filesystem-assets = ["walkdir"]
+filesystem-assets = ["dep:walkdir"]
 
-autoreload = ["notify"]
+autoreload = ["dep:notify"]
+
+[lints]
+workspace = true

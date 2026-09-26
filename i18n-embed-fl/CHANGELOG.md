@@ -1,197 +1,233 @@
 # Changelog for `i18n-embed-fl`
 
+## Unreleased
+
+### Dependencies
+
+- Updated all dependencies to the latest versions
+
+### Enhancements
+
+- Defined the MSRV to be 1.85.1
+
+### New Features
+
+- docs.rs builds now use the unstable `doc_cfg` feature to display what features are required to enable crate items
+
+### Internal
+
+- Updated to Rust 2024 edition
+- Removed unused dependencies
+- Fixed new Clippy lints and enabled stricter workspace lints
+- Fixed Cargo lints
+- Applied maximum comment width in rustfmt configuration
+- Improved CI checks to cover:
+  - MSRV
+  - wasm32-unknown-unknown build
+  - Clippy (all feature combinations)
+  - Cargo lints
+  - TOML formatting
+  - Markdown/JSON/YAML formatting
+  - Rust formatting
+  - Typos
+  - Tests (including doctests) (all feature combinations)
+  - Docs
+  - Unused dependencies
+- Updated CI action steps to latest versions
+- Improved CI security
+
 ## v0.10.1
 
 ### Fixes
 
-+ Switch from `proc-macro-error2` to `proc-macro-error3`. Fixes [#172](https://github.com/kellpossible/cargo-i18n/issues/172). Thanks to [@pedromvgomes](https://github.com/pedromvgomes)!
+- Switch from `proc-macro-error2` to `proc-macro-error3`. Fixes [#172](https://github.com/kellpossible/cargo-i18n/issues/172). Thanks to [@pedromvgomes](https://github.com/pedromvgomes)!
 
 ## v0.10.0
 
 ### Dependencies
 
-+ Bump `fluent` to `0.17` and `fluent-syntax` to `0.12`.
-+ Bump `i18n-embed` to `0.16`.
+- Bump `fluent` to `0.17` and `fluent-syntax` to `0.12`.
+- Bump `i18n-embed` to `0.16`.
 
 These are significant updates to core dependencies, thus I consider this a breaking release.
 
 ### Fixes
 
-+ Fixed non-reproducible builds. Fixes [#150](https://github.com/kellpossible/cargo-i18n/issues/150). Thanks to [@qarmin](https://github.com/qarmin) for fixing this long standing issue!
+- Fixed non-reproducible builds. Fixes [#150](https://github.com/kellpossible/cargo-i18n/issues/150). Thanks to [@qarmin](https://github.com/qarmin) for fixing this long standing issue!
 
 ### Documentation
 
-+ Fixed some typos. Thanks to [@YgorSouza](https://github.com/YgorSouza).
+- Fixed some typos. Thanks to [@YgorSouza](https://github.com/YgorSouza).
 
 ## v0.9.4
 
 ### New Features
 
-+ Dashmap is now an optional dependency. Part of ongoing fix for [#131](https://github.com/kellpossible/cargo-i18n/issues/144) to reduce the number of dependencies. Thanks to [@mrtryhard](https://github.com/mrtryhard) for the contribution and [@bikeshedder](https://github.com/bikeshedder) for the review!
+- Dashmap is now an optional dependency. Part of ongoing fix for [#131](https://github.com/kellpossible/cargo-i18n/issues/144) to reduce the number of dependencies. Thanks to [@mrtryhard](https://github.com/mrtryhard) for the contribution and [@bikeshedder](https://github.com/bikeshedder) for the review!
 
 ### Fixes
 
-+ Support recursive message argument resolution. Fix for [#144](https://github.com/kellpossible/cargo-i18n/issues/144). Many thanks to [@cbs228](https://github.com/cbs228) for this contribution.
+- Support recursive message argument resolution. Fix for [#144](https://github.com/kellpossible/cargo-i18n/issues/144). Many thanks to [@cbs228](https://github.com/cbs228) for this contribution.
 
 ## v0.9.3
 
 ### Internal
 
-+ Removed dependency on `lazy_static` #135 thanks to [@mrtryhard](https://github.com/mrtryhard).
+- Removed dependency on `lazy_static` #135 thanks to [@mrtryhard](https://github.com/mrtryhard).
 
 ## v0.9.2
 
 ### Fixes
 
-+ Switch to proc-macro-error2 [#133](https://github.com/kellpossible/cargo-i18n/pull/133), fixes [#113](https://github.com/kellpossible/cargo-i18n/issues/113), thanks to [@mrtryhard](https://github.com/mrtryhard).
-+ Fix compile warning for default features of `syn` crate.
+- Switch to proc-macro-error2 [#133](https://github.com/kellpossible/cargo-i18n/pull/133), fixes [#113](https://github.com/kellpossible/cargo-i18n/issues/113), thanks to [@mrtryhard](https://github.com/mrtryhard).
+- Fix compile warning for default features of `syn` crate.
 
 ## v0.9.1
 
 ### Fixes
 
-+ Fix broken test/build due to version bump needed in root Cargo.toml.
-+ Use domain override thanks to @Matt3o12 [#124](https://github.com/kellpossible/cargo-i18n/pull/124).
+- Fix broken test/build due to version bump needed in root Cargo.toml.
+- Use domain override thanks to @Matt3o12 [#124](https://github.com/kellpossible/cargo-i18n/pull/124).
 
 ## v0.9.0
 
 ### Internal
 
-+ Bump `strsim` to `0.11`.
-+ Bump `dashmap` to `6.0`.
+- Bump `strsim` to `0.11`.
+- Bump `dashmap` to `6.0`.
 
 ### Breaking
 
-+ Bump `i18n-embed` to `0.15.0`.
+- Bump `i18n-embed` to `0.15.0`.
 
 ### Fixes
 
-+ Fallback to `std::env::var("CARGO_PKG_NAME")` Fixes [#97](https://github.com/kellpossible/cargo-i18n/issues/97)
+- Fallback to `std::env::var("CARGO_PKG_NAME")` Fixes [#97](https://github.com/kellpossible/cargo-i18n/issues/97)
 
 ## v0.8.0
 
 ### Breaking
 
-+ The loader argument is now wrapped in brackets when expanded. This means that the return type for the macro will always be `String`, previously if the loader was a reference (e.g. `fl!(&loader, "message")`) the returned value would be `&String`, which was misleading (see [112](https://github.com/kellpossible/cargo-i18n/issues/112)) and not useful.
+- The loader argument is now wrapped in brackets when expanded. This means that the return type for the macro will always be `String`, previously if the loader was a reference (e.g. `fl!(&loader, "message")`) the returned value would be `&String`, which was misleading (see [112](https://github.com/kellpossible/cargo-i18n/issues/112)) and not useful.
 
 ## v0.7.0
 
 ### Internal
 
-+ Bump dependencies and use workspace dependencies.
+- Bump dependencies and use workspace dependencies.
 
 ## v0.6.7
 
-+ Update to syn version `2.0`.
+- Update to syn version `2.0`.
 
 ## v0.6.6
 
-+ Fix for [#104](https://github.com/kellpossible/cargo-i18n/issues/104), include files necessary for running tests in crate.
+- Fix for [#104](https://github.com/kellpossible/cargo-i18n/issues/104), include files necessary for running tests in crate.
 
 ## v0.6.5
 
 ### New Features
 
-+ Support fluent attributes [#98](https://github.com/kellpossible/cargo-i18n/pull/98) thanks to [@Almost-Senseless-Coder](https://github.com/Almost-Senseless-Coder)!
-  + Tweaked the `fl!()` macro definition such that it optionally accepts an attribute ID in addition to a message ID and arguments.
-  + Implemented compile-time verification of attributes.
+- Support fluent attributes [#98](https://github.com/kellpossible/cargo-i18n/pull/98) thanks to [@Almost-Senseless-Coder](https://github.com/Almost-Senseless-Coder)!
+  - Tweaked the `fl!()` macro definition such that it optionally accepts an attribute ID in addition to a message ID and arguments.
+  - Implemented compile-time verification of attributes.
 
 ### Internal
 
-+ Bump `i18n-embed` dependency to version `0.13.5`.
-+ Bump `env_logger` dev dependency to version `0.10`.
-+ Fix clippy warnings.
+- Bump `i18n-embed` dependency to version `0.13.5`.
+- Bump `env_logger` dev dependency to version `0.10`.
+- Fix clippy warnings.
 
 ## v0.6.4
 
-+ Update `dashmap` to version `5.1`.
-+ Update `rust-embed` to `6.3` to address [RUSTSEC-2021-0126](https://rustsec.org/advisories/RUSTSEC-2021-0126.html).
+- Update `dashmap` to version `5.1`.
+- Update `rust-embed` to `6.3` to address [RUSTSEC-2021-0126](https://rustsec.org/advisories/RUSTSEC-2021-0126.html).
 
 ## v0.6.3
 
-+ Revert `dashmap` back to `4.0` due to [security warning](https://rustsec.org/advisories/RUSTSEC-2022-0002.html)
+- Revert `dashmap` back to `4.0` due to [security warning](https://rustsec.org/advisories/RUSTSEC-2022-0002.html)
 
 ## v0.6.2
 
-+ Update `dashmap` to version `5.1`.
+- Update `dashmap` to version `5.1`.
 
 ## v0.6.1
 
-+ Fix for #76, add missing `syn` dependency with `full` feature flag specified.
+- Fix for #76, add missing `syn` dependency with `full` feature flag specified.
 
 ## v0.6.0
 
 ### Documentation
 
-+ Don't reference specific `i18n-embed` version number.
+- Don't reference specific `i18n-embed` version number.
 
 ### Breaking Changes
 
-+ Update `i18n-embed` to version `0.13`.
-+ Update `rust-embed` to version `6`.
-+ Update `fluent` to version `0.16`.
+- Update `i18n-embed` to version `0.13`.
+- Update `rust-embed` to version `6`.
+- Update `fluent` to version `0.16`.
 
 ## v0.5.0
 
 ### Breaking Changes
 
-+ Updated `fluent` to version `0.15`.
+- Updated `fluent` to version `0.15`.
 
 ## v0.4.0
 
 ### Breaking Changes
 
-+ Update `i18n-embed` to version `0.11`.
+- Update `i18n-embed` to version `0.11`.
 
 ### Internal Changes
 
-+ Refactoring during the fix for [#60](https://github.com/kellpossible/cargo-i18n/issues/60).
+- Refactoring during the fix for [#60](https://github.com/kellpossible/cargo-i18n/issues/60).
 
 ## v0.3.1
 
 ### Internal Changes
 
-+ Safer use of DashMap's new `4.0` API thanks to [#56](https://github.com/kellpossible/cargo-i18n/pull/56).
+- Safer use of DashMap's new `4.0` API thanks to [#56](https://github.com/kellpossible/cargo-i18n/pull/56).
 
 ## v0.3.0
 
-+ Update `fluent` dependency to version `0.14`.
-+ Update to `dashmap` version `4.0`, and fix breaking change.
+- Update `fluent` dependency to version `0.14`.
+- Update to `dashmap` version `4.0`, and fix breaking change.
 
 ## v0.2.0
 
-+ Bumped version to reflect potential breaking changes present in the new version of `fluent`, `0.13` which is exposed in this crate's public API. And yanked previous version of `i18n-embed-fl`: `0.1.6`.
+- Bumped version to reflect potential breaking changes present in the new version of `fluent`, `0.13` which is exposed in this crate's public API. And yanked previous version of `i18n-embed-fl`: `0.1.6`.
 
 ## v0.1.6
 
 ### Internal Changes
 
-+ Update to `fluent` version `0.13`.
-+ Fixes to address breaking changes in `fluent-syntax` version `0.10`.
+- Update to `fluent` version `0.13`.
+- Fixes to address breaking changes in `fluent-syntax` version `0.10`.
 
 ## v0.1.5
 
 ### New Features
 
-+ Updated readme with example convenience wrapper macro.
-+ Added suggestions for message ids (ranked by levenshtein distance) to the error message when the current one fails to match.
+- Updated readme with example convenience wrapper macro.
+- Added suggestions for message ids (ranked by levenshtein distance) to the error message when the current one fails to match.
 
 ## v0.1.4
 
-+ Enable the args hashmap option `fl!(loader, "message_id", args())` to be parsed as an expression, instead of just an ident.
+- Enable the args hashmap option `fl!(loader, "message_id", args())` to be parsed as an expression, instead of just an ident.
 
 ## v0.1.3
 
-+ Fix bug where message check wasn't occurring with no arguments or with hashmap arguments.
+- Fix bug where message check wasn't occurring with no arguments or with hashmap arguments.
 
 ## v0.1.2
 
-+ Change the `loader` argument to be an expression, instead of an ident, so it allows more use cases.
+- Change the `loader` argument to be an expression, instead of an ident, so it allows more use cases.
 
 ## v0.1.1
 
-+ Remove `proc_macro_diagnostic` feature causing problems compiling on stable, and use `proc-macro-error` crate instead.
+- Remove `proc_macro_diagnostic` feature causing problems compiling on stable, and use `proc-macro-error` crate instead.
 
 ## v0.1.0
 
-+ Initial version, introduces the `fl!()` macro.
+- Initial version, introduces the `fl!()` macro.

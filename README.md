@@ -1,4 +1,11 @@
-# cargo-i18n [![crates.io badge](https://img.shields.io/crates/v/cargo-i18n.svg)](https://crates.io/crates/cargo-i18n) [![license badge](https://img.shields.io/github/license/kellpossible/cargo-i18n)](https://github.com/kellpossible/cargo-i18n/blob/master/LICENSE) [![github actions badge](https://github.com/kellpossible/cargo-i18n/workflows/Rust/badge.svg)](https://github.com/kellpossible/cargo-i18n/actions?query=workflow%3ARust) [![dependency status](https://deps.rs/repo/github/kellpossible/cargo-i18n/status.svg)](https://deps.rs/repo/github/kellpossible/cargo-i18n)
+# cargo-i18n
+
+[![crates.io badge](https://img.shields.io/crates/v/cargo-i18n.svg)](https://crates.io/crates/cargo-i18n)
+![rust version badge](https://img.shields.io/badge/rustc-1.85.1+-blue.svg)
+[![license badge](https://img.shields.io/github/license/kellpossible/cargo-i18n)](https://github.com/kellpossible/cargo-i18n/blob/master/LICENSE)
+[![dependency status badge](https://deps.rs/repo/github/kellpossible/cargo-i18n/status.svg)](https://deps.rs/repo/github/kellpossible/cargo-i18n)
+[![github actions badge](https://github.com/kellpossible/cargo-i18n/actions/workflows/rust.yml/badge.svg?branch=master)](https://github.com/kellpossible/cargo-i18n/actions/workflows/rust.yml?branch=master)
+[![changelog badge](https://img.shields.io/badge/Changelog-8A2BE2)](https://github.com/kellpossible/cargo-i18n/releases)
 
 This crate is a Cargo sub-command `cargo i18n` which can be used to extract and
 build, and verify localization resources at compile time for your crate. The
@@ -8,23 +15,21 @@ library, and have them selected at runtime. Different systems can be used simult
 
 `i18n-embed` supports both the following localization systems:
 
-+ [fluent](https://www.projectfluent.org/)
-+ [gettext](https://www.gnu.org/software/gettext/)
+- [fluent](https://www.projectfluent.org/)
+- [gettext](https://www.gnu.org/software/gettext/)
 
 You can install this tool using the command: `cargo install cargo-i18n`.
 
-The `cargo i18n` command reads the configuration file (by default called `i18n.toml`) in the root directory of your crate, and then proceeds to extract  localization resources from your source files, and build them.
+The `cargo i18n` command reads the configuration file (by default called `i18n.toml`) in the root directory of your crate, and then proceeds to extract localization resources from your source files, and build them.
 
 The [i18n-build](https://crates.io/crates/i18n-build) library contains most of the implementation for this tool. It has been published separately to allow its direct use within project build scripts if required.
 
-**[Changelog](https://github.com/kellpossible/cargo-i18n/releases)**
-
 ## Projects Using `cargo-i18n` or `i18n-embed`
 
-+ The [source code](https://github.com/kellpossible/cargo-i18n/) for this project, which localizes itself. 
-+ [`age` file encryption](https://github.com/str4d/rage/tree/main/age)
-+ [`avalanche-report`](https://github.com/kellpossible/avalanche-report)
-+ [`coster` (work in progress)](https://github.com/kellpossible/coster) self-hosted web application.
+- The [source code](https://github.com/kellpossible/cargo-i18n/) for this project, which localizes itself.
+- [`age` file encryption](https://github.com/str4d/rage/tree/main/age)
+- [`avalanche-report`](https://github.com/kellpossible/avalanche-report)
+- [`coster` (work in progress)](https://github.com/kellpossible/coster) self-hosted web application.
 
 ## Usage with Fluent
 
@@ -116,7 +121,7 @@ i18n-embed = "VERSION"
 A minimal example for how to embed the compiled translations into your application could be:
 
 ```rust
-use i18n_embed::{DesktopLanguageRequester,
+use i18n_embed::{SystemLanguageRequester,
     gettext::gettext_language_loader};
 use rust_embed::RustEmbed;
 
@@ -128,10 +133,9 @@ fn main() {
     let translations = Translations {};
     let language_loader = gettext_language_loader!();
 
-    // Use the language requester for the desktop platform (linux, windows, mac).
-    // There is also a requester available for the web-sys WASM platform called
-    // WebLanguageRequester, or you can implement your own.
-    let requested_languages = DesktopLanguageRequester::requested_languages();
+    // Use the default system language via SystemLanguageRequester.
+    // You can also implement your own language requester.
+    let requested_languages = SystemLanguageRequester::requested_languages();
 
     i18n_embed::select(&language_loader, &translations, &requested_languages);
 
@@ -145,20 +149,20 @@ You can see the [i18n-embed documentation](https://docs.rs/i18n-embed/) for more
 
 Now you need to send of the `po` files to your translators, or provide them access to edit them. Some desktop tools which can be used for the translation include:
 
-+ [poedit](https://poedit.net/)
-+ [Qt Linguist](https://doc.qt.io/qt-5/linguist-translators.html) ([Windows build](https://github.com/thurask/Qt-Linguist))
+- [poedit](https://poedit.net/)
+- [Qt Linguist](https://doc.qt.io/qt-5/linguist-translators.html) ([Windows build](https://github.com/thurask/Qt-Linguist))
 
 Or you could also consider setting up a translation management website for your project to allow translators to edit translations without requiring them to interact with source control or mess around with sending files and installing applications. Some examples:
 
 **Self Hosted:**
 
-+ [pootle](https://pootle.translatehouse.org/)
-+ [weblate](https://weblate.org/) - also a cloud offering.
+- [pootle](https://pootle.translatehouse.org/)
+- [weblate](https://weblate.org/) - also a cloud offering.
 
 **Cloud:**
 
-+ [poeditor](https://poeditor.com/projects/) - free for open source projects, currently being used for this project.
-+ [crowdin](https://crowdin.com/) - free for popular open source projects.
+- [poeditor](https://poeditor.com/projects/) - free for open source projects, currently being used for this project.
+- [crowdin](https://crowdin.com/) - free for popular open source projects.
 
 ### Updating Translations
 
@@ -264,16 +268,16 @@ xtr`.
 
 Pull-requests are welcome, but for design changes it is preferred that you create a [GitHub issue](https://github.com/kellpossible/cargo-i18n/issues) first to discuss it before implementation. You can also contribute to the localization of this tool via:
 
-+ [POEditor - cargo-i18n](https://poeditor.com/join/project/J7NiRCGpXa)
-+ [POEditor - i18n-build](https://poeditor.com/join/project/BCW39cVoco)
+- [POEditor - cargo-i18n](https://poeditor.com/join/project/J7NiRCGpXa)
+- [POEditor - i18n-build](https://poeditor.com/join/project/BCW39cVoco)
 
-Or you can also use your favourite `po` editor directly to help with localizing the files located in [i18n/po](./i18n/po) and [i18n-build/i18n/po](./i18n-build/i18n/po).
+Or you can also use your favourite `po` editor directly to help with localizing the files located in [i18n/po](https://github.com/kellpossible/cargo-i18n/tree/master/i18n/po) and [i18n-build/i18n/po](https://github.com/kellpossible/cargo-i18n/tree/master/i18n-build/i18n/po).
 
 To add a new language, you can make a request via a GitHub issue, or submit a pull request adding the new locale to [i18n.toml](https://github.com/kellpossible/cargo-i18n/blob/master/i18n.toml) and generating the associated new `po` files using `cargo i18n`.
 
-Translations of this [README.md](./README.md) file are also welcome, and can be submitted via pull request. Just name it `README.md.lang`, where `lang` is the locale code (see [List of ISO 639-1 codes](https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes)).
+Translations of this [README.md](https://github.com/kellpossible/cargo-i18n/blob/master/README.md) file are also welcome, and can be submitted via pull request. Just name it `README.md.lang`, where `lang` is the locale code (see [List of ISO 639-1 codes](https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes)).
 
 ## Authors
 
-+ [Contributors](https://github.com/kellpossible/cargo-i18n/graphs/contributors)
-+ [Translators](https://github.com/kellpossible/cargo-i18n/blob/master/i18n/TRANSLATORS)
+- [Contributors](https://github.com/kellpossible/cargo-i18n/graphs/contributors)
+- [Translators](https://github.com/kellpossible/cargo-i18n/blob/master/i18n/TRANSLATORS)

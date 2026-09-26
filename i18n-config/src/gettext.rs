@@ -10,19 +10,20 @@ pub struct GettextConfig {
     /// Path to the output directory, relative to `i18n.toml` of the
     /// crate being localized.
     pub output_dir: PathBuf,
-    // If this crate is being localized as a subcrate, store the
-    // localization artifacts with the parent crate's output.
-    // Currently crates which contain subcrates with duplicate names
-    // are not supported.
-    //
-    // By default this is **false**.
+    /// If this crate is being localized as a subcrate, store the
+    /// localization artifacts with the parent crate's output.
+    ///
+    /// Currently crates which contain subcrates with duplicate names
+    /// are not supported.
+    ///
+    /// By default this is **false**.
     #[serde(default)]
     pub extract_to_parent: bool,
-    // If a subcrate has extract_to_parent set to true,
-    // then merge the output pot file of that subcrate into this
-    // crate's pot file.
-    //
-    // By default this is **false**.
+    /// If a subcrate has extract_to_parent set to true,
+    /// then merge the output pot file of that subcrate into this
+    /// crate's pot file.
+    ///
+    /// By default this is **false**.
     #[serde(default)]
     pub collate_extracted_subcrates: bool,
     /// Set the copyright holder for the generated files.

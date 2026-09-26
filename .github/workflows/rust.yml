@@ -3,53 +3,116 @@ name: Rust
 on:
   pull_request:
   push:
-    branches: [ master ]
+    branches: [master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
   test:
     name: Test Suite
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions-rs/toolchain@v1
+      - uses: actions/checkout@v7
         with:
-          profile: minimal
-          toolchain: nightly
-          override: true
-      - uses: actions-rs/cargo@v1
+          persist-credentials: false
+      - uses: dtolnay/rust-toolchain@nightly
+      - uses: taiki-e/install-action@nextest
+      - uses: taiki-e/install-action@v2
         with:
-          command: test
-          args: --all --all-features -- --test-threads 1
-  
-  fmt:
-    name: Rustfmt
+          tool: cargo-all-features
+      - parallel:
+          - name: Run tests
+            run: cargo all-features nextest run --no-tests pass --profile ci
+          - name: Run doctests
+            run: cargo all-features test --doc
+
+  tidy:
+    name: Static Checks
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions-rs/toolchain@v1
+      - uses: actions/checkout@v7
         with:
-          profile: minimal
-          toolchain: stable
-          override: true
-      - run: rustup component add rustfmt
-      - uses: actions-rs/cargo@v1
+          persist-credentials: false
+      - uses: dtolnay/rust-toolchain@nightly
         with:
-          command: fmt
-          args: --all -- --check
-  
-  clippy:
-    name: Clippy
+          components: rustfmt
+      - uses: taiki-e/install-action@taplo-cli
+      - uses: actions/setup-node@v7
+      - parallel:
+          - name: Run rustfmt
+            run: cargo fmt --all --check
+          - name: Run taplo (lint)
+            run: taplo lint
+          - name: Run taplo (format)
+            run: taplo fmt --check
+          - name: Spell Check Repo
+            uses: crate-ci/typos@v1
+          - name: Formatting (Markdown/JSON/YAML)
+            run: npx prettier --check .
+
+  clippy-stable:
+    name: Clippy (Stable)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v1
-      - uses: actions-rs/toolchain@v1
+      - uses: actions/checkout@v7
         with:
-            toolchain: nightly
-            components: clippy
-            override: true
-      # Note that there is no release tag available yet
-      # and the following code will use master branch HEAD
-      # all the time.
-      - uses: actions-rs/clippy@master
+          persist-credentials: false
+      - uses: dtolnay/rust-toolchain@stable
         with:
-          args: --all-features
+          components: clippy
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-all-features
+      - name: Run Clippy
+        run: cargo all-features clippy --all-targets -- -Dwarnings
+
+  clippy-nightly:
+    name: Clippy (Nightly)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: dtolnay/rust-toolchain@nightly
+        with:
+          components: clippy
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-all-features
+      - name: Run Clippy
+        run: |
+          # Because cargo lints are only stable as of 1.100, putting this in Cargo.toml causes warnings for anyone before that version
+          printf '[workspace.lints.cargo]\ndefault="deny"' >> Cargo.toml
+          cargo all-features clippy --all-targets -- -Dwarnings
+
+  msrv:
+    strategy:
+      fail-fast: false
+      matrix:
+        target: [x86_64-unknown-linux-gnu, wasm32-unknown-unknown]
+    name: Check MSRV
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-msrv
+      - name: Run cargo-msrv
+        run: cargo msrv verify --target ${{ matrix.target }} --all-features --min 1.85
+  doc:
+    name: Generate docs
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Document workspace
+        env:
+          RUSTDOCFLAG: -Dwarnings --cfg docsrs
+        run: cargo doc --workspace --all-features --no-deps

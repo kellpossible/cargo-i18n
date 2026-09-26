@@ -1,8 +1,8 @@
+#![cfg_attr(docsrs, feature(doc_cfg))]
+//! Procedural macro implementations for the [i18n-embed](https://docs.rs/i18n-embed) crate.
+
 /// A procedural macro to create a new `GettextLanguageLoader` using
 /// the current crate's `i18n.toml` configuration, and domain.
-///
-/// ⚠️ *This API requires the following crate features to be
-/// activated: `gettext-system`.*
 ///
 /// ## Example
 ///
@@ -12,6 +12,7 @@
 /// ```
 #[proc_macro]
 #[cfg(feature = "gettext-system")]
+#[cfg_attr(docsrs, doc(cfg(feature = "gettext-system")))]
 pub fn gettext_language_loader(_: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let manifest = find_crate::Manifest::new().expect("Error reading Cargo.toml");
     let current_crate_package_name = {
@@ -62,21 +63,18 @@ pub fn gettext_language_loader(_: proc_macro::TokenStream) -> proc_macro::TokenS
         proc_macro2::Span::call_site(),
     );
 
-    let gen = quote::quote! {
+    let r#gen = quote::quote! {
         #i18n_embed_crate_ident::gettext::GettextLanguageLoader::new(
             module_path!(),
             #fallback_language.parse().unwrap(),
         )
     };
 
-    gen.into()
+    r#gen.into()
 }
 
 /// A procedural macro to create a new `FluentLanguageLoader` using
 /// the current crate's `i18n.toml` configuration, and domain.
-///
-/// ⚠️ *This API requires the following crate features to be
-/// activated: `fluent-system`.*
 ///
 /// ## Example
 ///
@@ -86,6 +84,7 @@ pub fn gettext_language_loader(_: proc_macro::TokenStream) -> proc_macro::TokenS
 /// ```
 #[proc_macro]
 #[cfg(feature = "fluent-system")]
+#[cfg_attr(docsrs, doc(cfg(feature = "fluent-system")))]
 pub fn fluent_language_loader(_: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let manifest = find_crate::Manifest::new().expect("Error reading Cargo.toml");
     let current_crate_package_name = manifest
@@ -141,12 +140,12 @@ pub fn fluent_language_loader(_: proc_macro::TokenStream) -> proc_macro::TokenSt
         .unwrap_or(current_crate_package_name);
     let domain = syn::LitStr::new(&domain_str, proc_macro2::Span::call_site());
 
-    let gen = quote::quote! {
+    let r#gen = quote::quote! {
         #i18n_embed_crate_ident::fluent::FluentLanguageLoader::new(
             #domain,
             #fallback_language.parse().unwrap(),
         )
     };
 
-    gen.into()
+    r#gen.into()
 }
