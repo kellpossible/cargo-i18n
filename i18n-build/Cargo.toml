@@ -31,7 +31,7 @@ i18n-embed = { workspace = true, features = [
 ], optional = true }
 log = { workspace = true }
 rust-embed = { workspace = true }
-subprocess = "0.2"
+subprocess = "1.2"
 thiserror = { workspace = true }
 tr = { workspace = true, default-features = false, features = ["gettext"] }
 walkdir = { workspace = true }
