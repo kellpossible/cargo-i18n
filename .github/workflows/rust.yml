@@ -3,53 +3,63 @@ name: Rust
 on:
   pull_request:
   push:
-    branches: [ master ]
+    branches: [master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
   test:
     name: Test Suite
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions-rs/toolchain@v1
+      - uses: actions/checkout@v7
         with:
-          profile: minimal
-          toolchain: nightly
-          override: true
-      - uses: actions-rs/cargo@v1
-        with:
-          command: test
-          args: --all --all-features -- --test-threads 1
-  
-  fmt:
-    name: Rustfmt
+          persist-credentials: false
+      - uses: dtolnay/rust-toolchain@nightly
+      - uses: taiki-e/install-action@nextest
+      - name: Run tests
+        run: cargo nextest run --workspace --all-features
+
+  tidy:
+    name: Static Checks
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions-rs/toolchain@v1
+      - uses: actions/checkout@v7
         with:
-          profile: minimal
-          toolchain: stable
-          override: true
-      - run: rustup component add rustfmt
-      - uses: actions-rs/cargo@v1
+          persist-credentials: false
+      - uses: dtolnay/rust-toolchain@stable
         with:
-          command: fmt
-          args: --all -- --check
-  
+          components: rustfmt
+      - name: Run rustfmt
+        run: cargo fmt --all --check
+
   clippy:
     name: Clippy
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v1
-      - uses: actions-rs/toolchain@v1
+      - uses: actions/checkout@v7
         with:
-            toolchain: nightly
-            components: clippy
-            override: true
-      # Note that there is no release tag available yet
-      # and the following code will use master branch HEAD
-      # all the time.
-      - uses: actions-rs/clippy@master
+          persist-credentials: false
+      - uses: dtolnay/rust-toolchain@nightly
         with:
-          args: --all-features
+          components: clippy
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-all-features
+      - parallel:
+          - name: Run Clippy (i18n-build)
+            working-directory: i18n-build
+            run: cargo all-features clippy --all-targets -- -Dwarnings
+          - name: Run Clippy (i18n-embed)
+            working-directory: i18n-embed
+            run: cargo all-features clippy --all-targets -- -Dwarnings
+          - name: Run Clippy (i18n-embed-impl)
+            working-directory: i18n-embed/i18n-embed-impl
+            run: cargo all-features clippy --all-targets -- -Dwarnings
+          - name: Run Clippy (i18n-embed-fl)
+            working-directory: i18n-embed-fl
+            run: cargo all-features clippy --all-targets -- -Dwarnings
+          - name: Run Clippy (examples)
+            run: cargo all-features clippy --examples -- -Dwarnings
