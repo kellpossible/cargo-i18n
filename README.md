@@ -91,7 +91,7 @@ See [Configuration](#Configuration) for a description of all the available confi
 
 Open your command line/terminal and navigate to your crate directory, and run `cargo i18n`. You may be prompted to enter some email addresses to use for contact points for each of the language's `po` files. At the end there should be a new directory in your crate called `i18n`, and inside will be `pot`, `po` and `mo` directories.
 
-The `pot` directory contains `pot` files which were extracted from your source code using the `xtr` tool, and there should be a single `pot` file with the name of your crate in here too, which is the result of merging all the other `pot` files.
+The `pot` directory contains `pot` files extracted from your source code. By default, `cargo i18n` creates them with the `xtr` tool and merges them into a single crate-level `pot` file. If you generate that crate-level file separately with another extractor such as GNU `xgettext`, set `xtr = false` in the configuration so that `cargo i18n` uses the existing file instead.
 
 The `po` directory contains the language specific message files.
 
@@ -221,12 +221,14 @@ collate_extracted_subcrates = false
 # [possible values: full, file, never].
 add_location = "full"
 
-# (Optional) Whether or not to perform string extraction using the `xtr` tool.
+# (Optional) Whether cargo-i18n should perform string extraction using the
+# `xtr` tool. Set this to false when generating pot files separately with
+# another extractor such as GNU `xgettext`.
 xtr = true
 
-# (Optional )Path to where the pot files will be written to by `xtr` command,
-# and were they will be read from by the `msginit` and `msgmerge` commands. By
-# default this is `output_dir/pot`.
+# (Optional) Path to where the pot files will be written by the extractor and
+# read by the `msginit` and `msgmerge` commands. By default this is
+# `output_dir/pot`.
 pot_dir = "i18n/pot"
 
 # (Optional) Path to where the po files will be stored/edited with the
@@ -259,9 +261,24 @@ Using the `gettext` localization system with this tool requires you to have [get
 
 The [`msginit`](https://www.gnu.org/software/gettext/manual/html_node/msginit-Invocation.html), [`msgfmt`](https://www.gnu.org/software/gettext/manual/html_node/msgfmt-Invocation.html), [`msgmerge`](https://www.gnu.org/software/gettext/manual/html_node/msgmerge-Invocation.html) and [`msgcat`](https://www.gnu.org/software/gettext/manual/html_node/msgcat-Invocation.html) commands all need to be installed and present in your path.
 
-You also need to ensure that you have the [xtr](https://crates.io/crates/xtr)
-string extraction command installed, which can be achieved using `cargo install
-xtr`.
+By default, `cargo i18n` performs Rust string extraction with
+[`xtr`](https://crates.io/crates/xtr), which can be installed using `cargo
+install xtr`.
+
+Alternatively, [`xgettext`](https://www.gnu.org/software/gettext/manual/html_node/xgettext-Invocation.html)
+from [GNU gettext 0.24 or newer](https://lists.gnu.org/archive/html/info-gnu/2025-02/msg00010.html)
+can extract strings from Rust source code. Run `xgettext` separately, place its
+crate-level output in the configured `pot_dir`, and set `xtr = false`; `cargo
+i18n` does not invoke `xgettext` directly. When extracting strings used by the
+`tr!` macro, configure `xgettext` with `--keyword='tr!:1'`.
+
+Compared with `xtr`, GNU `xgettext` can mark these messages as Rust format
+strings with `--flag='tr!:1:rust-format'` so that `msgfmt -c` validates them,
+and it can restrict extracted translator comments with options such as
+`--add-comments=TRANSLATORS:`. `xtr` remains the simpler choice when you want
+`cargo i18n` to perform extraction automatically. See the [comparison
+discussion](https://github.com/gettext-rs/gettext-rs/issues/139) for more
+detail.
 
 ## Contributing
 
