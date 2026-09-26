@@ -108,9 +108,6 @@ rust_2018_idioms = "warn"
 single_use_lifetimes = "warn"
 unreachable_pub = "warn"
 
-[workspace.lints.cargo]
-default = "deny"
-
 [workspace.package]
 authors = ["Luke Frisken <l.frisken@gmail.com>", "cargo-i18n contributors"]
 edition = "2024"

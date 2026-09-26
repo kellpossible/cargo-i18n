@@ -46,19 +46,14 @@ jobs:
           - name: Formatting (Markdown/JSON/YAML)
             run: npx prettier --check .
 
-  clippy:
-    strategy:
-      fail-fast: false
-      matrix:
-        toolchain: [stable, nightly]
-
-    name: Clippy (${{ matrix.toolchain }})
+  clippy-stable:
+    name: Clippy (Stable)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
         with:
           persist-credentials: false
-      - uses: dtolnay/rust-toolchain@${{ matrix.toolchain }}
+      - uses: dtolnay/rust-toolchain@stable
         with:
           components: clippy
       - uses: taiki-e/install-action@v2
@@ -66,6 +61,25 @@ jobs:
           tool: cargo-all-features
       - name: Run Clippy
         run: cargo all-features clippy --all-targets -- -Dwarnings
+
+  clippy-nightly:
+    name: Clippy (Nightly)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: dtolnay/rust-toolchain@nightly
+        with:
+          components: clippy
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-all-features
+      - name: Run Clippy
+        run: |
+          # Because cargo lints are only stable as of 1.100, putting this in Cargo.toml causes warnings for anyone before that version
+          printf '[workspace.lints.cargo]\ndefault="deny"' >> Cargo.toml
+          cargo all-features clippy --all-targets -- -Dwarnings
 
   msrv:
     name: Check MSRV
