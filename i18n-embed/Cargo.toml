@@ -1,5 +1,5 @@
 [package]
-authors = ["Luke Frisken <l.frisken@gmail.com>"]
+authors.workspace = true
 categories = [
   "localization",
   "internationalization",
@@ -7,13 +7,14 @@ categories = [
   "wasm",
 ]
 description = "Traits and macros to conveniently embed localization assets into your application binary or library in order to localize it at runtime."
-edition = "2018"
+edition.workspace = true
 exclude = ["i18n/", "i18n.toml"]
 keywords = ["embed", "macro", "i18n", "gettext", "fluent"]
-license = "MIT"
+license.workspace = true
 name = "i18n-embed"
 readme = "README.md"
-repository = "https://github.com/kellpossible/cargo-i18n/tree/master/i18n-embed"
+repository.workspace = true
+rust-version.workspace = true
 version = "0.16.0"
 
 [package.metadata.docs.rs]

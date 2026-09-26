@@ -1,7 +1,10 @@
 [package]
-authors = ["Luke Frisken <l.frisken@gmail.com>"]
-edition = "2018"
+authors.workspace = true
+edition.workspace = true
+license.workspace = true
 name = "library-fluent"
+repository.workspace = true
+rust-version.workspace = true
 version = "0.2.0"
 
 [dependencies]

@@ -1,17 +1,18 @@
 [package]
-authors = ["Luke Frisken <l.frisken@gmail.com>"]
+authors.workspace = true
 categories = [
   "localization",
   "internationalization",
   "development-tools::build-utils",
 ]
 description = "Designed for use within the cargo-i18n tool for localizing crates. It has been published to allow its direct use within project build scripts if required."
-edition = "2018"
+edition.workspace = true
 keywords = ["script", "build", "i18n", "gettext", "locale"]
-license = "MIT"
+license.workspace = true
 name = "i18n-build"
 readme = "README.md"
-repository = "https://github.com/kellpossible/cargo-i18n/tree/master/i18n-build"
+repository.workspace = true
+rust-version.workspace = true
 version = "0.10.3"
 
 [package.metadata.docs.rs]
@@ -29,7 +30,6 @@ i18n-embed = { workspace = true, features = [
 ], optional = true }
 log = { workspace = true }
 rust-embed = { workspace = true }
-subprocess = "1.2"
 thiserror = { workspace = true }
 tr.workspace = true
 walkdir = { workspace = true }

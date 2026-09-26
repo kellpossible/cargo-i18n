@@ -1,5 +1,5 @@
 [package]
-authors = ["Luke Frisken <l.frisken@gmail.com>"]
+authors.workspace = true
 categories = [
   "development-tools::cargo-plugins",
   "localization",
@@ -7,12 +7,13 @@ categories = [
   "development-tools::build-utils",
 ]
 description = "Cargo sub-command to extract and build localization resources to embed in your application/library"
-edition = "2018"
+edition.workspace = true
 keywords = ["cargo", "build", "i18n", "gettext", "locale"]
-license = "MIT"
+license.workspace = true
 name = "cargo-i18n"
 readme = "README.md"
-repository = "https://github.com/kellpossible/cargo-i18n"
+repository.workspace = true
+rust-version.workspace = true
 version = "0.2.13"
 
 [badges]
@@ -37,7 +38,6 @@ unic-langid = { workspace = true }
 doc-comment = { workspace = true }
 
 [workspace]
-
 members = [
   "i18n-build",
   "i18n-config",
@@ -50,6 +50,7 @@ members = [
   "i18n-embed/examples/desktop-bin",
   "i18n-embed-fl/examples/web-server",
 ]
+resolver = "3"
 
 [workspace.dependencies]
 anyhow = "1.0"
@@ -85,3 +86,10 @@ thiserror = "2.0"
 tr = { version = "0.1", default-features = false, features = ["gettext"] }
 unic-langid = "0.9"
 walkdir = "2.5"
+
+[workspace.package]
+authors = ["Luke Frisken <l.frisken@gmail.com>", "cargo-i18n contributors"]
+edition = "2024"
+license = "MIT"
+repository = "https://github.com/kellpossible/cargo-i18n"
+rust-version = "1.85.1"

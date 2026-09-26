@@ -74,3 +74,14 @@ jobs:
             run: cargo all-features clippy --all-targets -- -Dwarnings
           - name: Run Clippy (examples)
             run: cargo all-features clippy --examples -- -Dwarnings
+  msrv:
+    name: Check MSRV
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: taiki-e/install-action@cargo-msrv
+      - name: Run cargo-msrv
+        run: cargo msrv verify

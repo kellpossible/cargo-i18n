@@ -1,11 +1,12 @@
 [package]
-authors = ["Luke Frisken <l.frisken@gmail.com>"]
+authors.workspace = true
 categories = ["localization", "internationalization", "development-tools"]
 description = "Macro to perform compile time checks when using the i18n-embed crate and the fluent localization system"
-edition = "2018"
-license = "MIT"
+edition.workspace = true
+license.workspace = true
 name = "i18n-embed-fl"
-repository = "https://github.com/kellpossible/cargo-i18n/tree/master/i18n-embed-fl"
+repository.workspace = true
+rust-version.workspace = true
 version = "0.10.1"
 
 [lib]

@@ -6,13 +6,13 @@ use crate::util;
 use i18n_config::{Crate, GettextConfig, I18nConfigError};
 
 use std::ffi::OsStr;
-use std::fs::{create_dir_all, File};
+use std::fs::{File, create_dir_all};
+use std::io;
 use std::path::{Path, PathBuf};
-use std::process::Command;
+use std::process::{Command, Stdio};
 
-use anyhow::{anyhow, Context, Result};
+use anyhow::{Context, Result, anyhow};
 use log::{debug, info};
-use subprocess::Exec;
 use tr::tr;
 use walkdir::WalkDir;
 
@@ -187,22 +187,31 @@ pub fn run_msgcat<P: AsRef<Path>, I: IntoIterator<Item = P>>(
 
     util::remove_file_if_exists(&interim_output_pot_path)?;
 
-    let output_pot_file = File::create(&interim_output_pot_path)
+    let mut output_pot_file = File::create(&interim_output_pot_path)
         .map_err(|e| PathError::cannot_create_file(&interim_output_pot_path, e))?;
 
-    let msgcat_command_name = "msgcat";
-    let msgcat = Exec::cmd(msgcat_command_name)
-        .args(msgcat_args.as_slice())
-        .stdout(output_pot_file);
-
-    debug!("Running command: {0:?}", msgcat);
-
-    msgcat.join().with_context(|| {
-        tr!(
-            "There was a problem executing the \"{0}\" command",
-            msgcat_command_name
-        )
-    })?;
+    debug!("Running msgcat");
+    Command::new("msgcat")
+        .args(msgcat_args)
+        .stdout(Stdio::piped())
+        .spawn()
+        .and_then(|mut child| {
+            io::copy(&mut child.stdout.take().unwrap(), &mut output_pot_file)?;
+            child.wait()
+        })
+        .and_then(|exit_status| {
+            if exit_status.success() {
+                Ok(())
+            } else {
+                Err(io::Error::other(anyhow!(exit_status)))
+            }
+        })
+        .with_context(|| {
+            tr!(
+                "There was a problem executing the \"{0}\" command",
+                "msgcat"
+            )
+        })?;
 
     if output_in_input {
         util::remove_file_if_exists(&output_pot_path)?;

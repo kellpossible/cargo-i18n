@@ -402,15 +402,15 @@ pub fn fl(input: TokenStream) -> TokenStream {
         )
     };
 
-    let domain_data = if let Some(domain_data) = domains().get(&domain) {
-        domain_data
-    } else {
-        let crate_paths = i18n_config::locate_crate_paths()
-            .unwrap_or_else(|error| panic!("fl!() is unable to locate crate paths: {}", error));
+    let domain_data = match domains().get(&domain) {
+        Some(domain_data) => domain_data,
+        _ => {
+            let crate_paths = i18n_config::locate_crate_paths()
+                .unwrap_or_else(|error| panic!("fl!() is unable to locate crate paths: {}", error));
 
-        let config_file_path = &crate_paths.i18n_config_file;
+            let config_file_path = &crate_paths.i18n_config_file;
 
-        let config = i18n_config::I18nConfig::from_file(config_file_path).unwrap_or_else(|err| {
+            let config = i18n_config::I18nConfig::from_file(config_file_path).unwrap_or_else(|err| {
             abort! {
                 proc_macro2::Span::call_site(),
                 format!(
@@ -420,63 +420,64 @@ pub fn fl(input: TokenStream) -> TokenStream {
             }
         });
 
-        let fluent_config = config.fluent.unwrap_or_else(|| {
-            abort! {
-                proc_macro2::Span::call_site(),
-                format!(
-                    "fl!() had a problem parsing i18n config file {config_file_path:?}: \
-                    there is no `[fluent]` subsection."
-                );
-                help = "Add the `[fluent]` subsection to `i18n.toml`, \
-                        along with its required `assets_dir`.";
-            }
-        });
-
-        // Use the domain override in the configuration.
-        let domain = fluent_config.domain.unwrap_or(domain);
-
-        let assets_dir = Path::new(&crate_paths.crate_dir).join(fluent_config.assets_dir);
-        let assets = FileSystemAssets::try_new(assets_dir).unwrap();
-
-        let fallback_language: LanguageIdentifier = config.fallback_language;
-
-        let loader = FluentLanguageLoader::new(&domain, fallback_language.clone());
-
-        loader
-            .load_languages(&assets, slice::from_ref(&fallback_language))
-            .unwrap_or_else(|err| match err {
-                i18n_embed::I18nEmbedError::LanguageNotAvailable(file, language_id) => {
-                    if fallback_language != language_id {
-                        panic!(
-                            "fl!() encountered an unexpected problem, \
-                            the language being loaded (\"{0}\") is not the \
-                            `fallback_language` (\"{1}\")",
-                            language_id, fallback_language
-                        )
-                    }
-                    abort! {
-                        proc_macro2::Span::call_site(),
-                        format!(
-                            "fl!() was unable to load the localization \
-                            file for the `fallback_language` \
-                            (\"{fallback_language}\"): {file}"
-                        );
-                        help = "Try creating the required fluent localization file.";
-                    }
+            let fluent_config = config.fluent.unwrap_or_else(|| {
+                abort! {
+                    proc_macro2::Span::call_site(),
+                    format!(
+                        "fl!() had a problem parsing i18n config file {config_file_path:?}: \
+                        there is no `[fluent]` subsection."
+                    );
+                    help = "Add the `[fluent]` subsection to `i18n.toml`, \
+                            along with its required `assets_dir`.";
                 }
-                _ => panic!(
-                    "fl!() had an unexpected problem while \
-                        loading language \"{0}\": {1}",
-                    fallback_language, err
-                ),
             });
 
-        let data = DomainSpecificData {
-            loader,
-            _assets: assets,
-        };
+            // Use the domain override in the configuration.
+            let domain = fluent_config.domain.unwrap_or(domain);
 
-        domains().entry_or_insert(&domain, data)
+            let assets_dir = Path::new(&crate_paths.crate_dir).join(fluent_config.assets_dir);
+            let assets = FileSystemAssets::try_new(assets_dir).unwrap();
+
+            let fallback_language: LanguageIdentifier = config.fallback_language;
+
+            let loader = FluentLanguageLoader::new(&domain, fallback_language.clone());
+
+            loader
+                .load_languages(&assets, slice::from_ref(&fallback_language))
+                .unwrap_or_else(|err| match err {
+                    i18n_embed::I18nEmbedError::LanguageNotAvailable(file, language_id) => {
+                        if fallback_language != language_id {
+                            panic!(
+                                "fl!() encountered an unexpected problem, \
+                            the language being loaded (\"{0}\") is not the \
+                            `fallback_language` (\"{1}\")",
+                                language_id, fallback_language
+                            )
+                        }
+                        abort! {
+                            proc_macro2::Span::call_site(),
+                            format!(
+                                "fl!() was unable to load the localization \
+                                file for the `fallback_language` \
+                                (\"{fallback_language}\"): {file}"
+                            );
+                            help = "Try creating the required fluent localization file.";
+                        }
+                    }
+                    _ => panic!(
+                        "fl!() had an unexpected problem while \
+                        loading language \"{0}\": {1}",
+                        fallback_language, err
+                    ),
+                });
+
+            let data = DomainSpecificData {
+                loader,
+                _assets: assets,
+            };
+
+            domains().entry_or_insert(&domain, data)
+        }
     };
 
     let message_id_string = match &message_id {
@@ -523,7 +524,7 @@ pub fn fl(input: TokenStream) -> TokenStream {
     // Same procedure for attributes
     let mut checked_message_has_attribute = false;
 
-    let gen = match input.args {
+    let r#gen = match input.args {
         FlArgs::HashMap(args_hash_map) => {
             if attr_lit.is_none() {
                 quote! {
@@ -565,7 +566,7 @@ pub fn fl(input: TokenStream) -> TokenStream {
                         .is_some();
                 }
 
-                let gen = quote! {
+                let r#gen = quote! {
                     (#fluent_loader).get_args_concrete(
                         #message_id,
                         {
@@ -575,7 +576,7 @@ pub fn fl(input: TokenStream) -> TokenStream {
                         })
                 };
 
-                gen
+                r#gen
             } else {
                 if let Some(message_id_str) = &message_id_string {
                     if let Some(attr_id_str) = &attr_str {
@@ -594,7 +595,7 @@ pub fn fl(input: TokenStream) -> TokenStream {
                     }
                 }
 
-                let gen = quote! {
+                let r#gen = quote! {
                     (#fluent_loader).get_attr_args_concrete(
                         #message_id,
                         #attr_lit,
@@ -605,7 +606,7 @@ pub fn fl(input: TokenStream) -> TokenStream {
                         })
                 };
 
-                gen
+                r#gen
             }
         }
     };
@@ -668,7 +669,7 @@ pub fn fl(input: TokenStream) -> TokenStream {
         }
     }
 
-    gen.into()
+    r#gen.into()
 }
 
 fn fuzzy_message_suggestions(
