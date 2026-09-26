@@ -1,3 +1,5 @@
+#![expect(missing_docs, reason = "test")]
+
 use library_fluent::hello_world;
 
 /// Test using the library without using the provided

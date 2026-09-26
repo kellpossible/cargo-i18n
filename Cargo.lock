@@ -527,7 +527,6 @@ dependencies = [
  "basic-toml",
  "log",
  "serde",
- "serde_derive",
  "thiserror",
  "unic-langid",
 ]
@@ -545,7 +544,6 @@ dependencies = [
  "i18n-embed-impl",
  "intl-memoizer",
  "log",
- "maplit",
  "notify",
  "parking_lot",
  "pretty_assertions",
@@ -743,12 +741,6 @@ name = "log"
 version = "0.4.34"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f9f8bd3e56ce4dfc153cf470fffbfa98c7620958b312ca5c3a4b8d5181fd13c6"
-
-[[package]]
-name = "maplit"
-version = "1.0.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3e2e65a1a2e43cfcb47a895c4c8b10d1f4a61097f9f254f183aee60cad9c651d"
 
 [[package]]
 name = "memchr"

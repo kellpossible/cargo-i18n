@@ -14,7 +14,7 @@ use std::{
 };
 
 use log::{debug, error};
-use serde_derive::Deserialize;
+use serde::Deserialize;
 use thiserror::Error;
 use unic_langid::LanguageIdentifier;
 

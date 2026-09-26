@@ -25,21 +25,21 @@ rustdoc-args = ["--cfg", "docsrs"]
 maintenance = { status = "actively-developed" }
 
 [dependencies]
-arc-swap = { version = "1", optional = true }
+arc-swap = { workspace = true, optional = true }
 fluent = { workspace = true, optional = true }
-fluent-langneg = { workspace = true }
+fluent-langneg.workspace = true
 fluent-syntax = { workspace = true, optional = true }
 gettext = { workspace = true, optional = true }
 i18n-embed-impl = { workspace = true, optional = true }
-intl-memoizer = { version = "0.5", optional = true }
-log = { workspace = true }
-notify = { version = "8.2.0", optional = true }
-parking_lot = { version = "0.12", optional = true }
+intl-memoizer = { workspace = true, optional = true }
+log.workspace = true
+notify = { workspace = true, optional = true }
+parking_lot = { workspace = true, optional = true }
 rust-embed = { workspace = true, optional = true }
-sys-locale = { version = "0.3", optional = true }
-thiserror = { workspace = true }
+sys-locale = { workspace = true, optional = true }
+thiserror.workspace = true
 tr = { workspace = true, optional = true }
-unic-langid = { workspace = true }
+unic-langid.workspace = true
 walkdir = { workspace = true, optional = true }
 web-sys = { version = "0.3", features = [
   "Window",
@@ -47,10 +47,9 @@ web-sys = { version = "0.3", features = [
 ], optional = true }
 
 [dev-dependencies]
-env_logger = { workspace = true }
-maplit = "1.0"
-pretty_assertions = { workspace = true }
-serial_test = "4.0"
+env_logger.workspace = true
+pretty_assertions.workspace = true
+serial_test.workspace = true
 
 [features]
 default = ["rust-embed"]

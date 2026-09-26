@@ -248,6 +248,8 @@ The above example makes use of the [`DefaultLocalizer`](DefaultLocalizer) implem
 If you wish to create a localizable library using `i18n-embed`, you can follow this pattern in the library:
 
 ```rust
+# #![expect(dead_code, reason = "example")]
+
 use std::sync::{Arc, OnceLock};
 use i18n_embed::{
     DefaultLocalizer, Localizer, LanguageLoader,
@@ -289,6 +291,7 @@ People using this library can call `localize()` to obtain a [`Localizer`](Locali
 If you want to localize a sub-crate in your project, and want to extract strings from this sub-crate and store/embed them in one location in the parent crate, you can use the following pattern for the library:
 
 ```rust
+# #![expect(dead_code, reason = "example")]
 use std::sync::{Arc, OnceLock};
 use i18n_embed::{
 DefaultLocalizer, Localizer, gettext::{

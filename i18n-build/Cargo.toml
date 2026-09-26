@@ -23,17 +23,17 @@ rustdoc-args = ["--cfg", "docsrs"]
 maintenance = { status = "actively-developed" }
 
 [dependencies]
-anyhow = { workspace = true }
-i18n-config = { workspace = true }
+anyhow.workspace = true
+i18n-config.workspace = true
 i18n-embed = { workspace = true, features = [
   "gettext-system",
   "desktop-requester",
 ], optional = true }
-log = { workspace = true }
+log.workspace = true
 rust-embed = { workspace = true, optional = true }
-thiserror = { workspace = true }
+thiserror.workspace = true
 tr.workspace = true
-walkdir = { workspace = true }
+walkdir.workspace = true
 
 [features]
 default = []

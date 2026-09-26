@@ -9,9 +9,9 @@ version = "0.1.0"
 
 [dependencies]
 i18n-embed = { workspace = true, features = ["fluent-system"] }
-i18n-embed-fl = { workspace = true }
-rust-embed = { workspace = true }
-unic-langid = { workspace = true }
+i18n-embed-fl.workspace = true
+rust-embed.workspace = true
+unic-langid.workspace = true
 
 [lints]
 workspace = true

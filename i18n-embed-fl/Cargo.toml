@@ -17,25 +17,25 @@ all-features = true
 rustdoc-args = ["--cfg", "docsrs"]
 
 [dependencies]
-dashmap = { version = "6.2", optional = true }
-find-crate = { workspace = true }
-fluent = { workspace = true }
-fluent-syntax = { workspace = true }
-i18n-config = { workspace = true }
+dashmap = { workspace = true, optional = true }
+find-crate.workspace = true
+fluent.workspace = true
+fluent-syntax.workspace = true
+i18n-config.workspace = true
 i18n-embed = { workspace = true, features = [
   "fluent-system",
   "filesystem-assets",
 ] }
-proc-macro-error3 = "3.1"
-proc-macro2 = { workspace = true }
-quote = { workspace = true }
-strsim = "0.11"
+proc-macro-error3.workspace = true
+proc-macro2.workspace = true
+quote.workspace = true
+strsim.workspace = true
 syn.workspace = true
-unic-langid = { workspace = true }
+unic-langid.workspace = true
 
 [dev-dependencies]
-pretty_assertions = { workspace = true }
-rust-embed = { workspace = true }
+pretty_assertions.workspace = true
+rust-embed.workspace = true
 
 [features]
 # Use dashmap implementation for `fl!()` macro lookups.

@@ -16,11 +16,10 @@ maintenance = { status = "actively-developed" }
 
 [dependencies]
 basic-toml = "0.1"
-log = { workspace = true }
-serde = { workspace = true, features = ["derive"] }
-serde_derive = { workspace = true }
-thiserror = { workspace = true }
-unic-langid = { workspace = true, features = ["serde"] }
+log.workspace = true
+serde.workspace = true
+thiserror.workspace = true
+unic-langid.workspace = true
 
 [lints]
 workspace = true

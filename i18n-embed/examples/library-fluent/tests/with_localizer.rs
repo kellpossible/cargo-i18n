@@ -1,3 +1,5 @@
+#![expect(missing_docs, reason = "test")]
+
 use i18n_embed::Localizer;
 use library_fluent::{hello_world, localizer};
 
