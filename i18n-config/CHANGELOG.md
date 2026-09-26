@@ -1,5 +1,44 @@
 # `i18n-config` Changelog
 
+### Unreleased
+
+## Unreleased
+
+### Dependencies
+
+- Updated all dependencies to the latest versions
+- `toml` is now used instead of `basic_toml`, as the latter is unmaintained
+
+### Enhancements
+
+- Defined the MSRV to be 1.85.1
+
+### New Features
+
+- docs.rs builds now use the unstable `doc_cfg` feature to display what features are required to enable crate items
+
+### Internal
+
+- Updated to Rust 2024 edition
+- Removed unused dependencies
+- Fixed new Clippy lints and enabled stricter workspace lints
+- Fixed Cargo lints
+- Applied maximum comment width in rustfmt configuration
+- Improved CI checks to cover:
+  - MSRV
+  - wasm32-unknown-unknown build
+  - Clippy (all feature combinations)
+  - Cargo lints
+  - TOML formatting
+  - Markdown/JSON/YAML formatting
+  - Rust formatting
+  - Typos
+  - Tests (including doctests) (all feature combinations)
+  - Docs
+  - Unused dependencies
+- Updated CI action steps to latest versions
+- Improved CI security
+
 ## v0.4.8
 
 ### Documentation

@@ -1,5 +1,48 @@
 # Changelog for `i18n-embed`
 
+## Unreleased
+
+### Fixes
+
+- Fixed building tests with different feature configurations (#134)
+- Reconfigured optional dependencies to not create a feature with the same name as the dependency
+
+### Dependencies
+
+- Updated all\* dependencies to the latest versions
+  - fluent-langneg has not been upgraded as the latest version depends on the deprecated `icu_locid` crate
+
+### Enhancements
+
+- Merged `desktop-requester` and `web-requester` into a single feature, `system-requester`, which works on desktop, mobile, and web platforms
+- Defined the MSRV to be 1.85.1
+
+### New Features
+
+- docs.rs builds now use the unstable `doc_cfg` feature to display what features are required to enable crate items
+
+### Internal
+
+- Updated to Rust 2024 edition
+- Removed unused dependencies
+- Fixed new Clippy lints and enabled stricter workspace lints
+- Fixed Cargo lints
+- Applied maximum comment width in rustfmt configuration
+- Improved CI checks to cover:
+  - MSRV
+  - wasm32-unknown-unknown build
+  - Clippy (all feature combinations)
+  - Cargo lints
+  - TOML formatting
+  - Markdown/JSON/YAML formatting
+  - Rust formatting
+  - Typos
+  - Tests (including doctests) (all feature combinations)
+  - Docs
+  - Unused dependencies
+- Updated CI action steps to latest versions
+- Improved CI security
+
 ## v0.16.0
 
 ### Fixes

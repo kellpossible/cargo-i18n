@@ -1,5 +1,42 @@
 # Changelog for `i18n-build`
 
+## Unreleased
+
+### Dependencies
+
+- Updated all dependencies to the latest versions
+- Reconfigured optional dependencies to not create a feature with the same name as the dependency
+
+### Enhancements
+
+- Defined the MSRV to be 1.85.1
+
+### New Features
+
+- docs.rs builds now use the unstable `doc_cfg` feature to display what features are required to enable crate items
+
+### Internal
+
+- Updated to Rust 2024 edition
+- Removed unused dependencies
+- Fixed new Clippy lints and enabled stricter workspace lints
+- Fixed Cargo lints
+- Applied maximum comment width in rustfmt configuration
+- Improved CI checks to cover:
+  - MSRV
+  - wasm32-unknown-unknown build
+  - Clippy (all feature combinations)
+  - Cargo lints
+  - TOML formatting
+  - Markdown/JSON/YAML formatting
+  - Rust formatting
+  - Typos
+  - Tests (including doctests) (all feature combinations)
+  - Docs
+  - Unused dependencies
+- Updated CI action steps to latest versions
+- Improved CI security
+
 ## v0.10.3
 
 ### Dependencies
