@@ -93,6 +93,7 @@ syn = { version = "3.0", features = [
 ] }
 sys-locale = "0.3"
 thiserror = "2.0"
+toml = "1.1.6"
 tr = { version = "0.1", default-features = false, features = ["gettext"] }
 unic-langid = { version = "0.9", features = ["serde"] }
 walkdir = "2.5"

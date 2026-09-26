@@ -77,15 +77,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "basic-toml"
-version = "0.1.10"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ba62675e8242a4c4e806d12f11d136e626e6c8361d6b829310732241652a178a"
-dependencies = [
- "serde",
-]
-
-[[package]]
 name = "bin"
 version = "0.1.0"
 dependencies = [
@@ -524,10 +515,10 @@ dependencies = [
 name = "i18n-config"
 version = "0.4.8"
 dependencies = [
- "basic-toml",
  "log",
  "serde",
  "thiserror",
+ "toml",
  "unic-langid",
 ]
 

@@ -39,7 +39,7 @@ pub enum I18nConfigError {
     #[error("Cannot parse Cargo configuration file {0:?} because {1}.")]
     CannotParseCargoToml(PathBuf, String),
     #[error("Cannot deserialize toml file {0:?} because {1}.")]
-    CannotDeserializeToml(PathBuf, basic_toml::Error),
+    CannotDeserializeToml(PathBuf, toml::de::Error),
     #[error("Cannot parse i18n configuration file {0:?} because {1}.")]
     CannotParseI18nToml(PathBuf, String),
     #[error("There is no i18n configuration file present for the crate {0}.")]
@@ -111,7 +111,7 @@ impl<'a> Crate<'a> {
             I18nConfigError::CannotReadFile(cargo_path.clone(), std::env::current_dir(), err)
         })?;
 
-        let cargo_toml: RawCrate = basic_toml::from_str(&toml_str)
+        let cargo_toml: RawCrate = toml::from_str(&toml_str)
             .map_err(|err| I18nConfigError::CannotDeserializeToml(cargo_path.clone(), err))?;
 
         let full_config_file_path = path_into.join(&config_file_path_into);
@@ -370,7 +370,7 @@ impl I18nConfig {
                 err,
             )
         })?;
-        let config: I18nConfig = basic_toml::from_str(toml_str.as_ref()).map_err(|err| {
+        let config: I18nConfig = toml::from_str(toml_str.as_ref()).map_err(|err| {
             I18nConfigError::CannotDeserializeToml(toml_path_final.to_path_buf(), err)
         })?;
 
