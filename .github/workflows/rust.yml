@@ -19,8 +19,14 @@ jobs:
           persist-credentials: false
       - uses: dtolnay/rust-toolchain@nightly
       - uses: taiki-e/install-action@nextest
-      - name: Run tests
-        run: cargo nextest run --workspace --all-features
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-all-features
+      - parallel:
+        - name: Run tests
+          run: cargo all-features nextest run --no-tests pass --profile ci
+        - name: Run doctests
+          run: cargo all-features test --doc
 
   tidy:
     name: Static Checks

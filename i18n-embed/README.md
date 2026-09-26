@@ -95,6 +95,9 @@ my_crate/
 Then, in your Rust code, add:
 
 ```rust
+# #[cfg(all(feature = "rust-embed", feature = "fluent-system", feature = "system-requester"))]
+# {
+# #![expect(dead_code, reason = "example")]
 use i18n_embed::{SystemLanguageRequester, fluent::{
     FluentLanguageLoader, fluent_language_loader
 }};
@@ -115,6 +118,7 @@ fn main() {
 
     // continue on with your application
 }
+# }
 ```
 
 To access localizations, you can use `FluentLanguageLoader` directly, or, for added compile-time checks/safety, you can use the [fl!() macro](https://crates.io/crates/i18n-embed-fl).
@@ -160,6 +164,9 @@ Install and run [cargo-i18n](https://crates.io/crates/cargo-i18n) for your crate
 Then, in your Rust code, add:
 
 ```rust
+# #[cfg(all(feature = "rust-embed", feature = "gettext-system", feature = "system-requester"))]
+# {
+# #![expect(dead_code, reason = "example")]
 use i18n_embed::{SystemLanguageRequester, gettext::{
     gettext_language_loader
 }};
@@ -185,6 +192,7 @@ fn main() {
 
     // continue on with your application
 }
+# }
 ```
 
 ### Automatically updating the requested language
@@ -192,6 +200,9 @@ fn main() {
 Depending on the platform, you can also make use of [`LanguageRequester`](`LanguageRequester`)'s ability to monitor changes to the currently requested language, and automatically update the selected language using a [`Localizer`](Localizer):
 
 ```rust
+# #[cfg(all(feature = "rust-embed", feature = "fluent-system", feature = "system-requester"))]
+# {
+# #![expect(dead_code, reason = "example")]
 use std::sync::{Arc, OnceLock};
 use i18n_embed::{
     SystemLanguageRequester, LanguageRequester,
@@ -235,6 +246,7 @@ fn main() {
 
     // continue on with your application
 }
+# }
 ```
 
 The above example makes use of the [`DefaultLocalizer`](DefaultLocalizer) implementation, but you can also implement the [`Localizer`](Localizer) trait yourself for a custom solution.
@@ -244,8 +256,9 @@ The above example makes use of the [`DefaultLocalizer`](DefaultLocalizer) implem
 If you wish to create a localizable library using `i18n-embed`, you can follow this pattern in the library:
 
 ```rust
+# #[cfg(all(feature = "rust-embed", feature = "fluent-system"))]
+# {
 # #![expect(dead_code, reason = "example")]
-
 use std::sync::{Arc, OnceLock};
 use i18n_embed::{
     DefaultLocalizer, Localizer, LanguageLoader,
@@ -278,6 +291,7 @@ fn language_loader() -> &'static FluentLanguageLoader {
 pub fn localizer() -> Arc<dyn Localizer> {
     Arc::new(DefaultLocalizer::new(&*language_loader(), &Localizations))
 }
+# }
 ```
 
 People using this library can call `localize()` to obtain a [`Localizer`](Localizer), and add this as a listener to their chosen [`LanguageRequester`](LanguageRequester).
@@ -287,6 +301,8 @@ People using this library can call `localize()` to obtain a [`Localizer`](Locali
 If you want to localize a sub-crate in your project, and want to extract strings from this sub-crate and store/embed them in one location in the parent crate, you can use the following pattern for the library:
 
 ```rust
+# #[cfg(all(feature = "rust-embed", feature = "gettext-system"))]
+# {
 # #![expect(dead_code, reason = "example")]
 use std::sync::{Arc, OnceLock};
 use i18n_embed::{
@@ -305,6 +321,7 @@ fn language_loader() -> &'static GettextLanguageLoader {
 pub fn localizer<'a>(embed: &'a (dyn I18nAssets + Send + Sync + 'static)) -> Arc<dyn Localizer + 'a> {
   Arc::new(DefaultLocalizer::new(language_loader(), embed))
 }
+# }
 ```
 
 For the above example, you can enable the following options in the sub-crate's `i18n.toml` to ensure that the localization resources are extracted and merged with the parent crate's `pot` file:
