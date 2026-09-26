@@ -220,7 +220,8 @@ impl std::fmt::Debug for LanguageRequesterImpl<'_> {
     }
 }
 
-/// A [`LanguageRequester`] using `sys-locale` to request a language based on the system selected language.
+/// A [`LanguageRequester`] using `sys-locale` to request a language based on the system selected
+/// language.
 ///
 /// Supports desktop, mobile, and web platforms.
 #[cfg(feature = "system-requester")]

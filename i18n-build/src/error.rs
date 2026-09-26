@@ -147,7 +147,8 @@ impl Display for PathError {
                 path_type,
             } => {
                 tr!(
-                    // {0} is the file path, {1} is the item which it is for, {2} is the type of item (file, directory, etc)
+                    // {0} is the file path, {1} is the item which it is for, {2} is the type of
+                    // item (file, directory, etc)
                     "The path (\"{0}\") for {1} {2} does not have valid a utf-8 encoding.",
                     self.path.to_string_lossy(),
                     for_item,
@@ -162,7 +163,8 @@ impl Display for PathError {
                 // {0} can be either "file", or "directory", or "symlink"
                 // {1} is a file path
                 // {2} is more detailed information about the error
-                // Example: Cannot create the file "i18n/ru/something.pot" because "some error occurred"
+                // Example: Cannot create the file "i18n/ru/something.pot" because "some error
+                // occurred"
                 "Cannot create the {0} \"{1}\" because: \"{2}\".",
                 path_type,
                 self.path.to_string_lossy(),
@@ -172,7 +174,8 @@ impl Display for PathError {
                 // {0} can be either "file", or "directory", or "symlink"
                 // {1} is a file path
                 // {2} is more detailed information about the error
-                // Example: Cannot delete the file "i18n/ru/something.pot" because "some error occurred"
+                // Example: Cannot delete the file "i18n/ru/something.pot" because "some error
+                // occurred"
                 "Cannot delete the {0} \"{1}\" because: \"{2}\".",
                 path_type,
                 self.path.to_string_lossy(),
@@ -183,7 +186,8 @@ impl Display for PathError {
                 // {1} is the name of the file to be renamed
                 // {2} is the new file name
                 // {3} is more detailed information about the error
-                // Example: Cannot rename the file "old.pot" to "new.pot" because "some error occurred"
+                // Example: Cannot rename the file "old.pot" to "new.pot" because "some error
+                // occurred"
                 "Cannot rename the {0} \"{1}\" to \"{2}\" because {3}.",
                 path_type,
                 self.path.to_string_lossy(),

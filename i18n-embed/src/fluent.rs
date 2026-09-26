@@ -343,8 +343,7 @@ impl FluentLanguageLoader {
     /// message is found, invokes the `closure` with the:
     ///
     /// 0. [message](FluentMessage)
-    /// 1. the language-specific [bundle](FluentBundle)
-    ///    that owns it.
+    /// 1. the language-specific [bundle](FluentBundle) that owns it.
     ///
     /// Returns `Some` of whatever the closure returns, or `None` if no
     /// messages were found matching the `message_id`.

@@ -18,8 +18,8 @@ pub trait I18nAssets {
     /// they have changed. The subscription will be cancelled when the returned [`Watcher`] is
     /// dropped.
     ///
-    /// **NOTE**: The implementation of this method is optional, don't rely on it functioning for all
-    /// implementations.
+    /// **NOTE**: The implementation of this method is optional, don't rely on it functioning for
+    /// all implementations.
     fn subscribe_changed(
         &self,
         _changed: std::sync::Arc<dyn Fn() + Send + Sync + 'static>,

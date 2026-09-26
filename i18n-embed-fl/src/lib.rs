@@ -64,7 +64,8 @@ enum FlArgs {
     KeyValuePairs {
         specified_args: Vec<(syn::LitStr, Box<syn::Expr>)>,
     },
-    /// `fl!(LOADER, "message", "optional-attribute")` no arguments after the message id and optional attribute id.
+    /// `fl!(LOADER, "message", "optional-attribute")` no arguments after the message id and
+    /// optional attribute id.
     None,
 }
 
@@ -222,8 +223,8 @@ fn domains() -> &'static DomainsMap {
     DOMAINS.get_or_init(DomainsMap::default)
 }
 
-/// A macro to obtain localized messages and optionally their attributes, and check the `message_id`, `attribute_id`
-/// and arguments at compile time.
+/// A macro to obtain localized messages and optionally their attributes, and check the
+/// `message_id`, `attribute_id` and arguments at compile time.
 ///
 /// Compile time checks are performed using the `fallback_language`
 /// specified in the current crate's `i18n.toml` confiration file.

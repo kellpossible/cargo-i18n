@@ -215,8 +215,8 @@ impl<'a> Crate<'a> {
     /// If this crate has a parent, check whether the parent wants to
     /// collate subcrates string extraction, as per the parent's
     /// [GettextConfig#collate_extracted_subcrates](GettextConfig#collate_extracted_subcrates).
-    /// This also requires that the current crate's [GettextConfig#extract_to_parent](GettextConfig#extract_to_parent)
-    /// is **true**.
+    /// This also requires that the current crate's
+    /// [GettextConfig#extract_to_parent](GettextConfig#extract_to_parent) is **true**.
     ///
     /// Returns **false** if there is no parent or the parent has no gettext config.
     pub fn collated_subcrate(&self) -> bool {
