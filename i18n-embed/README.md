@@ -10,14 +10,14 @@ Currently this library depends on [rust-embed](https://crates.io/crates/rust-emb
 
 The `i18n-embed` crate has the following optional Cargo features:
 
-+ `fluent-system`
-  + Enable support for the [fluent](https://www.projectfluent.org/) localization system via the `FluentLanguageLoader`.
-+ `gettext-system`
-  + Enable support for the [gettext](https://www.gnu.org/software/gettext/) localization system using the [tr macro](https://docs.rs/tr/0.1.3/tr/) and the [gettext crate](https://docs.rs/gettext/0.4.0/gettext/) via the `GettextLanguageLoader`.
-+ `desktop-requester`
-  + Enables a convenience implementation of `LanguageRequester` trait called `DesktopLanguageRequester` for the desktop platform (windows, mac, linux),which makes use of the [sys-locale](https://crates.io/crates/sys-locale) crate for resolving the current system locale.
-+ `web-sys-requester`
-  + Enables a convenience implementation of `LanguageRequester` trait called `WebLanguageRequester` which makes use of the [web-sys](https://crates.io/crates/web-sys) crate for resolving the language being requested by the user's web browser in a WASM context.
+- `fluent-system`
+  - Enable support for the [fluent](https://www.projectfluent.org/) localization system via the `FluentLanguageLoader`.
+- `gettext-system`
+  - Enable support for the [gettext](https://www.gnu.org/software/gettext/) localization system using the [tr macro](https://docs.rs/tr/0.1.3/tr/) and the [gettext crate](https://docs.rs/gettext/0.4.0/gettext/) via the `GettextLanguageLoader`.
+- `desktop-requester`
+  - Enables a convenience implementation of `LanguageRequester` trait called `DesktopLanguageRequester` for the desktop platform (windows, mac, linux),which makes use of the [sys-locale](https://crates.io/crates/sys-locale) crate for resolving the current system locale.
+- `web-sys-requester`
+  - Enables a convenience implementation of `LanguageRequester` trait called `WebLanguageRequester` which makes use of the [web-sys](https://crates.io/crates/web-sys) crate for resolving the language being requested by the user's web browser in a WASM context.
 
 ## Example
 
@@ -92,10 +92,10 @@ fn main() {
 
 To access localizations, you can use `FluentLanguageLoader`'s methods directly, or, for added compile-time checks/safety, you can use the [fl!() macro](https://crates.io/crates/i18n-embed-fl). Having an `i18n.toml` configuration file enables you to do the following:
 
-+ Use the [cargo i18n](https://crates.io/crates/cargo-i18n) tool   to perform validity checks (not yet implemented).
-+ Integrate with a code-base using the `gettext` localization   system.
-+ Use the `fluent::fluent_language_loader!()` macro to pull the   configuration in at compile time to create the `fluent::FluentLanguageLoader`.
-+ Use the [fl!() macro](https://crates.io/crates/i18n-embed-fl) to have added compile-time safety when accessing messages.
+- Use the [cargo i18n](https://crates.io/crates/cargo-i18n) tool to perform validity checks (not yet implemented).
+- Integrate with a code-base using the `gettext` localization system.
+- Use the `fluent::fluent_language_loader!()` macro to pull the configuration in at compile time to create the `fluent::FluentLanguageLoader`.
+- Use the [fl!() macro](https://crates.io/crates/i18n-embed-fl) to have added compile-time safety when accessing messages.
 
 Example projects can be found in [examples](./examples).
 

@@ -34,17 +34,20 @@ jobs:
           components: rustfmt
       - uses: taiki-e/install-action@taplo-cli
       - uses: taiki-e/install-action@cargo-shear
+      - uses: actions/setup-node@v7
       - parallel:
-        - name: Run rustfmt
-          run: cargo fmt --all --check
-        - name: Run taplo (lint)
-          run: taplo lint
-        - name: Run taplo (format)
-          run: taplo fmt --check
-        - name: Check for unused dependencies
-          run: cargo shear --deny-warnings
-        - name: Spell Check Repo
-          uses: crate-ci/typos@v1
+          - name: Run rustfmt
+            run: cargo fmt --all --check
+          - name: Run taplo (lint)
+            run: taplo lint
+          - name: Run taplo (format)
+            run: taplo fmt --check
+          - name: Check for unused dependencies
+            run: cargo shear --deny-warnings
+          - name: Spell Check Repo
+            uses: crate-ci/typos@v1
+          - name: Formatting (Markdown/JSON/YAML)
+            run: npx prettier --check .
 
   clippy:
     name: Clippy

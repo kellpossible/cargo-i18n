@@ -8,8 +8,8 @@ A library for use within the [cargo-i18n](https://crates.io/crates/cargo_i18n) t
 
 The `i18n-build` crate has the following optional Cargo features:
 
-+ `localize`
-  + Enables the runtime localization of this library using `localize()` function via the [i18n-embed](https://crates.io/crates/i18n-embed) crate.
+- `localize`
+  - Enables the runtime localization of this library using `localize()` function via the [i18n-embed](https://crates.io/crates/i18n-embed) crate.
 
 ## Contributing
 
@@ -19,5 +19,5 @@ To add a new language, you can make a request via a GitHub issue, or submit a pu
 
 ## Authors
 
-+ [Contributors](https://github.com/kellpossible/cargo-i18n/graphs/contributors)
-+ [Translators](https://github.com/kellpossible/cargo-i18n/blob/master/i18n-build/i18n/TRANSLATORS)
+- [Contributors](https://github.com/kellpossible/cargo-i18n/graphs/contributors)
+- [Translators](https://github.com/kellpossible/cargo-i18n/blob/master/i18n-build/i18n/TRANSLATORS)

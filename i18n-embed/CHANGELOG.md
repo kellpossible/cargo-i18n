@@ -4,91 +4,91 @@
 
 ### Fixes
 
-+ [#13](https://github.com/kellpossible/cargo-i18n/issues/130) Replace abandoned `locale_config` dependency with `sys-locale`. Fixes [#63](https://github.com/kellpossible/cargo-i18n/issues/63) Cannot parse locale on Macos. Big thanks to [@TristanDebrunner](https://github.com/TristanDebrunner) for this contribution!
-  + When the `gettext-system` feature is enabled, `locale_config` is not entirely eliminated from the dependency tree as gettext-rs depends on it.
+- [#13](https://github.com/kellpossible/cargo-i18n/issues/130) Replace abandoned `locale_config` dependency with `sys-locale`. Fixes [#63](https://github.com/kellpossible/cargo-i18n/issues/63) Cannot parse locale on Macos. Big thanks to [@TristanDebrunner](https://github.com/TristanDebrunner) for this contribution!
+  - When the `gettext-system` feature is enabled, `locale_config` is not entirely eliminated from the dependency tree as gettext-rs depends on it.
 
 ### Dependencies
 
-+ Bump `fluent` to 0.17 and `fluent-syntax` to `0.12`. 
-  + Considering this is such a central dependency, I've decided to treat this as a breaking change.
+- Bump `fluent` to 0.17 and `fluent-syntax` to `0.12`.
+  - Considering this is such a central dependency, I've decided to treat this as a breaking change.
 
 ### Documentation
 
-+ Fixed some typos. Thanks to [@YgorSouza](https://github.com/YgorSouza).
+- Fixed some typos. Thanks to [@YgorSouza](https://github.com/YgorSouza).
 
 ## v0.15.4
 
 ### New Features
 
-+ Add `FluentLanguageLoader::with_fluent_message_and_bundle()`. This method functions like `with_fluent_message()`, but it also returns the `FluentBundle` which owns the message. As part of implementation of [#144](https://github.com/kellpossible/cargo-i18n/issues/144). Many thanks to [@cbs228](https://github.com/cbs228) for this contribution.
+- Add `FluentLanguageLoader::with_fluent_message_and_bundle()`. This method functions like `with_fluent_message()`, but it also returns the `FluentBundle` which owns the message. As part of implementation of [#144](https://github.com/kellpossible/cargo-i18n/issues/144). Many thanks to [@cbs228](https://github.com/cbs228) for this contribution.
 
 ### Internal
 
-+ Bump version of `notify` dependency to version `8.0.0`.
+- Bump version of `notify` dependency to version `8.0.0`.
 
 ## v0.15.3
 
 ### Internal
 
-+ Removed dependency on `lazy_static` #135 thanks to [@mrtryhard](https://github.com/mrtryhard).
+- Removed dependency on `lazy_static` #135 thanks to [@mrtryhard](https://github.com/mrtryhard).
 
 ## v0.15.2
 
-+ Fix incorrect workspace package specification for `i18n-embed-impl`.
+- Fix incorrect workspace package specification for `i18n-embed-impl`.
 
 ## v0.15.1 (Yanked)
 
 ### Fixes
 
-+ Fix for [#97](https://github.com/kellpossible/cargo-i18n/issues/97) Error when using workspace defined package metadata. Contributed by [@Umio-Yasuno](https://github.com/Umio-Yasuno).
+- Fix for [#97](https://github.com/kellpossible/cargo-i18n/issues/97) Error when using workspace defined package metadata. Contributed by [@Umio-Yasuno](https://github.com/Umio-Yasuno).
 
 ### Internal
 
-+ Use workspace dependency for `i18n-embed-impl` crate.
+- Use workspace dependency for `i18n-embed-impl` crate.
 
 ## v0.15.0
 
 ### New Features
 
-+ New `autoreload` crate feature.
-  + `RustEmbedNotifyAssets` - A wrapper for `rust_embed::RustEmbed` that supports notifications when files have changed on the file system.
-  + `FileSystemAssets::notify_changes_enabled()` - A new method to enable watching for changes.
-+ `AssetsMultiplexor` - A way to multiplex implementations of [`I18nAssets`] where assets are multiplexed by a priority.
+- New `autoreload` crate feature.
+  - `RustEmbedNotifyAssets` - A wrapper for `rust_embed::RustEmbed` that supports notifications when files have changed on the file system.
+  - `FileSystemAssets::notify_changes_enabled()` - A new method to enable watching for changes.
+- `AssetsMultiplexor` - A way to multiplex implementations of [`I18nAssets`] where assets are multiplexed by a priority.
 
 ### Breaking
 
-+ Modified `I18nAssets` trait.
-  + Support multiple files referencing the same asset (to allow a hierarchy of overrides).
-  + Support for subscribing to updates to assets.
-+ Remove deprecated methods for `LanguageConfig`, Please use `lang(...).get_attr_args(...)` etc instead.
-  + `LanguageConfig::get_lang()`
-  + `LanguageConfig::get_lang_args_concrete()`
-  + `LanguageConfig::get_lang_args_fluent()`
-  + `LanguageConfig::get_lang_args()`
-  + `LanguageConfig::get_lang_attr()`
-  + `LanguageConfig::get_lang_attr_args_concrete()`
-  + `LanguageConfig::get_lang_attr_args_fluent()`
-  + `LanguageConfig::get_lang_attr_args()`
-  + `LanguageConfig::lang()` - Please use `select_languages(...)` instead.
-+ Extra bounds on the arguments for `DefaultLocalizer::new()` (`Send + Sync + 'static`) to allow it to be used with `autoreload` feature.
-+ `LanguageLoader::load_languages()` now accepts `&[unic_langid::LanguageIdentifier]` instead of `&[&unic_langid::LanguageIdentifier]`.
-+ `LanguageLoader:reload()` - Added a new trait method which is used to reload the currently loaded languages.
+- Modified `I18nAssets` trait.
+  - Support multiple files referencing the same asset (to allow a hierarchy of overrides).
+  - Support for subscribing to updates to assets.
+- Remove deprecated methods for `LanguageConfig`, Please use `lang(...).get_attr_args(...)` etc instead.
+  - `LanguageConfig::get_lang()`
+  - `LanguageConfig::get_lang_args_concrete()`
+  - `LanguageConfig::get_lang_args_fluent()`
+  - `LanguageConfig::get_lang_args()`
+  - `LanguageConfig::get_lang_attr()`
+  - `LanguageConfig::get_lang_attr_args_concrete()`
+  - `LanguageConfig::get_lang_attr_args_fluent()`
+  - `LanguageConfig::get_lang_attr_args()`
+  - `LanguageConfig::lang()` - Please use `select_languages(...)` instead.
+- Extra bounds on the arguments for `DefaultLocalizer::new()` (`Send + Sync + 'static`) to allow it to be used with `autoreload` feature.
+- `LanguageLoader::load_languages()` now accepts `&[unic_langid::LanguageIdentifier]` instead of `&[&unic_langid::LanguageIdentifier]`.
+- `LanguageLoader:reload()` - Added a new trait method which is used to reload the currently loaded languages.
 
 ### Fixes
 
-+ Fallback to `std::env::var("CARGO_PKG_NAME")` Fixes [#97](https://github.com/kellpossible/cargo-i18n/issues/97)
+- Fallback to `std::env::var("CARGO_PKG_NAME")` Fixes [#97](https://github.com/kellpossible/cargo-i18n/issues/97)
 
 ## v0.14.1
 
 ## Internal
 
-+ Relax the version constraint on `arc-swap`.
+- Relax the version constraint on `arc-swap`.
 
 ## v0.14.0
 
 ### Internal
 
-+ Bump dependencies and use workspace dependencies.
+- Bump dependencies and use workspace dependencies.
 
 ## v0.13.9
 
