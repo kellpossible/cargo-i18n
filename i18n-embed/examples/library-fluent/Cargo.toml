@@ -1,8 +1,8 @@
 [package]
-name = "library-fluent"
-version = "0.2.0"
 authors = ["Luke Frisken <l.frisken@gmail.com>"]
 edition = "2018"
+name = "library-fluent"
+version = "0.2.0"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

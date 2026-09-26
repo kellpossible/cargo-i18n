@@ -16,8 +16,8 @@ version = "0.4.8"
 maintenance = { status = "actively-developed" }
 
 [dependencies]
-log = { workspace = true }
 basic-toml = "0.1"
+log = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
 serde_derive = { workspace = true }
 thiserror = { workspace = true }

@@ -1,10 +1,10 @@
 [package]
 authors = ["Luke Frisken <l.frisken@gmail.com>"]
 categories = [
-    "localization",
-    "internationalization",
-    "development-tools::build-utils",
-    "wasm",
+  "localization",
+  "internationalization",
+  "development-tools::build-utils",
+  "wasm",
 ]
 description = "Traits and macros to conveniently embed localization assets into your application binary or library in order to localize it at runtime."
 edition = "2018"
@@ -40,8 +40,8 @@ tr = { version = "0.1", default-features = false, optional = true }
 unic-langid = { workspace = true }
 walkdir = { workspace = true, optional = true }
 web-sys = { version = "0.3", features = [
-    "Window",
-    "Navigator",
+  "Window",
+  "Navigator",
 ], optional = true }
 
 [dev-dependencies]
@@ -55,20 +55,20 @@ serial_test = "3.0"
 default = ["rust-embed"]
 
 fluent-system = [
-    "dep:fluent",
-    "dep:fluent-syntax",
-    "dep:parking_lot",
-    "dep:i18n-embed-impl",
-    "i18n-embed-impl/fluent-system",
-    "dep:arc-swap",
+  "dep:fluent",
+  "dep:fluent-syntax",
+  "dep:parking_lot",
+  "dep:i18n-embed-impl",
+  "i18n-embed-impl/fluent-system",
+  "dep:arc-swap",
 ]
 gettext-system = [
-    "dep:tr",
-    "tr/gettext",
-    "dep:gettext",
-    "dep:parking_lot",
-    "dep:i18n-embed-impl",
-    "i18n-embed-impl/gettext-system",
+  "dep:tr",
+  "tr/gettext",
+  "dep:gettext",
+  "dep:parking_lot",
+  "dep:i18n-embed-impl",
+  "i18n-embed-impl/gettext-system",
 ]
 
 desktop-requester = ["dep:sys-locale"]

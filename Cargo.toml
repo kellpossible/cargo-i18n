@@ -1,10 +1,10 @@
 [package]
 authors = ["Luke Frisken <l.frisken@gmail.com>"]
 categories = [
-    "development-tools::cargo-plugins",
-    "localization",
-    "internationalization",
-    "development-tools::build-utils",
+  "development-tools::cargo-plugins",
+  "localization",
+  "internationalization",
+  "development-tools::build-utils",
 ]
 description = "Cargo sub-command to extract and build localization resources to embed in your application/library"
 edition = "2018"
@@ -26,9 +26,9 @@ gettext = { workspace = true }
 i18n-build = { workspace = true, features = ["localize"] }
 i18n-config = { workspace = true }
 i18n-embed = { workspace = true, features = [
-    "desktop-requester",
-    "gettext-system",
-    "fluent-system",
+  "desktop-requester",
+  "gettext-system",
+  "fluent-system",
 ] }
 log = { workspace = true }
 rust-embed = { workspace = true }
@@ -41,16 +41,16 @@ doc-comment = { workspace = true }
 [workspace]
 
 members = [
-    "i18n-build",
-    "i18n-config",
-    "i18n-embed",
-    "i18n-embed/i18n-embed-impl",
-    "i18n-embed-fl",
+  "i18n-build",
+  "i18n-config",
+  "i18n-embed",
+  "i18n-embed/i18n-embed-impl",
+  "i18n-embed-fl",
 
-    # Examples
-    "i18n-embed/examples/library-fluent",
-    "i18n-embed/examples/desktop-bin",
-    "i18n-embed-fl/examples/web-server",
+  # Examples
+  "i18n-embed/examples/library-fluent",
+  "i18n-embed/examples/desktop-bin",
+  "i18n-embed-fl/examples/web-server",
 ]
 
 [workspace.dependencies]

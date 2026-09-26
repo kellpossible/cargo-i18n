@@ -1,9 +1,9 @@
 [package]
 authors = ["Luke Frisken <l.frisken@gmail.com>"]
 categories = [
-    "localization",
-    "internationalization",
-    "development-tools::build-utils",
+  "localization",
+  "internationalization",
+  "development-tools::build-utils",
 ]
 description = "Designed for use within the cargo-i18n tool for localizing crates. It has been published to allow its direct use within project build scripts if required."
 edition = "2018"
@@ -27,8 +27,8 @@ anyhow = { workspace = true }
 gettext = { workspace = true, optional = true }
 i18n-config = { workspace = true }
 i18n-embed = { workspace = true, features = [
-    "gettext-system",
-    "desktop-requester",
+  "gettext-system",
+  "desktop-requester",
 ], optional = true }
 log = { workspace = true }
 rust-embed = { workspace = true }

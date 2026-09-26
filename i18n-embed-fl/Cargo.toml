@@ -1,12 +1,12 @@
 [package]
-name = "i18n-embed-fl"
-description = "Macro to perform compile time checks when using the i18n-embed crate and the fluent localization system"
-categories = ["localization", "internationalization", "development-tools"]
-version = "0.10.1"
 authors = ["Luke Frisken <l.frisken@gmail.com>"]
+categories = ["localization", "internationalization", "development-tools"]
+description = "Macro to perform compile time checks when using the i18n-embed crate and the fluent localization system"
 edition = "2018"
 license = "MIT"
+name = "i18n-embed-fl"
 repository = "https://github.com/kellpossible/cargo-i18n/tree/master/i18n-embed-fl"
+version = "0.10.1"
 
 [lib]
 proc-macro = true
@@ -17,16 +17,26 @@ find-crate = { workspace = true }
 fluent = { workspace = true }
 fluent-syntax = { workspace = true }
 i18n-config = { workspace = true }
-i18n-embed = { workspace = true, features = ["fluent-system", "filesystem-assets"]}
-proc-macro2 = { workspace = true }
+i18n-embed = { workspace = true, features = [
+  "fluent-system",
+  "filesystem-assets",
+] }
 proc-macro-error3 = "3.0"
+proc-macro2 = { workspace = true }
 quote = { workspace = true }
 strsim = "0.11"
 unic-langid = { workspace = true }
 
 [dependencies.syn]
+features = [
+  "derive",
+  "proc-macro",
+  "parsing",
+  "printing",
+  "extra-traits",
+  "full",
+]
 workspace = true
-features = ["derive", "proc-macro", "parsing", "printing", "extra-traits", "full"]
 
 [dev-dependencies]
 doc-comment = { workspace = true }

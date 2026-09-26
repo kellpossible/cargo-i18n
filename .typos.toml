@@ -4,9 +4,9 @@
 
 # Ignore the contents of localization files (but check their names)
 [type.po]
-extend-glob = ["*.po"]
 check-file = false
+extend-glob = ["*.po"]
 
 [type.ftl]
-extend-glob = ["*.ftl"]
 check-file = false
+extend-glob = ["*.ftl"]
