@@ -73,8 +73,15 @@ quote = "1.0"
 rust-embed = "8.12"
 serde = "1.0"
 serde_derive = "1.0"
-syn = "3.0"
+syn = { version = "3.0", features = [
+  "derive",
+  "proc-macro",
+  "parsing",
+  "printing",
+  "extra-traits",
+  "full",
+] }
 thiserror = "2.0"
-tr = "0.1"
+tr = { version = "0.1", default-features = false, features = ["gettext"] }
 unic-langid = "0.9"
 walkdir = "2.5"

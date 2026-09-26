@@ -25,18 +25,8 @@ proc-macro-error3 = "3.1"
 proc-macro2 = { workspace = true }
 quote = { workspace = true }
 strsim = "0.11"
+syn.workspace = true
 unic-langid = { workspace = true }
-
-[dependencies.syn]
-features = [
-  "derive",
-  "proc-macro",
-  "parsing",
-  "printing",
-  "extra-traits",
-  "full",
-]
-workspace = true
 
 [dev-dependencies]
 doc-comment = { workspace = true }

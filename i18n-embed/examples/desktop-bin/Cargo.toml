@@ -4,8 +4,6 @@ edition = "2018"
 name = "bin"
 version = "0.1.0"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [dependencies]
 env_logger = "0.11.11"
 i18n-embed = { workspace = true, features = [

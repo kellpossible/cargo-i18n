@@ -36,7 +36,7 @@ parking_lot = { version = "0.12", optional = true }
 rust-embed = { workspace = true, optional = true }
 sys-locale = { version = "0.3", optional = true }
 thiserror = { workspace = true }
-tr = { version = "0.1", default-features = false, optional = true }
+tr = { workspace = true, optional = true }
 unic-langid = { workspace = true }
 walkdir = { workspace = true, optional = true }
 web-sys = { version = "0.3", features = [
@@ -64,7 +64,6 @@ fluent-system = [
 ]
 gettext-system = [
   "dep:tr",
-  "tr/gettext",
   "dep:gettext",
   "dep:parking_lot",
   "dep:i18n-embed-impl",

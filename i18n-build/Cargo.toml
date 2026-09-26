@@ -17,8 +17,6 @@ version = "0.10.3"
 [package.metadata.docs.rs]
 all-features = true
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [badges]
 maintenance = { status = "actively-developed" }
 
@@ -33,7 +31,7 @@ log = { workspace = true }
 rust-embed = { workspace = true }
 subprocess = "1.2"
 thiserror = { workspace = true }
-tr = { workspace = true, default-features = false, features = ["gettext"] }
+tr.workspace = true
 walkdir = { workspace = true }
 
 [features]

@@ -21,11 +21,7 @@ find-crate = { workspace = true, optional = true }
 i18n-config = { workspace = true, optional = true }
 proc-macro2 = { workspace = true }
 quote = { workspace = true, optional = true }
-
-[dependencies.syn]
-default-features = false
-features = ["derive", "proc-macro", "parsing", "printing", "extra-traits"]
-workspace = true
+syn.workspace = true
 
 [features]
 default = []
