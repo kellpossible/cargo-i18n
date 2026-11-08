@@ -325,7 +325,7 @@ fn domains() -> &'static DomainsMap {
 /// ```
 ///
 /// With this form of the `fl!()` macro, arguments can be specified at
-/// runtime using a [HashMap](std::collections::HashMap), using the
+/// runtime using a [HashMap], using the
 /// same signature as in
 /// [FluentLanguageLoader::get_args()](i18n_embed::fluent::FluentLanguageLoader::get_args()).
 /// When using this method of specifying arguments, they are not

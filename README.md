@@ -82,7 +82,7 @@ target_languages = ["es", "ja"]
 
 # (Required) Path to the output directory, relative to `i18n.toml` of the crate
 # being localized.
-output_dir = "i18n"
+output.dir = "i18n"
 ```
 
 See [Configuration](#Configuration) for a description of all the available configuration options.
@@ -191,25 +191,15 @@ subcrates = ["subcrate1", "subcrate2"]
 # (Required) The languages that the software will be translated into.
 target_languages = ["es", "ru", "cz"]
 
-# (Required) Path to the output directory, relative to `i18n.toml` of the crate
-# being localized.
-output_dir = "i18n"
-
 # (Optional) The reporting address for msgid bugs. This is the email address or
 # URL to which the translators shall report bugs in the untranslated
 # strings.
-msg_bugs_address = "example@example.com"
+msgid_bugs_address = "example@example.com"
 
 # (Optional) Set the copyright holder for the generated files.
 copyright_holder = "You?"
 
-# (Optional) If this crate is being localized as a subcrate, store the final
-# localization artifacts (the module pot and mo files) with the parent crate's
-# output. Currently crates which contain subcrates with duplicate names are not
-# supported. By default this is false.
-extract_to_parent = false
-
-# (Optional) If a subcrate has extract_to_parent set to true, then merge the
+# (Optional) If a subcrate has output.extract_to_parent set to true, then merge the
 # output pot file of that subcrate into this crate's pot file. By default this
 # is false.
 collate_extracted_subcrates = false
@@ -224,24 +214,39 @@ add_location = "full"
 # (Optional) Whether or not to perform string extraction using the `xtr` tool.
 xtr = true
 
-# (Optional )Path to where the pot files will be written to by `xtr` command,
-# and were they will be read from by the `msginit` and `msgmerge` commands. By
-# default this is `output_dir/pot`.
-pot_dir = "i18n/pot"
-
-# (Optional) Path to where the po files will be stored/edited with the
-# `msgmerge` and `msginit` commands, and where they will be read from with the
-# `msgfmt` command. By default this is `output_dir/po`.
-po_dir = "i18n/po"
-
-# (Optional) Path to where the mo files will be written to by the `msgfmt`
-# command. By default this is `output_dir/mo`.
-mo_dir = "i18n/mo"
-
 # (Optional) Enable the `--use-fuzzy` option for the `msgfmt` command. By
 # default this is false. If your .po file are copied from another project, you
 # may need to enable it.
 use_fuzzy = false
+
+# `gettext.output` can take one of two forms.
+# Form 1:
+[gettext.output]
+# Path to the output directory, relative to `i18n.toml` of the crate
+# being localized.
+dir = "i18n"
+
+# (Optional )Path to where the pot files will be written to by `xtr` command,
+# and were they will be read from by the `msginit` and `msgmerge` commands. By
+# default this is `output.dir/pot`.
+pot_dir = "i18n/pot"
+
+# (Optional) Path to where the po files will be stored/edited with the
+# `msgmerge` and `msginit` commands, and where they will be read from with the
+# `msgfmt` command. By default this is `output.dir/po`.
+po_dir = "i18n/po"
+
+# (Optional) Path to where the mo files will be written to by the `msgfmt`
+# command. By default this is `output.dir/mo`.
+mo_dir = "i18n/mo"
+
+# Form 2:
+[gettext.output]
+# If this crate is being localized as a subcrate, store the final
+# localization artifacts (the module pot and mo files) with the parent crate's
+# output. Currently crates which contain subcrates with duplicate names are not
+# supported. By default this is false.
+extract_to_parent = false
 
 # (Optional) Use the fluent localization system.
 [fluent]

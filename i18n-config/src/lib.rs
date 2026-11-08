@@ -18,6 +18,8 @@ use serde::Deserialize;
 use thiserror::Error;
 use unic_langid::LanguageIdentifier;
 
+use crate::gettext::OutputConfig;
+
 /// An error type explaining why a crate failed to verify.
 #[derive(Debug, Error)]
 #[expect(missing_docs, reason = "self-explanatory")]
@@ -72,6 +74,7 @@ struct RawPackage {
 /// do is to note that it uses a version from the workspace metadata.
 #[derive(Deserialize)]
 #[serde(untagged)]
+#[serde(deny_unknown_fields)]
 enum RawVersion {
     Version(String),
     Workspace {
@@ -174,7 +177,7 @@ impl<'a> Crate<'a> {
         match &self.i18n_config {
             Some(config) => {
                 if let Some(gettext_config) = &config.gettext {
-                    if gettext_config.extract_to_parent {
+                    if matches!(gettext_config.output, OutputConfig::Parent) {
                         debug!(
                             "Resolving active config for {0}, extract_to_parent is true, so attempting to obtain parent config.",
                             self
@@ -249,7 +252,7 @@ impl<'a> Crate<'a> {
 
         let extract_to_parent = self
             .gettext_config_or_err()
-            .map(|gettext_config| gettext_config.extract_to_parent)
+            .map(|gettext_config| matches!(gettext_config.output, OutputConfig::Parent))
             .unwrap_or(false);
 
         parent_extract_to_subcrate && extract_to_parent
@@ -358,6 +361,7 @@ impl Display for Crate<'_> {
 /// The data structure representing what is stored (and possible to
 /// store) within a `i18n.toml` file.
 #[derive(Deserialize, Debug, Clone)]
+#[serde(deny_unknown_fields)]
 pub struct I18nConfig {
     /// The locale identifier of the language used in the source code
     /// for `gettext` system, and the primary fallback language (for
