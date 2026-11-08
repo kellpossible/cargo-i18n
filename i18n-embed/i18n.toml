@@ -14,7 +14,7 @@ target_languages = ["es", "ru", "fr"]
 
 # (Required) Path to the output directory, relative to `i18n.toml` of
 # the crate being localized.
-output_dir = "i18n"
+output.dir = "i18n"
 
 # (Optional) The reporting address for msgid bugs. This is the email address or
 # URL to which the translators shall report bugs in the untranslated

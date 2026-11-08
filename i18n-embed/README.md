@@ -156,7 +156,7 @@ target_languages = ["es"]
 
 # (Required) Path to the output directory, relative to `i18n.toml` of
 # the crate being localized.
-output_dir = "i18n"
+output.dir = "i18n"
 ```
 
 Install and run [cargo-i18n](https://crates.io/crates/cargo-i18n) for your crate to generate the language specific `po` and `mo` files, ready to be translated. It is recommended to add the `i18n/pot` folder to your repository `.gitignore`.
@@ -330,12 +330,12 @@ For the above example, you can enable the following options in the sub-crate's `
 # ...
 [gettext]
 # ...
-# (Optional) If this crate is being localized as a subcrate, store the final
+# If this crate is being localized as a subcrate, store the final
 # localization artifacts (the module pot and mo files) with the parent crate's
 # output. Currently crates which contain subcrates with duplicate names are not
 # supported.
-extract_to_parent = true
-# (Optional) If a subcrate has extract_to_parent set to true, then merge the
+output.extract_to_parent = true
+# (Optional) If a subcrate has output.extract_to_parent set to true, then merge the
 # output pot file of that subcrate into this crate's pot file.
 collate_extracted_subcrates = true
 ```
