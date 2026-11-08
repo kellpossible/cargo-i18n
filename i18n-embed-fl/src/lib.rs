@@ -521,7 +521,7 @@ pub fn fl(input: TokenStream) -> TokenStream {
     // Same procedure for attributes
     let mut checked_message_has_attribute = false;
 
-    let r#gen = match input.args {
+    let generate = match input.args {
         FlArgs::HashMap(args_hash_map) => {
             if attr_lit.is_none() {
                 quote! {
@@ -690,7 +690,27 @@ pub fn fl(input: TokenStream) -> TokenStream {
         }
     }
 
-    r#gen.into()
+    // This is a hack to get Rust to re-compile the fl! macro when the translation source file changes.
+    let (include_path, _) = domain_data
+        .loader
+        .language_files(&domain_data.loader.current_language(), &domain_data._assets);
+    let include_path = domain_data
+        ._assets
+        .base_dir()
+        .join(include_path)
+        .canonicalize()
+        .unwrap()
+        .to_str()
+        .map(String::from)
+        .unwrap();
+
+    quote! {
+        {
+            const _: &str = include_str!(#include_path);
+            #generate
+        }
+    }
+    .into()
 }
 
 fn fuzzy_message_suggestions(
