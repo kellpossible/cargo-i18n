@@ -32,6 +32,53 @@ mod fluent {
     }
 
     #[test]
+    fn switch_language() {
+        setup();
+        let en_us: LanguageIdentifier = "en-US".parse().unwrap();
+        let ru: LanguageIdentifier = "ru".parse().unwrap();
+        let loader = FluentLanguageLoader::new("test", en_us.clone());
+        loader.load_languages(&Localizations, &[en_us]).unwrap();
+        pretty_assertions::assert_eq!("Hello World Localization!", loader.get("hello-world"));
+        loader.load_languages(&Localizations, &[ru]).unwrap();
+        pretty_assertions::assert_eq!("Привет Мир Локализация!", loader.get("hello-world"));
+    }
+
+    #[test]
+    #[cfg(feature = "system-requester")]
+    fn language_override() {
+        use i18n_embed::{DefaultLocalizer, LanguageRequester, Localizer, SystemLanguageRequester};
+        use std::sync::{Arc, LazyLock};
+
+        static LOADER: LazyLock<FluentLanguageLoader> = LazyLock::new(|| {
+            let en_us: LanguageIdentifier = "en-US".parse().unwrap();
+            FluentLanguageLoader::new("test", en_us)
+        });
+
+        setup();
+        let en_us: LanguageIdentifier = "en-US".parse().unwrap();
+        let en_gb: LanguageIdentifier = "en-GB".parse().unwrap();
+        let ru: LanguageIdentifier = "ru".parse().unwrap();
+        LOADER.load_languages(&Localizations, &[en_us]).unwrap();
+        let localizer = DefaultLocalizer::new(&*LOADER, &Localizations);
+        let localizer_arc: Arc<dyn Localizer> = Arc::new(localizer);
+        let mut language_requester = SystemLanguageRequester::default();
+        language_requester.add_listener(Arc::downgrade(&localizer_arc));
+        language_requester.poll().unwrap();
+        pretty_assertions::assert_eq!("Hello World Localization!", LOADER.get("hello-world"));
+        language_requester.set_language_override(Some(ru)).unwrap();
+        language_requester.poll().unwrap();
+        pretty_assertions::assert_eq!("Привет Мир Локализация!", LOADER.get("hello-world"));
+        language_requester
+            .set_language_override(Some(en_gb))
+            .unwrap();
+        language_requester.poll().unwrap();
+        pretty_assertions::assert_eq!("Hello World Localisation!", LOADER.get("hello-world"));
+        language_requester.set_language_override(None).unwrap();
+        language_requester.poll().unwrap();
+        pretty_assertions::assert_eq!("Hello World Localization!", LOADER.get("hello-world"));
+    }
+
+    #[test]
     fn fallback_en_gb_to_en_us() {
         setup();
         let en_us: LanguageIdentifier = "en-US".parse().unwrap();
