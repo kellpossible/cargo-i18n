@@ -216,7 +216,7 @@ fn notify_watcher(
             | notify::EventKind::Modify(_)
             | notify::EventKind::Remove(_)
             | notify::EventKind::Other => changed(),
-            _ => {}
+            notify::EventKind::Access(_) => {}
         }
     })?;
 

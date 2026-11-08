@@ -401,7 +401,7 @@ pub fn fl(input: TokenStream) -> TokenStream {
 
     let domain_data = match domains().get(&domain) {
         Some(domain_data) => domain_data,
-        _ => {
+        None => {
             let crate_paths = i18n_config::locate_crate_paths()
                 .unwrap_or_else(|error| panic!("fl!() is unable to locate crate paths: {}", error));
 
@@ -964,7 +964,9 @@ fn args_from_inline_expression<'m, R>(
                 args_from_pattern(p, bundle, args);
             }
         }
-        _ => {}
+        InlineExpression::StringLiteral { .. }
+        | InlineExpression::NumberLiteral { .. }
+        | InlineExpression::TermReference { .. } => {}
     }
 }
 
