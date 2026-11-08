@@ -2,6 +2,7 @@
 
 use i18n_embed::Localizer;
 use library_fluent::{hello_world, localizer};
+use serial_test::serial;
 
 use std::collections::HashSet;
 use std::iter::FromIterator;
@@ -32,6 +33,7 @@ fn test_available_languages() {
 
 /// Test loading the `en` language.
 #[test]
+#[serial]
 fn test_select_english() {
     localizer().select(&["en".parse().unwrap()]).unwrap();
     assert_eq!("Hello World!", &hello_world())
@@ -39,6 +41,7 @@ fn test_select_english() {
 
 /// Test loading the `fr` language.
 #[test]
+#[serial]
 fn test_select_french() {
     localizer().select(&["fr".parse().unwrap()]).unwrap();
     assert_eq!("Bonjour le monde!", &hello_world())
