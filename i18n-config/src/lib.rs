@@ -58,14 +58,26 @@ pub enum I18nConfigError {
 
 #[derive(Deserialize)]
 struct RawCrate {
-    #[serde(alias = "workspace")]
     package: RawPackage,
 }
 
 #[derive(Deserialize)]
 struct RawPackage {
     name: String,
-    version: String,
+    version: RawVersion,
+}
+
+/// There's no way right now to reliably discover the workspace manifest
+/// (<https://github.com/rust-lang/cargo/issues/3946>), so the best we can
+/// do is to note that it uses a version from the workspace metadata.
+#[derive(Deserialize)]
+#[serde(untagged)]
+enum RawVersion {
+    Version(String),
+    Workspace {
+        #[expect(dead_code, reason = "needed for parsing")]
+        workspace: bool,
+    },
 }
 
 /// Represents a rust crate.
@@ -74,7 +86,9 @@ pub struct Crate<'a> {
     /// The name of the crate.
     pub name: String,
     /// The version of the crate.
-    pub version: String,
+    ///
+    /// `None` if the crate uses workspace metadata for its version.
+    pub version: Option<String>,
     /// The path to the crate.
     pub path: PathBuf,
     /// Path to the parent crate which is triggering the localization
@@ -123,7 +137,10 @@ impl<'a> Crate<'a> {
 
         Ok(Crate {
             name: cargo_toml.package.name,
-            version: cargo_toml.package.version,
+            version: match cargo_toml.package.version {
+                RawVersion::Version(version) => Some(version),
+                RawVersion::Workspace { .. } => None,
+            },
             path: path_into,
             parent,
             config_file_path: config_file_path_into,

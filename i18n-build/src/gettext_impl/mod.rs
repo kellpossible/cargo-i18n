@@ -104,11 +104,13 @@ pub fn run_xtr(
             xtr.args(["--msgid-bugs-address", msgid_bugs_address.as_str()]);
         }
 
+        if let Some(version) = crt.version.as_ref() {
+            xtr.args(["--package-version", version]);
+        }
+
         xtr.args([
             "--package-name",
             crt.name.as_str(),
-            "--package-version",
-            crt.version.as_str(),
             "--default-domain",
             crt.module_name().as_str(),
             "--add-location",
