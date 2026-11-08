@@ -7,7 +7,7 @@ use fluent::{FluentAttribute, FluentMessage, FluentResource};
 use fluent_syntax::ast::{CallArguments, Expression, InlineExpression, Pattern, PatternElement};
 use i18n_embed::{FileSystemAssets, LanguageLoader, fluent::FluentLanguageLoader};
 use proc_macro::TokenStream;
-use proc_macro_error3::{abort, emit_error, proc_macro_error};
+use proc_macro_error3::{abort, emit_error, proc_macro_error, set_dummy};
 use quote::quote;
 use std::{collections::HashSet, path::Path, sync::OnceLock};
 
@@ -171,7 +171,7 @@ impl Parse for FlMacroInput {
 
 struct DomainSpecificData {
     loader: FluentLanguageLoader,
-    _assets: FileSystemAssets,
+    assets: FileSystemAssets,
 }
 
 #[derive(Default)]
@@ -399,15 +399,20 @@ pub fn fl(input: TokenStream) -> TokenStream {
         )
     };
 
+    let crate_paths = i18n_config::locate_crate_paths()
+        .unwrap_or_else(|error| panic!("fl!() is unable to locate crate paths: {}", error));
+    let config_file_path = crate_paths.i18n_config_file.to_string_lossy();
+
     let domain_data = match domains().get(&domain) {
         Some(domain_data) => domain_data,
         None => {
-            let crate_paths = i18n_config::locate_crate_paths()
-                .unwrap_or_else(|error| panic!("fl!() is unable to locate crate paths: {}", error));
-
-            let config_file_path = &crate_paths.i18n_config_file;
-
-            let config = i18n_config::I18nConfig::from_file(config_file_path).unwrap_or_else(|err| {
+            let config = i18n_config::I18nConfig::from_file(&*config_file_path).unwrap_or_else(|err| {
+            set_dummy(quote! {
+                {
+                    const _: &str = include_str!(#config_file_path);
+                    ""
+                }
+            });
             abort! {
                 proc_macro2::Span::call_site(),
                 format!(
@@ -418,6 +423,12 @@ pub fn fl(input: TokenStream) -> TokenStream {
         });
 
             let fluent_config = config.fluent.unwrap_or_else(|| {
+                set_dummy(quote! {
+                    {
+                        const _: &str = include_str!(#config_file_path);
+                        ""
+                    }
+                });
                 abort! {
                     proc_macro2::Span::call_site(),
                     format!(
@@ -451,6 +462,13 @@ pub fn fl(input: TokenStream) -> TokenStream {
                                 language_id, fallback_language
                             )
                         }
+                        // todo: is this right?
+                        set_dummy(quote! {
+                            {
+                                const _: &str = include_str!(#config_file_path);
+                                ""
+                            }
+                        });
                         abort! {
                             proc_macro2::Span::call_site(),
                             format!(
@@ -468,14 +486,31 @@ pub fn fl(input: TokenStream) -> TokenStream {
                     ),
                 });
 
-            let data = DomainSpecificData {
-                loader,
-                _assets: assets,
-            };
+            let data = DomainSpecificData { loader, assets };
 
             domains().entry_or_insert(&domain, data)
         }
     };
+
+    let include_path = domain_data
+        .assets
+        .base_dir()
+        .join(
+            domain_data
+                .loader
+                .language_files(&domain_data.loader.current_language(), &domain_data.assets)
+                .0,
+        )
+        .to_string_lossy()
+        .to_string();
+
+    set_dummy(quote! {
+        {
+            const _: &str = include_str!(#include_path);
+            const _: &str = include_str!(#config_file_path);
+            ""
+        }
+    });
 
     let message_id_string = match &message_id {
         syn::Lit::Str(message_id_str) => {
@@ -521,7 +556,7 @@ pub fn fl(input: TokenStream) -> TokenStream {
     // Same procedure for attributes
     let mut checked_message_has_attribute = false;
 
-    let r#gen = match input.args {
+    let generate = match input.args {
         FlArgs::HashMap(args_hash_map) => {
             if attr_lit.is_none() {
                 quote! {
@@ -587,7 +622,7 @@ pub fn fl(input: TokenStream) -> TokenStream {
                         .is_some();
                 }
 
-                let r#gen = quote! {
+                let generate = quote! {
                     (#fluent_loader).get_args_concrete(
                         #message_id,
                         {
@@ -597,7 +632,7 @@ pub fn fl(input: TokenStream) -> TokenStream {
                         })
                 };
 
-                r#gen
+                generate
             } else {
                 if let Some(message_id_str) = &message_id_string {
                     if let Some(attr_id_str) = &attr_str {
@@ -616,7 +651,7 @@ pub fn fl(input: TokenStream) -> TokenStream {
                     }
                 }
 
-                let r#gen = quote! {
+                let generate = quote! {
                     (#fluent_loader).get_attr_args_concrete(
                         #message_id,
                         #attr_lit,
@@ -627,7 +662,7 @@ pub fn fl(input: TokenStream) -> TokenStream {
                         })
                 };
 
-                r#gen
+                generate
             }
         }
     };
@@ -690,7 +725,14 @@ pub fn fl(input: TokenStream) -> TokenStream {
         }
     }
 
-    r#gen.into()
+    quote! {
+        {
+            const _: &str = include_str!(#include_path);
+            const _: &str = include_str!(#config_file_path);
+            #generate
+        }
+    }
+    .into()
 }
 
 fn fuzzy_message_suggestions(
