@@ -715,6 +715,7 @@ dependencies = [
  "i18n-embed-fl",
  "once_cell",
  "rust-embed",
+ "serial_test",
 ]
 
 [[package]]
