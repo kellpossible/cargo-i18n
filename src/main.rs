@@ -1,6 +1,8 @@
 #![doc = include_str!("../README.md")]
 use anyhow::Result;
-use clap::{Arg, Command, builder::PossibleValuesParser, crate_authors, crate_version};
+use clap::{
+    Arg, Command, builder::PossibleValuesParser, crate_authors, crate_version, value_parser,
+};
 use i18n_build::run;
 use i18n_config::Crate;
 use i18n_embed::{
@@ -116,6 +118,7 @@ fn main() -> Result<()> {
                     tr!("Path to the crate you want to localize (if not the current directory). The crate needs to contain \"i18n.toml\" in its root.")
                     )
                 .long("path")
+                .value_parser(value_parser!(PathBuf))
                 .num_args(1)
             )
             .arg(Arg::new("config-file-name")
