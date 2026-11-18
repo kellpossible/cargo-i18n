@@ -25,6 +25,7 @@ i18n-config.workspace = true
 i18n-embed = { workspace = true, features = [
   "fluent-system",
   "filesystem-assets",
+  "autoreload",
 ] }
 proc-macro-error3.workspace = true
 proc-macro2.workspace = true

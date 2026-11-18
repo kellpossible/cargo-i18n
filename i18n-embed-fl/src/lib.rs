@@ -6,14 +6,15 @@ use fluent::concurrent::FluentBundle;
 use fluent::{FluentAttribute, FluentMessage, FluentResource};
 use fluent_syntax::ast::{CallArguments, Expression, InlineExpression, Pattern, PatternElement};
 use i18n_embed::{FileSystemAssets, LanguageLoader, fluent::FluentLanguageLoader};
+use i18n_embed::{I18nAssets, Watcher};
 use proc_macro::TokenStream;
-use proc_macro_error3::{abort, emit_error, proc_macro_error};
+use proc_macro_error3::{abort, emit_error, proc_macro_error, set_dummy};
 use quote::quote;
+use std::sync::LazyLock;
 use std::{collections::HashSet, path::Path, sync::OnceLock};
 
 #[cfg(feature = "dashmap")]
 use dashmap::mapref::one::Ref;
-#[cfg(not(feature = "dashmap"))]
 use std::{
     collections::HashMap,
     sync::{Arc, RwLock},
@@ -171,7 +172,8 @@ impl Parse for FlMacroInput {
 
 struct DomainSpecificData {
     loader: FluentLanguageLoader,
-    _assets: FileSystemAssets,
+    assets: FileSystemAssets,
+    _watcher: Box<dyn Watcher + Send + Sync + 'static>,
 }
 
 #[derive(Default)]
@@ -189,15 +191,13 @@ impl DomainsMap {
         self.map.get(domain)
     }
 
-    fn entry_or_insert(
+    fn insert(
         &self,
-        domain: &str,
+        domain: &String,
         data: DomainSpecificData,
     ) -> Ref<'_, String, DomainSpecificData> {
-        self.map
-            .entry(domain.to_string())
-            .or_insert(data)
-            .downgrade()
+        self.map.insert(domain.clone(), data);
+        self.map.get(domain).unwrap()
     }
 }
 
@@ -207,13 +207,13 @@ impl DomainsMap {
         self.map.read().unwrap().get(domain).map(Clone::clone)
     }
 
-    fn entry_or_insert(&self, domain: &str, data: DomainSpecificData) -> Arc<DomainSpecificData> {
+    fn insert(&self, domain: &String, data: DomainSpecificData) -> Arc<DomainSpecificData> {
         self.map
             .write()
             .unwrap()
-            .entry(domain.to_string())
-            .or_insert(Arc::new(data))
-            .clone()
+            .insert(domain.clone(), Arc::new(data));
+
+        self.map.read().unwrap().get(domain).cloned().unwrap()
     }
 }
 
@@ -222,6 +222,9 @@ fn domains() -> &'static DomainsMap {
 
     DOMAINS.get_or_init(DomainsMap::default)
 }
+
+static DOMAIN_OUTDATED_VERIF: LazyLock<RwLock<HashMap<String, bool>>> =
+    LazyLock::new(|| RwLock::new(HashMap::new()));
 
 /// A macro to obtain localized messages and optionally their attributes, and check the
 /// `message_id`, `attribute_id` and arguments at compile time.
@@ -399,41 +402,72 @@ pub fn fl(input: TokenStream) -> TokenStream {
         )
     };
 
+    let crate_paths = i18n_config::locate_crate_paths()
+        .unwrap_or_else(|error| panic!("fl!() is unable to locate crate paths: {}", error));
+    let config_file_path = crate_paths.i18n_config_file.to_string_lossy();
+
+    set_dummy(quote! {
+        {
+            const _: &str = include_str!(#config_file_path);
+            ""
+        }
+    });
+
+    let config = i18n_config::I18nConfig::from_file(&*config_file_path).unwrap_or_else(|err| {
+        abort! {
+            proc_macro2::Span::call_site(),
+            format!(
+                "fl!() had a problem reading i18n config file {config_file_path:?}: {err}"
+            );
+            help = "Try creating the `i18n.toml` configuration file.";
+        }
+    });
+
+    let fluent_config = config.fluent.unwrap_or_else(|| {
+        abort! {
+            proc_macro2::Span::call_site(),
+            format!(
+                "fl!() had a problem parsing i18n config file {config_file_path:?}: \
+                there is no `[fluent]` subsection."
+            );
+            help = "Add the `[fluent]` subsection to `i18n.toml`, \
+                    along with its required `assets_dir`.";
+        }
+    });
+
+    // Use the domain override in the configuration.
+    let domain = fluent_config.domain.unwrap_or(domain);
+
     let domain_data = match domains().get(&domain) {
-        Some(domain_data) => domain_data,
-        None => {
-            let crate_paths = i18n_config::locate_crate_paths()
-                .unwrap_or_else(|error| panic!("fl!() is unable to locate crate paths: {}", error));
-
-            let config_file_path = &crate_paths.i18n_config_file;
-
-            let config = i18n_config::I18nConfig::from_file(config_file_path).unwrap_or_else(|err| {
-            abort! {
-                proc_macro2::Span::call_site(),
-                format!(
-                    "fl!() had a problem reading i18n config file {config_file_path:?}: {err}"
-                );
-                help = "Try creating the `i18n.toml` configuration file.";
-            }
-        });
-
-            let fluent_config = config.fluent.unwrap_or_else(|| {
-                abort! {
-                    proc_macro2::Span::call_site(),
-                    format!(
-                        "fl!() had a problem parsing i18n config file {config_file_path:?}: \
-                        there is no `[fluent]` subsection."
-                    );
-                    help = "Add the `[fluent]` subsection to `i18n.toml`, \
-                            along with its required `assets_dir`.";
-                }
-            });
-
-            // Use the domain override in the configuration.
-            let domain = fluent_config.domain.unwrap_or(domain);
-
+        Some(domain_data)
+            if DOMAIN_OUTDATED_VERIF
+                .read()
+                .unwrap()
+                .get(&domain)
+                .is_some_and(|b| !*b) =>
+        {
+            domain_data
+        }
+        _ => {
             let assets_dir = Path::new(&crate_paths.crate_dir).join(fluent_config.assets_dir);
-            let assets = FileSystemAssets::try_new(assets_dir).unwrap();
+            let assets = FileSystemAssets::try_new(assets_dir)
+                .unwrap()
+                .notify_changes_enabled(true);
+
+            DOMAIN_OUTDATED_VERIF
+                .write()
+                .unwrap()
+                .insert(domain.clone(), false);
+
+            let domain_clone = domain.clone();
+            let watcher = assets
+                .subscribe_changed(Arc::new(move || {
+                    DOMAIN_OUTDATED_VERIF
+                        .write()
+                        .unwrap()
+                        .insert(domain_clone.clone(), true);
+                }))
+                .unwrap();
 
             let fallback_language: LanguageIdentifier = config.fallback_language;
 
@@ -470,12 +504,33 @@ pub fn fl(input: TokenStream) -> TokenStream {
 
             let data = DomainSpecificData {
                 loader,
-                _assets: assets,
+                assets,
+                _watcher: watcher,
             };
 
-            domains().entry_or_insert(&domain, data)
+            domains().insert(&domain, data)
         }
     };
+
+    let include_path = domain_data
+        .assets
+        .base_dir()
+        .join(
+            domain_data
+                .loader
+                .language_files(&domain_data.loader.current_language(), &domain_data.assets)
+                .0,
+        )
+        .to_string_lossy()
+        .to_string();
+
+    set_dummy(quote! {
+        {
+            const _: &str = include_str!(#include_path);
+            const _: &str = include_str!(#config_file_path);
+            ""
+        }
+    });
 
     let message_id_string = match &message_id {
         syn::Lit::Str(message_id_str) => {
@@ -521,7 +576,7 @@ pub fn fl(input: TokenStream) -> TokenStream {
     // Same procedure for attributes
     let mut checked_message_has_attribute = false;
 
-    let r#gen = match input.args {
+    let generate = match input.args {
         FlArgs::HashMap(args_hash_map) => {
             if attr_lit.is_none() {
                 quote! {
@@ -587,7 +642,7 @@ pub fn fl(input: TokenStream) -> TokenStream {
                         .is_some();
                 }
 
-                let r#gen = quote! {
+                let generate = quote! {
                     (#fluent_loader).get_args_concrete(
                         #message_id,
                         {
@@ -597,7 +652,7 @@ pub fn fl(input: TokenStream) -> TokenStream {
                         })
                 };
 
-                r#gen
+                generate
             } else {
                 if let Some(message_id_str) = &message_id_string {
                     if let Some(attr_id_str) = &attr_str {
@@ -616,7 +671,7 @@ pub fn fl(input: TokenStream) -> TokenStream {
                     }
                 }
 
-                let r#gen = quote! {
+                let generate = quote! {
                     (#fluent_loader).get_attr_args_concrete(
                         #message_id,
                         #attr_lit,
@@ -627,7 +682,7 @@ pub fn fl(input: TokenStream) -> TokenStream {
                         })
                 };
 
-                r#gen
+                generate
             }
         }
     };
@@ -690,7 +745,14 @@ pub fn fl(input: TokenStream) -> TokenStream {
         }
     }
 
-    r#gen.into()
+    quote! {
+        {
+            const _: &str = include_str!(#include_path);
+            const _: &str = include_str!(#config_file_path);
+            #generate
+        }
+    }
+    .into()
 }
 
 fn fuzzy_message_suggestions(

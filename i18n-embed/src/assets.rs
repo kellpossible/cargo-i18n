@@ -1,4 +1,6 @@
 use std::borrow::Cow;
+#[cfg(feature = "filesystem-assets")]
+use std::path::Path;
 
 #[cfg(feature = "rust-embed")]
 use rust_embed::RustEmbed;
@@ -150,6 +152,11 @@ impl FileSystemAssets {
     pub fn notify_changes_enabled(mut self, enabled: bool) -> Self {
         self.notify_changes_enabled = enabled;
         self
+    }
+
+    /// Get the base directory from which localization files will be looked up
+    pub fn base_dir(&self) -> &Path {
+        &self.base_dir
     }
 }
 
