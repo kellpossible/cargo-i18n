@@ -55,7 +55,7 @@ resolver = "3"
 [workspace.dependencies]
 anyhow = "1.0"
 arc-swap = "1.0"
-clap = { version = "4.6.7", features = ["cargo"] }
+clap = { version = "4.6.7", features = ["derive"] }
 dashmap = "6.2"
 env_logger = "0.11"
 find-crate = "0.7"

@@ -1,7 +1,7 @@
 #![doc = include_str!("../README.md")]
 use anyhow::Result;
 use clap::{
-    Arg, Command, builder::PossibleValuesParser, crate_authors, crate_version, value_parser,
+    Args, CommandFactory, FromArgMatches, Parser, Subcommand, builder::PossibleValuesParser,
 };
 use i18n_build::run;
 use i18n_config::Crate;
@@ -11,7 +11,7 @@ use i18n_embed::{
 };
 use rust_embed::RustEmbed;
 use std::{
-    path::{Path, PathBuf},
+    path::PathBuf,
     sync::{Arc, OnceLock},
 };
 use tr::tr;
@@ -22,6 +22,38 @@ use unic_langid::LanguageIdentifier;
 struct Translations;
 
 static TRANSLATIONS: Translations = Translations {};
+
+// Help/about text is localized at runtime with `tr!`, so it is attached in
+// `main` via `mut_subcommand`/`mut_arg` rather than with doc comments here.
+#[derive(Parser)]
+#[command(
+    name = "cargo-i18n",
+    bin_name = "cargo",
+    term_width = 80,
+    version,
+    author
+)]
+struct Cli {
+    #[command(subcommand)]
+    command: Option<Commands>,
+}
+
+#[derive(Subcommand)]
+enum Commands {
+    I18n(I18nArgs),
+}
+
+#[derive(Args)]
+#[command(version, author)]
+struct I18nArgs {
+    #[arg(long)]
+    path: Option<PathBuf>,
+    #[arg(long, short = 'c', default_value = "i18n.toml")]
+    config_file_name: String,
+    // Default value and possible values are determined at runtime.
+    #[arg(long, short = 'l')]
+    language: String,
+}
 
 fn language_loader() -> &'static GettextLanguageLoader {
     static LANGUAGE_LOADER: OnceLock<GettextLanguageLoader> = OnceLock::new();
@@ -97,76 +129,51 @@ fn main() -> Result<()> {
         .map(|l| String::leak(l) as &str)
         .collect();
 
-    let matches = Command::new("cargo-i18n")
-        .bin_name("cargo")
-        .term_width(80)
+    let command = Cli::command()
         .about(
             tr!(
                 // The message displayed when running the binary outside of cargo using `cargo-18n`.
                 "This binary is designed to be executed as a cargo subcommand using \"cargo i18n\".")
         )
-        .version(crate_version!())
-        .author(crate_authors!())
-        .subcommand(Command::new("i18n")
-            .about(short_about())
-            .long_about(long_about())
-            .version(crate_version!())
-            .author(crate_authors!())
-            .arg(Arg::new("path")
-                .help(
-                    // The help message for the `--path` command line argument.
-                    tr!("Path to the crate you want to localize (if not the current directory). The crate needs to contain \"i18n.toml\" in its root.")
+        .mut_subcommand("i18n", |sub| {
+            sub.about(short_about())
+                .long_about(long_about())
+                .mut_arg("path", |arg| {
+                    arg.help(
+                        // The help message for the `--path` command line argument.
+                        tr!("Path to the crate you want to localize (if not the current directory). The crate needs to contain \"i18n.toml\" in its root.")
                     )
-                .long("path")
-                .value_parser(value_parser!(PathBuf))
-                .num_args(1)
-            )
-            .arg(Arg::new("config-file-name")
-                .help(
-                    tr!(
-                        // The help message for the `-c`, `--config-file-name` command line argument.
-                        "The name of the i18n config file for this crate")
-                )
-                .long("config-file-name")
-                .short('c')
-                .num_args(1)
-                .default_value("i18n.toml")
-            )
-            .arg(Arg::new("language")
-                .help(
-                    tr!(
-                        // The help message for the `-l`, `--language` command line argument.
-                        "Set the language to use for this application. Overrides the language selected automatically by your operating system."
+                })
+                .mut_arg("config_file_name", |arg| {
+                    arg.help(
+                        tr!(
+                            // The help message for the `-c`, `--config-file-name` command line argument.
+                            "The name of the i18n config file for this crate")
                     )
-                )
-                .long("language")
-                .short('l')
-                .num_args(1)
-                .default_value(fallback_locale)
-                .value_parser(PossibleValuesParser::new(available_languages_slice))
-            )
-        )
-        .get_matches();
+                })
+                .mut_arg("language", |arg| {
+                    arg.help(
+                        tr!(
+                            // The help message for the `-l`, `--language` command line argument.
+                            "Set the language to use for this application. Overrides the language selected automatically by your operating system."
+                        )
+                    )
+                    .required(false)
+                    .default_value(fallback_locale)
+                    .value_parser(PossibleValuesParser::new(available_languages_slice))
+                })
+        });
 
-    if let Some(i18n_matches) = matches.subcommand_matches("i18n") {
-        let config_file_name: &String = i18n_matches
-            .get_one("config-file-name")
-            .expect("expected a default config file name to be present");
+    let cli = Cli::from_arg_matches(&command.get_matches()).unwrap_or_else(|e| e.exit());
 
-        let language: &String = i18n_matches
-            .get_one("language")
-            .expect("expected a default language to be present");
-        let li: LanguageIdentifier = language.parse()?;
+    if let Some(Commands::I18n(args)) = cli.command {
+        let li: LanguageIdentifier = args.language.parse()?;
 
         language_requester.set_language_override(Some(li))?;
         language_requester.poll()?;
 
-        let path = i18n_matches
-            .get_one::<PathBuf>("path")
-            .map(ToOwned::to_owned)
-            .unwrap_or_else(|| PathBuf::from("."));
-
-        let config_file_path = Path::new(config_file_name).to_path_buf();
+        let path = args.path.unwrap_or_else(|| PathBuf::from("."));
+        let config_file_path = PathBuf::from(args.config_file_name);
 
         i18n_build::util::check_path_exists(&path)?;
         i18n_build::util::check_path_exists(path.join(&config_file_path))?;
