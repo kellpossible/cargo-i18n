@@ -6,6 +6,8 @@
 
 - Fixed building tests with different feature configurations (#134)
 - Reconfigured optional dependencies to not create a feature with the same name as the dependency
+- Fixed get_attr for the current language with a Fluent loader (#160)
+- Fixed runtime crashes with debug embeddings when running under Wine (#184)
 
 ### Dependencies
 
@@ -16,6 +18,8 @@
 
 - Merged `desktop-requester` and `web-requester` into a single feature, `system-requester`, which works on desktop, mobile, and web platforms
 - Defined the MSRV to be 1.85.1
+- Don't require an output path when `extract_to_parent` is set to true (#182)
+- Look up `i18n.toml` files in parent directories as well, and support `.config/i18n.toml` (#186)
 
 ### New Features
 
