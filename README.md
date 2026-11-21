@@ -250,7 +250,7 @@ extract_to_parent = false
 
 # (Optional) Use the fluent localization system.
 [fluent]
-# (Required) The path to the assets directory.
+# (Required) The path to the assets directory, relative to the directory where this config file is stored.
 # The paths inside the assets directory should be structured like so:
 # `assets_dir/{language}/{domain}.ftl`
 assets_dir = "i18n"

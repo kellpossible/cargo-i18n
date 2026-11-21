@@ -27,11 +27,13 @@ fallback_language = "en-GB"
 
 # Use the fluent localization system.
 [fluent]
-# (Required) The path to the assets directory.
+# (Required) The path to the assets directory, relative to the directory where this config file is stored.
 # The paths inside the assets directory should be structured like so:
 # `assets_dir/{language}/{domain}.ftl`
 assets_dir = "i18n"
 ```
+
+If `i18n.toml` is not found in the crate root directory, all parent directories will also be checked, similarly to `rust-toolchain.toml` files. `.config/i18n.toml` from any directory in the tree will also be picked up.
 
 Create a fluent localization file for the `en-GB` language in `i18n/en-GB/{domain}.ftl`, where `domain` is the rust path of your crate (`_` instead of `-`):
 
