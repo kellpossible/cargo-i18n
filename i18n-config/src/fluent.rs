@@ -6,7 +6,8 @@ use std::path::PathBuf;
 #[derive(Deserialize, Debug, Clone)]
 #[serde(deny_unknown_fields)]
 pub struct FluentConfig {
-    /// (Required) The path to the assets directory.
+    /// (Required) The path to the assets directory, relative to the directory where this config
+    /// file is stored.
     ///
     /// The paths inside the assets directory should be  structured
     /// like so: `assets_dir/{language}/{domain}.ftl`

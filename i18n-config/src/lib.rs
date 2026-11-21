@@ -44,6 +44,8 @@ pub enum I18nConfigError {
     CannotDeserializeToml(PathBuf, toml::de::Error),
     #[error("Cannot parse i18n configuration file {0:?} because {1}.")]
     CannotParseI18nToml(PathBuf, String),
+    #[error("There are multiple i18n configuration files present at {0}.")]
+    DuplicateI18nConfig(String),
     #[error("There is no i18n configuration file present for the crate {0}.")]
     NoI18nConfig(String),
     #[error("The \"{0}\" is required to be present in the i18n configuration file \"{1}\"")]
@@ -402,14 +404,16 @@ impl I18nConfig {
 /// Important i18n-config paths related to the current crate.
 #[derive(Debug)]
 pub struct CratePaths {
-    /// The current crate directory path (where the `Cargo.toml` is
-    /// located).
-    pub crate_dir: PathBuf,
+    /// The current i18n config file parent directory (or grandparent, if in a .config folder)
+    pub i18n_config_dir: PathBuf,
     /// The current i18n config file path
     pub i18n_config_file: PathBuf,
 }
 
-/// Locate the current crate's directory and `i18n.toml` config file.
+/// Locate the current crate's `i18n.toml` config file. This will search upwards
+/// in the directory tree until a parent directory with `i18n.toml` or `.config/i18n.toml`
+/// is found.
+///
 /// This is intended to be called by a procedural macro during crate
 /// compilation.
 pub fn locate_crate_paths() -> Result<CratePaths, I18nConfigError> {
@@ -418,10 +422,34 @@ pub fn locate_crate_paths() -> Result<CratePaths, I18nConfigError> {
             .ok_or(I18nConfigError::CannotReadCargoManifestDir)?,
     )
     .to_path_buf();
-    let i18n_config_file = crate_dir.join("i18n.toml");
+
+    let find_config = |dir: &Path| -> Result<PathBuf, I18nConfigError> {
+        let first = dir.join("i18n.toml");
+        let mut second = dir.to_path_buf();
+        second.extend([".config", "i18n.toml"]);
+        match (first.exists(), second.exists()) {
+            (true, true) => Err(I18nConfigError::DuplicateI18nConfig(
+                dir.to_string_lossy().to_string(),
+            )),
+            (true, false) | (false, false) => Ok(first),
+            (false, true) => Ok(second),
+        }
+    };
+
+    let mut i18n_config_dir = crate_dir.clone();
+    let mut i18n_config_file = find_config(&i18n_config_dir)?;
+
+    while !i18n_config_file.exists() && i18n_config_dir.parent().is_some() && i18n_config_dir.pop()
+    {
+        i18n_config_file = find_config(&i18n_config_dir)?;
+    }
+    if i18n_config_dir.parent().is_none() {
+        i18n_config_dir = crate_dir;
+        i18n_config_file = find_config(&i18n_config_dir)?;
+    }
 
     Ok(CratePaths {
-        crate_dir,
+        i18n_config_dir,
         i18n_config_file,
     })
 }

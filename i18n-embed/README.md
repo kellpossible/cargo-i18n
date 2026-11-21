@@ -72,11 +72,13 @@ fallback_language = "en-GB"
 
 # Use the fluent localization system.
 [fluent]
-# (Required) The path to the assets directory.
+# (Required) The path to the assets directory, relative to the directory where this config file is stored.
 # The paths inside the assets directory should be structured like so:
 # `assets_dir/{language}/{domain}.ftl`
 assets_dir = "i18n"
 ```
+
+If `i18n.toml` is not found in the crate root directory, all parent directories will also be checked, similarly to `rust-toolchain.toml` files. `.config/i18n.toml` from any directory in the tree will also be picked up.
 
 Next, you want to create your localization resources, per language fluent (`.ftl`) files. `language` needs to conform to the [Unicode Language Identifier](https://unicode.org/reports/tr35/tr35.html#Unicode_language_identifier) standard, and will be parsed via the [unic_langid crate](https://docs.rs/unic-langid).
 
@@ -158,6 +160,8 @@ target_languages = ["es"]
 # the crate being localized.
 output.dir = "i18n"
 ```
+
+If `i18n.toml` is not found in the crate root directory, all parent directories will also be checked, similarly to `rust-toolchain.toml` files. `.config/i18n.toml` from any directory in the tree will also be picked up.
 
 Install and run [cargo-i18n](https://crates.io/crates/cargo-i18n) for your crate to generate the language specific `po` and `mo` files, ready to be translated. It is recommended to add the `i18n/pot` folder to your repository `.gitignore`.
 
@@ -298,7 +302,9 @@ People using this library can call `localize()` to obtain a [`Localizer`](Locali
 
 ## Localizing sub-crates
 
-If you want to localize a sub-crate in your project, and want to extract strings from this sub-crate and store/embed them in one location in the parent crate, you can use the following pattern for the library:
+If you want to share a single `i18n.toml` file and localization domain between all crates in a Fluent project, this is quite straightforward: just put `i18n.toml` or `.config/i18n.toml` in a shared ancestor directory of the crate and sub-crates being localized.
+
+Otherwise, if you want to localize a sub-crate in your project, and want to extract strings from this sub-crate and store/embed them in one location in the parent crate, you can use the following pattern for the library:
 
 ```rust
 # #[cfg(all(feature = "rust-embed", feature = "gettext-system"))]

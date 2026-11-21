@@ -11,7 +11,7 @@ use proc_macro::TokenStream;
 use proc_macro_error3::{abort, emit_error, proc_macro_error, set_dummy};
 use quote::quote;
 use std::sync::LazyLock;
-use std::{collections::HashSet, path::Path, sync::OnceLock};
+use std::{collections::HashSet, sync::OnceLock};
 
 #[cfg(feature = "dashmap")]
 use dashmap::mapref::one::Ref;
@@ -405,6 +405,7 @@ pub fn fl(input: TokenStream) -> TokenStream {
     let crate_paths = i18n_config::locate_crate_paths()
         .unwrap_or_else(|error| panic!("fl!() is unable to locate crate paths: {}", error));
     let config_file_path = crate_paths.i18n_config_file.to_string_lossy();
+    let config_file_dir = crate_paths.i18n_config_dir;
 
     set_dummy(quote! {
         {
@@ -449,7 +450,7 @@ pub fn fl(input: TokenStream) -> TokenStream {
             domain_data
         }
         _ => {
-            let assets_dir = Path::new(&crate_paths.crate_dir).join(fluent_config.assets_dir);
+            let assets_dir = config_file_dir.join(fluent_config.assets_dir);
             let assets = FileSystemAssets::try_new(assets_dir)
                 .unwrap()
                 .notify_changes_enabled(true);
