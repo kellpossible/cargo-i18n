@@ -1,8 +1,10 @@
 # `i18n-config` Changelog
 
-### Unreleased
-
 ## Unreleased
+
+### Fixes
+
+- Handle `version.workspace` in crate manifests (#179)
 
 ### Dependencies
 
@@ -12,6 +14,8 @@
 ### Enhancements
 
 - Defined the MSRV to be 1.85.1
+- Don't require an output path when `extract_to_parent` is set to true (#182)
+- Look up `i18n.toml` files in parent directories as well, and support `.config/i18n.toml` (#186)
 
 ### New Features
 

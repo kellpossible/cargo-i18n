@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Fixes
+
+- Validate arguments for messages with no arguments provided (#170)
+- Fixed translations not reloading in rust-analyzer without a server restart (#161)
+
 ### Dependencies
 
 - Updated all dependencies to the latest versions
@@ -9,6 +14,7 @@
 ### Enhancements
 
 - Defined the MSRV to be 1.85.1
+- Look up `i18n.toml` files in parent directories as well, and support `.config/i18n.toml` (#186)
 
 ### New Features
 
